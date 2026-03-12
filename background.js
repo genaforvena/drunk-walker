@@ -32,13 +32,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       stopNavigation();
       sendResponse({ status: 'stopped' });
       break;
-    
-    case 'PAUSE':
-      state.status = state.status === 'paused' ? 'navigating' : 'paused';
-      if (state.status === 'navigating') startNavigation();
-      else stopNavigation();
-      sendResponse({ status: state.status });
-      break;
 
     case 'UPDATE_STATUS':
       if (message.payload.urlChanged) {

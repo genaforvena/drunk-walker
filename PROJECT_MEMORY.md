@@ -8,8 +8,8 @@
 ## 🏗️ System Architecture
 
 ### 1. Component Roles
-- **Popup (`popup.html`, `popup.js`)**: The control center. Handles user-defined parameters (Interval, Radius, Max Steps) and displays navigation status.
-- **Background (`background.js`)**: The "Brain." Maintains the primary state machine (`idle`, `navigating`, `paused`, `complete`). Orchestrates the timing loop and triggers click events in the content script.
+- **Popup (`popup.html`, `popup.js`)**: The control center. Handles user-defined parameters (Interval, Radius, Max Steps) and provides a simple **START/STOP toggle**.
+- **Background (`background.js`)**: The "Brain." Maintains the primary state machine (`idle`, `navigating`, `complete`). Orchestrates the timing loop and triggers click events in the content script.
 - **Content (`content.js`)**: The "Hands & Eyes." Injected into `google.com/maps`.
     - **Actions**: Executes `MouseEvent` clicks based on cursor position or screen center.
     - **Detection**: Monitors URL changes (to detect movement), checks Street View mode, and verifies Full-Screen status.
@@ -18,7 +18,7 @@
 ### 2. State Machine (`background.js`)
 ```javascript
 {
-  status: 'idle' | 'navigating' | 'paused' | 'complete',
+  status: 'idle' | 'navigating' | 'complete',
   stepsTaken: 0,
   maxSteps: 1000,
   clickInterval: 3000,
@@ -53,8 +53,12 @@ A high-chaos preset:
 
 ## 🧠 Reasoning & Design Decisions
 
+### Minimalism & Simplicity
+- **UI Preference**: The user prefers a minimalist interface with only essential controls. The primary interaction is a single **START/STOP toggle**.
+- **No Pause**: Pause logic was removed to simplify the workflow and state management.
+
 ### Pure Coordinate Interaction
-By relying on coordinates and the cursor position rather than DOM selectors, the extension remains agnostic to Google Maps' internal code updates. It "dances" with the UI by clicking where the user points (or where the center is).
+By relying on coordinates and the cursor position rather than DOM selectors, the extension remains agnostic to Google Maps' internal code updates.
 
 ### Mouse Tracking
 Tracking the cursor allows for "guided chaos"—the user can influence the direction of the drunk walk by simply moving their mouse, while the extension adds the "drunken" randomness via the click radius.
@@ -70,6 +74,7 @@ Tracking the cursor allows for "guided chaos"—the user can influence the direc
 - [x] HUD Overlay (Vanilla CSS/JS)
 - [x] Panic Mode (Side-clicking)
 - [x] YOLO Mode
+- [x] **Minimalist UI** (Start/Stop Toggle)
 - [ ] **Next Up**: Dynamic Radius scaling (increasing wobble over time)
 - [ ] **Next Up**: Screen shake effects on click
 
@@ -79,5 +84,5 @@ Tracking the cursor allows for "guided chaos"—the user can influence the direc
 - `manifest.json`: Extension config and permissions.
 - `background.js`: Timing loop and global state.
 - `content.js`: Mouse tracking, HUD, and click execution.
-- `popup.js`: User parameter control.
+- `popup.js`: User parameter control and toggle logic.
 - `PROJECT_MEMORY.md`: This knowledge base.

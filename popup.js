@@ -9,13 +9,13 @@ const els = {
   statusText: document.getElementById('status-text'),
   progressText: document.getElementById('progress-text'),
   fsWarning: document.getElementById('fs-warning'),
-  btnStart: document.getElementById('btn-start'),
-  btnStop: document.getElementById('btn-stop'),
-  btnPause: document.getElementById('btn-pause'),
+  btnToggle: document.getElementById('btn-toggle'),
 };
 
 function updateUI(state) {
+  const isNavigating = state.status === 'navigating';
   els.statusText.textContent = state.status.charAt(0).toUpperCase() + state.status.slice(1);
+  
   if (state.isPanicMode) {
     els.statusText.textContent += " (PANIC!)";
     els.statusText.style.color = "red";
@@ -25,8 +25,14 @@ function updateUI(state) {
 
   els.progressText.textContent = `${state.stepsTaken} / ${state.maxSteps} steps`;
   
-  // Update button text for Pause/Resume
-  els.btnPause.textContent = state.status === 'paused' ? '▶ RESUME' : '⏸ PAUSE';
+  // Update toggle button
+  if (isNavigating) {
+    els.btnToggle.textContent = "🔴 STOP";
+    els.btnToggle.style.background = "#ff4d4d";
+  } else {
+    els.btnToggle.textContent = "▶ START";
+    els.btnToggle.style.background = "#4caf50";
+  }
 
   // Check status reported from content script
   if (!state.isFullScreen && state.status !== 'idle') {
@@ -58,26 +64,21 @@ els.clickRadius.oninput = () => {
   els.radiusVal.textContent = els.clickRadius.value;
 };
 
-els.btnStart.onclick = async () => {
-  await browser.runtime.sendMessage({
-    type: 'START',
-    payload: {
-      clickInterval: parseFloat(els.clickInterval.value) * 1000,
-      clickRadius: parseInt(els.clickRadius.value),
-      maxSteps: parseInt(els.maxSteps.value),
-      isYoloMode: false
-    }
-  });
-  refreshState();
-};
-
-els.btnStop.onclick = async () => {
-  await browser.runtime.sendMessage({ type: 'STOP' });
-  refreshState();
-};
-
-els.btnPause.onclick = async () => {
-  await browser.runtime.sendMessage({ type: 'PAUSE' });
+els.btnToggle.onclick = async () => {
+  const state = await browser.runtime.sendMessage({ type: 'GET_STATE' });
+  if (state.status === 'navigating') {
+    await browser.runtime.sendMessage({ type: 'STOP' });
+  } else {
+    await browser.runtime.sendMessage({
+      type: 'START',
+      payload: {
+        clickInterval: parseFloat(els.clickInterval.value) * 1000,
+        clickRadius: parseInt(els.clickRadius.value),
+        maxSteps: parseInt(els.maxSteps.value),
+        isYoloMode: false
+      }
+    });
+  }
   refreshState();
 };
 
