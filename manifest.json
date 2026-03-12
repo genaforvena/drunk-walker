@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Drunk Walker",
+  "version": "1.0.0",
+  "description": "Automated chaotic Street View navigation",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.google.com/maps/*",
+    "https://maps.google.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Drunk Walker"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [{
+    "matches": ["https://www.google.com/maps/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "drunk-walker@example.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}
