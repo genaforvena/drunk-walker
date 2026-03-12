@@ -10,23 +10,14 @@
 - **🤪 YOLO Mode:** One-click insanity. Max speed, max radius, and screen glitch effects.
 - **Manifest V3:** Built for modern browser security standards.
 
-## 🚀 Fast Installation (Any Device / Mobile)
+## 🚀 Instant Launch (No Install)
 
-For the easiest experience, use the **Drunk Walker Bookmarklet**. It works on Desktop and Mobile (Chrome/Firefox/Safari) without needing to install an extension.
+For the fastest experience on any browser, use the **Developer Console** method:
 
-### 1. The Bookmarklet Code
-Copy the code from **[bookmarklet.js](./bookmarklet.js)**.
+**[👉 Click here for the One-Click Copy Page](https://genaforvena.github.io/drunk-walker/)**
 
-### 2. How to "Install"
-1.  Create a new bookmark in your browser.
-2.  Name it `🤪 Drunk Walker`.
-3.  Paste the copied code into the **URL** (or "Address") field.
-
-### 3. How to Use
-1.  Open **Google Maps Street View** on your phone or computer.
-2.  Tap your browser's address bar.
-3.  Type `Drunk` and tap the bookmark you created.
-4.  The HUD will appear and the walk will begin!
+1. Click **COPY JS TO CLIPBOARD**.
+2. Open Street View, press `F12`, and paste the code into the **Console**.
 
 ## 🛠 Extension Installation (Desktop)
 

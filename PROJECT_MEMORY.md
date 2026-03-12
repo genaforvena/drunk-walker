@@ -21,10 +21,11 @@
 
 ## 🚀 Deployment & Sharing
 
-### One-Click Installation (GitHub Pages)
+### One-Click "No-Install" (GitHub Pages)
 The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](https://genaforvena.github.io/drunk-walker/)**
-- **Desktop**: Drag the bookmarklet to the bar.
-- **Mobile**: Copy-paste code instructions for mobile browser bookmarks.
+- **Method**: Single button to **Copy JS to Clipboard**.
+- **Execution**: User pastes into the **Browser Console (F12)** on a Street View page.
+- **Benefits**: Works instantly on any modern browser without installation or store approvals.
 
 ### GitHub Automation (User Preference)
 - **Prefer `gh` CLI**: The user prefers using the GitHub CLI (`gh`) for automating repository settings, creating releases, and enabling GitHub Pages.

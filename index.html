@@ -3,47 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤪 Drunk Walker - One Click Install</title>
+    <title>🤪 Drunk Walker - Developer Console Install</title>
     <style>
         body { font-family: 'Courier New', Courier, monospace; background: #000; color: #0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
-        .container { border: 2px solid #0f0; padding: 40px; border-radius: 15px; box-shadow: 0 0 20px #0f0; max-width: 600px; }
+        .container { border: 2px solid #0f0; padding: 40px; border-radius: 15px; box-shadow: 0 0 20px #0f0; max-width: 650px; }
         h1 { font-size: 2.5em; text-shadow: 0 0 10px #0f0; margin-top: 0; }
-        .btn { display: inline-block; background: #0f0; color: #000; padding: 15px 30px; font-weight: bold; text-decoration: none; border-radius: 5px; margin: 20px 0; cursor: move; font-size: 1.2em; transition: transform 0.2s; }
-        .btn:hover { transform: scale(1.05); }
-        .instructions { text-align: left; background: rgba(0, 255, 0, 0.1); padding: 20px; border-radius: 8px; margin-top: 20px; font-size: 0.9em; }
-        .mobile-only { display: none; }
-        @media (max-width: 600px) { .mobile-only { display: block; } .desktop-only { display: none; } }
-        code { background: #222; padding: 2px 5px; border-radius: 3px; color: #ff00ff; }
-        .copy-btn { background: transparent; border: 1px solid #0f0; color: #0f0; padding: 5px 10px; cursor: pointer; margin-top: 10px; }
+        .btn-main { display: inline-block; background: #0f0; color: #000; padding: 20px 40px; font-weight: bold; text-decoration: none; border-radius: 5px; margin: 25px 0; cursor: pointer; font-size: 1.4em; border: none; transition: all 0.2s; }
+        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 15px #0f0; }
+        .btn-main:active { transform: scale(0.95); }
+        .instructions { text-align: left; background: rgba(0, 255, 0, 0.05); padding: 25px; border-left: 4px solid #0f0; border-radius: 0 8px 8px 0; margin-top: 20px; font-size: 1em; line-height: 1.6; }
+        code { background: #222; padding: 2px 6px; border-radius: 4px; color: #ff00ff; font-weight: bold; }
+        .footer { margin-top: 30px; font-size: 0.8em; opacity: 0.6; }
+        .success-msg { color: #ff00ff; font-weight: bold; display: none; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🤪 DRUNK WALKER</h1>
-        <p>Automated Street View Chaos for Any Device.</p>
+        <p>The "No-Install" Street View Chaos Engine.</p>
 
-        <div class="desktop-only">
-            <p><strong>Step 1:</strong> Drag this button to your Bookmarks Bar:</p>
-            <a class="btn" href="javascript:(function(){const%20w=window.innerWidth,h=window.innerHeight;let%20s='IDLE',st=0,i=null,mx=null,my=null,mi=false;document.addEventListener('mousemove',(e)=>{mx=e.clientX;my=e.clientY;mi=true;});document.addEventListener('mouseleave',()=>mi=false);document.addEventListener('mouseenter',()=>mi=true);const%20hud=document.createElement('div');hud.style.cssText='position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);color:#0f0;padding:10px;font-family:monospace;z-index:999999;border:1px solid%20#0f0;pointer-events:none;';document.body.appendChild(hud);function%20u(t){hud.innerHTML=`DRUNK%20WALKER%20v1.2<br>STATUS:%20${s}<br>STEPS:%20${st}<br>TARGET:%20${t}`;}function%20c(x,y){const%20o={bubbles:true,cancelable:true,view:window,clientX:x,clientY:y};const%20e=document.elementFromPoint(x,y)||document.body;e.dispatchEvent(new%20MouseEvent('mousedown',o));e.dispatchEvent(new%20MouseEvent('mouseup',o));e.dispatchEvent(new%20MouseEvent('click',o));const%20m=document.createElement('div');m.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:15px;height:15px;background:cyan;border-radius:50%;z-index:999999;pointer-events:none;transform:translate(-50%,-50%);`;document.body.appendChild(m);setTimeout(()=>m.remove(),300);}function%20start(){s='WALKING';i=setInterval(()=>{let%20tx,ty,t;const%20off=()=>(Math.random()*2-1)*50;if(mi&&mx!==null){tx=mx+off();ty=my+off();t='CURSOR';}else{tx=w*0.5+off();ty=h*0.7+off();t='FORWARD';}c(tx,ty);st++;u(t);},2000);}if(confirm(%22Drunk%20Walker:%20Start%20walking?%22)){start();}else{hud.remove();}})();">🤪 Drunk Walker</a>
-            <p><strong>Step 2:</strong> Open Google Maps Street View, click the bookmark, and enjoy.</p>
-        </div>
+        <button class="btn-main" onclick="copyToClipboard()">📋 COPY JS TO CLIPBOARD</button>
+        <div id="success" class="success-msg">✓ CODE COPIED TO CLIPBOARD!</div>
 
-    <div class="mobile-only">
-        <p><strong>Step 1:</strong> Copy the code below:</p>
-        <button class="copy-btn" id="mobile-copy-btn" onclick="copyCode()">📋 Copy Bookmarklet Code</button>
         <div class="instructions">
-            <strong>Step 2:</strong> Open <strong>Google Maps</strong> in your mobile browser.<br><br>
-            <strong>Step 3:</strong> Tap the address bar, type <code>Drunk</code>, and tap the bookmark you just edited.<br><br>
-            <em>Don't have a bookmark yet? Create one for this page first, then edit its URL to the code you copied!</em>
+            <strong>HOW TO RUN (Developer Console):</strong><br>
+            1. Open <a href="https://www.google.com/maps" target="_blank" style="color: #0f0;">Google Maps Street View</a>.<br>
+            2. Press <code>F12</code> (or <code>Right-Click > Inspect</code>) and go to the <strong>Console</strong> tab.<br>
+            3. Paste (<code>Ctrl+V</code> or <code>Cmd+V</code>) and press <strong>Enter</strong>.<br>
+            4. Type <code>allow pasting</code> if your browser asks, then paste again.<br>
+            5. Click anywhere on the map to guide the walker!
         </div>
-    </div>
+
+        <div class="footer">
+            Works on any browser. No extension required. <br>
+            <a href="https://github.com/genaforvena/drunk-walker" style="color: #0f0;">View Source on GitHub</a>
+        </div>
     </div>
 
     <script>
-        function copyCode() {
-            const code = "javascript:(function(){const%20w=window.innerWidth,h=window.innerHeight;let%20s='IDLE',st=0,i=null,mx=null,my=null,mi=false;document.addEventListener('mousemove',(e)=>{mx=e.clientX;my=e.clientY;mi=true;});document.addEventListener('mouseleave',()=>mi=false);document.addEventListener('mouseenter',()=>mi=true);const%20hud=document.createElement('div');hud.style.cssText='position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);color:#0f0;padding:10px;font-family:monospace;z-index:999999;border:1px solid%20#0f0;pointer-events:none;';document.body.appendChild(hud);function%20u(t){hud.innerHTML=`DRUNK%20WALKER%20v1.2<br>STATUS:%20${s}<br>STEPS:%20${st}<br>TARGET:%20${t}`;}function%20c(x,y){const%20o={bubbles:true,cancelable:true,view:window,clientX:x,clientY:y};const%20e=document.elementFromPoint(x,y)||document.body;e.dispatchEvent(new%20MouseEvent('mousedown',o));e.dispatchEvent(new%20MouseEvent('mouseup',o));e.dispatchEvent(new%20MouseEvent('click',o));const%20m=document.createElement('div');m.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:15px;height:15px;background:cyan;border-radius:50%;z-index:999999;pointer-events:none;transform:translate(-50%,-50%);`;document.body.appendChild(m);setTimeout(()=>m.remove(),300);}function%20start(){s='WALKING';i=setInterval(()=>{let%20tx,ty,t;const%20off=()=>(Math.random()*2-1)*50;if(mi&&mx!==null){tx=mx+off();ty=my+off();t='CURSOR';}else{tx=w*0.5+off();ty=h*0.7+off();t='FORWARD';}c(tx,ty);st++;u(t);},2000);}if(confirm(%22Drunk%20Walker:%20Start%20walking?%22)){start();}else{hud.remove();}})();";
-            navigator.clipboard.writeText(code);
-            alert("Code copied! Now create a bookmark and paste this into the URL field.");
+        const scriptCode = `(function(){const w=window.innerWidth,h=window.innerHeight;let s='IDLE',st=0,i=null,mx=null,my=null,mi=false;document.addEventListener('mousemove',(e)=>{mx=e.clientX;my=e.clientY;mi=true;});document.addEventListener('mouseleave',()=>mi=false);document.addEventListener('mouseenter',()=>mi=true);const hud=document.createElement('div');hud.style.cssText='position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);color:#0f0;padding:10px;font-family:monospace;z-index:999999;border:1px solid #0f0;pointer-events:none;';document.body.appendChild(hud);function u(t){hud.innerHTML=\`DRUNK WALKER v1.2<br>STATUS: \${s}<br>STEPS: \${st}<br>TARGET: \${t}\`;}function c(x,y){const o={bubbles:true,cancelable:true,view:window,clientX:x,clientY:y};const e=document.elementFromPoint(x,y)||document.body;e.dispatchEvent(new MouseEvent('mousedown',o));e.dispatchEvent(new MouseEvent('mouseup',o));e.dispatchEvent(new MouseEvent('click',o));const m=document.createElement('div');m.style.cssText=\`position:fixed;left:\${x}px;top:\${y}px;width:15px;height:15px;background:cyan;border-radius:50%;z-index:999999;pointer-events:none;transform:translate(-50%,-50%);\`;document.body.appendChild(m);setTimeout(()=>m.remove(),300);}function start(){s='WALKING';i=setInterval(()=>{let tx,ty,t;const off=()=>(Math.random()*2-1)*50;if(mi&&mx!==null){tx=mx+off();ty=my+off();t='CURSOR';}else{tx=w*0.5+off();ty=h*0.7+off();t='FORWARD';}c(tx,ty);st++;u(t);},2000);}if(confirm("Drunk Walker: Start walking?")){start();}else{hud.remove();}})();`;
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(scriptCode).then(() => {
+                const success = document.getElementById('success');
+                success.style.display = 'block';
+                setTimeout(() => { success.style.display = 'none'; }, 3000);
+            });
         }
     </script>
 </body>
