@@ -2,9 +2,6 @@
 
 let state = {
   status: 'idle',
-  origin: null,
-  destination: null,
-  currentPosition: null,
   stepsTaken: 0,
   maxSteps: 1000,
   clickInterval: 3000,
@@ -13,8 +10,6 @@ let state = {
   isFullScreen: false,
   isStreetView: false,
   stuckCount: 0,
-  lastLat: null,
-  lastLng: null,
   isPanicMode: false,
   isYoloMode: false
 };
@@ -27,7 +22,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
     
     case 'START':
-      state = { ...state, ...message.payload, status: 'navigating', stepsTaken: 0, stuckCount: 0, isPanicMode: false, isYoloMode: message.payload.isYoloMode || false };
+      state = { ...state, ...message.payload, status: 'navigating', stepsTaken: 0, stuckCount: 0, isPanicMode: false };
       startNavigation();
       sendResponse({ status: 'started' });
       break;
@@ -45,23 +40,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ status: state.status });
       break;
 
-    case 'UPDATE_POSITION':
-      const pos = message.payload.position;
-      if (pos) {
-        if (state.lastLat === pos.lat && state.lastLng === pos.lng) {
-          // Position hasn't changed
-        } else {
-          // Position changed! Reset stuck count
-          state.stuckCount = 0;
-          state.isPanicMode = false;
-        }
-        state.lastLat = pos.lat;
-        state.lastLng = pos.lng;
-        state.currentPosition = pos;
+    case 'UPDATE_STATUS':
+      if (message.payload.urlChanged) {
+        state.stuckCount = 0;
+        state.isPanicMode = false;
       }
       state.isStreetView = message.payload.isStreetView;
       state.isFullScreen = message.payload.isFullScreen;
-      state.stepsTaken = message.payload.stepsTaken || state.stepsTaken;
       break;
 
     case 'FINISHED':
