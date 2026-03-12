@@ -9,8 +9,6 @@ let state = {
   tabId: null,
   isFullScreen: false,
   isStreetView: false,
-  stuckCount: 0,
-  isPanicMode: false,
   isYoloMode: false
 };
 
@@ -22,7 +20,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
     
     case 'START':
-      state = { ...state, ...message.payload, status: 'navigating', stepsTaken: 0, stuckCount: 0, isPanicMode: false };
+      state = { ...state, ...message.payload, status: 'navigating', stepsTaken: 0 };
       startNavigation();
       sendResponse({ status: 'started' });
       break;
@@ -34,10 +32,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
 
     case 'UPDATE_STATUS':
-      if (message.payload.urlChanged) {
-        state.stuckCount = 0;
-        state.isPanicMode = false;
-      }
       state.isStreetView = message.payload.isStreetView;
       state.isFullScreen = message.payload.isFullScreen;
       break;
@@ -84,8 +78,7 @@ function startNavigation() {
       browser.tabs.sendMessage(state.tabId, { 
         type: 'PERFORM_CLICK', 
         payload: { 
-          radius: state.isPanicMode ? state.clickRadius * 2 : state.clickRadius,
-          isPanicMode: state.isPanicMode,
+          radius: state.clickRadius,
           isYoloMode: state.isYoloMode
         } 
       }).catch(err => console.error("Error sending message to tab:", err));

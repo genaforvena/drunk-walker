@@ -15,13 +15,7 @@ const els = {
 function updateUI(state) {
   const isNavigating = state.status === 'navigating';
   els.statusText.textContent = state.status.charAt(0).toUpperCase() + state.status.slice(1);
-  
-  if (state.isPanicMode) {
-    els.statusText.textContent += " (PANIC!)";
-    els.statusText.style.color = "red";
-  } else {
-    els.statusText.style.color = "inherit";
-  }
+  els.statusText.style.color = "inherit";
 
   els.progressText.textContent = `${state.stepsTaken} / ${state.maxSteps} steps`;
   

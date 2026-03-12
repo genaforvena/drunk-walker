@@ -44,28 +44,20 @@ function createHUD() {
   `;
   
   hudElement.innerHTML = `
-    <h2 style="margin: 0 0 10px; border-bottom: 1px solid #0f0;">DRUNK WALKER v1.1</h2>
-    <div id="dw-status" style="margin-bottom: 5px;">STATUS: IDLE</div>
-    <div id="dw-target" style="margin-bottom: 5px;">TARGET: CENTER</div>
-    <div id="dw-panic" style="color: red; display: none; font-weight: bold; margin-top: 5px;">⚠️ PANIC MODE ⚠️</div>
-    <div id="dw-yolo" style="color: #ff00ff; display: none; font-weight: bold; margin-top: 5px; font-size: 1.2em;">🤪 YOLO MODE ACTIVE</div>
+  <h2 style="margin: 0 0 10px; border-bottom: 1px solid #0f0;">DRUNK WALKER v1.2</h2>
+  <div id="dw-status" style="margin-bottom: 5px;">STATUS: IDLE</div>
+  <div id="dw-target" style="margin-bottom: 5px;">TARGET: CENTER</div>
+  <div id="dw-yolo" style="color: #ff00ff; display: none; font-weight: bold; margin-top: 5px; font-size: 1.2em;">🤪 YOLO MODE ACTIVE</div>
   `;
-  
   document.body.appendChild(hudElement);
 }
 
-function updateHUD(status, targetType, isPanic, isYolo) {
+function updateHUD(status, targetType, isYolo) {
   if (!hudElement) createHUD();
   
   document.getElementById('dw-status').innerText = `STATUS: ${status}`;
   document.getElementById('dw-target').innerText = `TARGET: ${targetType}`;
   
-  const panicEl = document.getElementById('dw-panic');
-  panicEl.style.display = isPanic ? 'block' : 'none';
-  if (isPanic) {
-    panicEl.style.transform = `scale(${1 + Math.random() * 0.2})`; 
-  }
-
   const yoloEl = document.getElementById('dw-yolo');
   yoloEl.style.display = isYolo ? 'block' : 'none';
   if (isYolo) {
@@ -149,7 +141,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return;
     }
 
-    const { radius, isPanicMode, isYoloMode } = message.payload;
+    const { radius, isYoloMode } = message.payload;
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -164,19 +156,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       clickY = lastMouseY + randomOffset();
       targetType = 'CURSOR';
     } else {
+      // Default "Forward" target (lower-center)
       clickX = width * 0.5 + randomOffset();
-      clickY = height * 0.5 + randomOffset();
-      targetType = 'CENTER';
+      clickY = height * 0.7 + randomOffset();
+      targetType = 'FORWARD';
     }
 
-    if (isPanicMode) {
-      const side = Math.random() > 0.5 ? 0.2 : 0.8; 
-      clickX = width * side + randomOffset();
-      clickY = height * 0.5 + randomOffset();
-      targetType = 'PANIC (' + (side < 0.5 ? 'L' : 'R') + ')';
-    }
-
-    updateHUD('NAVIGATING', targetType, isPanicMode, isYoloMode);
+    updateHUD('NAVIGATING', targetType, isYoloMode);
     if (isYoloMode) glitchEffect();
 
     // Visual Click Marker
@@ -185,7 +171,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       position: fixed;
       left: ${clickX}px; top: ${clickY}px;
       width: 20px; height: 20px;
-      background: ${isPanicMode ? 'red' : (isYoloMode ? 'magenta' : 'cyan')};
+      background: ${isYoloMode ? 'magenta' : 'cyan'};
       border-radius: 50%;
       transform: translate(-50%, -50%);
       z-index: 100000;
