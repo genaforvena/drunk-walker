@@ -1,4 +1,5 @@
 // Drunk Walker - Popup Script
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 const els = {
   clickInterval: document.getElementById('click-interval'),
@@ -41,7 +42,7 @@ function updateUI(state) {
 }
 
 async function refreshState() {
-  const state = await browser.runtime.sendMessage({ type: 'GET_STATE' });
+  const state = await browserAPI.runtime.sendMessage({ type: 'GET_STATE' });
   updateUI(state);
 }
 
@@ -59,11 +60,11 @@ els.clickRadius.oninput = () => {
 };
 
 els.btnToggle.onclick = async () => {
-  const state = await browser.runtime.sendMessage({ type: 'GET_STATE' });
+  const state = await browserAPI.runtime.sendMessage({ type: 'GET_STATE' });
   if (state.status === 'navigating') {
-    await browser.runtime.sendMessage({ type: 'STOP' });
+    await browserAPI.runtime.sendMessage({ type: 'STOP' });
   } else {
-    await browser.runtime.sendMessage({
+    await browserAPI.runtime.sendMessage({
       type: 'START',
       payload: {
         clickInterval: parseFloat(els.clickInterval.value) * 1000,
@@ -87,7 +88,7 @@ if (btnYolo) {
     els.intervalVal.textContent = els.clickInterval.value;
     els.radiusVal.textContent = els.clickRadius.value;
     
-    await browser.runtime.sendMessage({
+    await browserAPI.runtime.sendMessage({
       type: 'START',
       payload: {
         clickInterval: 1000,

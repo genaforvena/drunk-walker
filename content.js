@@ -1,4 +1,5 @@
 // Drunk Walker - Content Script
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 console.log("Drunk Walker content script loaded.");
 
@@ -126,7 +127,7 @@ setInterval(() => {
 
   if (currentIsStreetView !== lastState.isStreetView || currentIsFullScreen !== lastState.isFullScreen || currentUrl !== lastState.url) {
     lastState = { isStreetView: currentIsStreetView, isFullScreen: currentIsFullScreen, url: currentUrl };
-    browser.runtime.sendMessage({
+    browserAPI.runtime.sendMessage({
       type: 'UPDATE_STATUS',
       payload: { isStreetView: currentIsStreetView, isFullScreen: currentIsFullScreen, urlChanged: true }
     });
@@ -134,7 +135,7 @@ setInterval(() => {
 }, 1000);
 
 // Listen for click commands from background
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'PERFORM_CLICK') {
     if (!isStreetView()) {
       console.warn("[Drunk Walker] Not in Street View mode!");

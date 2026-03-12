@@ -1,4 +1,5 @@
 // Drunk Walker - Background Script
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 let state = {
   status: 'idle',
@@ -13,7 +14,7 @@ let state = {
 };
 
 // Listen for messages from popup or content scripts
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
     case 'GET_STATE':
       sendResponse(state);
@@ -58,7 +59,7 @@ function startNavigation() {
     }
 
     // Ping content script to perform click
-    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
     if (tabs[0] && tabs[0].url.includes('google.com/maps')) {
       state.tabId = tabs[0].id;
       
@@ -75,7 +76,7 @@ function startNavigation() {
         state.isPanicMode = false;
       }
 
-      browser.tabs.sendMessage(state.tabId, { 
+      browserAPI.tabs.sendMessage(state.tabId, { 
         type: 'PERFORM_CLICK', 
         payload: { 
           radius: state.clickRadius,
