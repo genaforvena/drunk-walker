@@ -7,8 +7,8 @@ javascript:(function(){
   let intervalId = null;
   let pace = 2000; 
   let isUserMouseDown = false;
-  let currentWidth = window.innerWidth;
-  let currentHeight = window.innerHeight;
+  let cw = window.innerWidth;
+  let ch = window.innerHeight;
 
   // Track real user drag state
   document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
@@ -19,7 +19,7 @@ javascript:(function(){
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v1.8<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v1.9<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -74,9 +74,8 @@ javascript:(function(){
   }
 
   function start(){
-    // v1.8: Capture center on every START press
-    currentWidth = window.innerWidth;
-    currentHeight = window.innerHeight;
+    cw = window.innerWidth;
+    ch = window.innerHeight;
 
     status = 'WALKING';
     btn.innerText = '🔴 STOP';
@@ -86,8 +85,10 @@ javascript:(function(){
       if (isUserMouseDown) return; 
       
       const off = () => (Math.random()*2-1)*50;
-      const tx = currentWidth * 0.5 + off();
-      const ty = currentHeight * 0.5 + off();
+      
+      // v1.9: Click slightly lower than center (70% height)
+      const tx = cw * 0.5 + off();
+      const ty = ch * 0.7 + off();
       
       click(tx, ty);
       steps++;
