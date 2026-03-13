@@ -8,6 +8,7 @@ const createDrunkWalkerLogic = () => {
   let steps = 0;
   let intervalId = null;
   let pace = 2000;
+  let isUserMouseDown = false;
   let experimentalMode = false;
   let horizonFinder = false;
   let url = 'http://maps.google.com/test/@0,0,3a,75y,0h,90t';
@@ -39,6 +40,7 @@ const createDrunkWalkerLogic = () => {
     stuckCount = 0;
     status = 'WALKING';
     intervalId = setInterval(() => {
+      if (isUserMouseDown) return;
       if (horizonFinder) {
         const match = url.match(/,(\d+(\.\d+)?)t/);
         if (match) {
@@ -68,6 +70,7 @@ const createDrunkWalkerLogic = () => {
     start,
     stop,
     setPace: (p) => { pace = p; },
+    setUserMouseDown: (v) => { isUserMouseDown = v; },
     setExperimentalMode: (v) => { experimentalMode = v; },
     setHorizonFinder: (v) => { horizonFinder = v; },
     setUrl: (u) => { url = u; },
@@ -78,7 +81,7 @@ const createDrunkWalkerLogic = () => {
   };
 };
 
-describe('Drunk Walker Logic v2.4-EXP', () => {
+describe('Drunk Walker Logic v2.5-EXP', () => {
   beforeEach(() => { vi.useFakeTimers(); });
   afterEach(() => { vi.restoreAllMocks(); });
 
@@ -100,6 +103,33 @@ describe('Drunk Walker Logic v2.4-EXP', () => {
     expect(dw.getStatus()).toBe('IDLE');
     vi.advanceTimersByTime(2000);
     expect(dw.getSteps()).toBe(1);
+  });
+
+  it('should skip clicks if user is dragging (isUserMouseDown)', () => {
+    const dw = createDrunkWalkerLogic();
+    dw.start();
+    dw.setUserMouseDown(true);
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(0);
+    expect(dw.clickMock).not.toHaveBeenCalled();
+    dw.setUserMouseDown(false);
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(1);
+    expect(dw.clickMock).toHaveBeenCalled();
+  });
+
+  it('should resume clicking after dragging stops', () => {
+    const dw = createDrunkWalkerLogic();
+    dw.start();
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(1);
+    dw.setUserMouseDown(true);
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(1);
+    dw.setUserMouseDown(false);
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(2);
+    expect(dw.clickMock).toHaveBeenCalledTimes(2);
   });
 
   it('should target the area slightly lower than center (0.7 height)', () => {

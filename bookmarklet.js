@@ -6,6 +6,7 @@ javascript:(function(){
   let steps = 0;
   let intervalId = null;
   let pace = 2000; 
+  let isUserMouseDown = false;
   let cw = window.innerWidth;
   let ch = window.innerHeight;
   let hzLine = null;
@@ -13,12 +14,15 @@ javascript:(function(){
   let isDrawing = false;
   let drawOverlay = null;
 
+  document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
+  document.addEventListener('mouseup', (e) => { if (e.isTrusted) isUserMouseDown = false; }, true);
+
   const container = document.createElement('div');
   container.id = 'dw-ctrl-panel';
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v2.4-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v2.5-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -179,7 +183,7 @@ javascript:(function(){
     btn.style.background = '#f00';
     document.getElementById('dw-status').innerText = 'WALKING';
     intervalId = setInterval(() => {
-      if (isDrawing) return; 
+      if (isUserMouseDown || isDrawing) return; 
       const expOn = document.getElementById('dw-exp-toggle')?.checked;
       let radius = 50;
       if (expOn) {

@@ -23,13 +23,13 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ---
 
-## 🌟 Key Features (v2.4-EXP)
+## 🌟 Key Features (v2.5-EXP)
 
-- **Draw Click Area:** Draw a custom polygon on the screen to define exactly where the walker should click. Perfect for following specific paths or staying on the road.
+- **Draw Click Area:** Draw a custom polygon on the screen to define exactly where the walker should click.
+- **Smart Observation:** Automatically pauses clicking whenever you manually drag the mouse to look around or change perspective, then resumes when you release.
 - **Leveling Tools:** Use "LEVEL URL" to instantly flatten your view or "SHOW HORIZON" to toggle a visual guide.
 - **Experimental Mode:** Detects if you're stuck and triggers exponential chaos recovery.
 - **Optimized Forward-Targeting:** Default behavior clicks at 70% height—the "sweet spot" for Street View movement.
-- **Strictly Autonomous:** The script performs only clicks and does not pause for user interaction, ensuring continuous movement.
 - **Persistent Control Panel:** Injects a minimalist UI into the page with a **START/STOP** toggle, **Pace Slider**, and **Experimental Toggle**.
 - **Session-Aware:** Recalculates screen dimensions every time you hit START, ensuring perfect centering even after window resizes.
 - **Cross-Browser:** Works via Console or Extension on Chrome, Firefox, Safari, and Edge.

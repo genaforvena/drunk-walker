@@ -41,7 +41,7 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 
 ## ⚡ Key Implementations & Logic
 
-### 1. Click Algorithm (v2.4-EXP)
+### 1. Click Algorithm (v2.5-EXP)
 - **Control Panel**: Injected UI with **START/STOP**, **PACE slider**, **EXPERIMENTAL MODE**, **LEVEL URL**, **SHOW HORIZON**, and **DRAW CLICK AREA**.
 - **Experimental Mode**: 
     - **URL-Stuck Detection**: Tracks `window.location.href`.
@@ -52,7 +52,8 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 - **Draw Click Area**: 
     - **Selection**: User draws a polygon on a canvas overlay.
     - **Targeting**: Clicks are randomly picked within the polygon.
-- **Strictly Autonomous**: No mouse tracking or drag detection. The script performs ONLY clicks at the calculated target, ensuring continuous execution.
+- **Drag Detection (Smart Observation)**: Automated clicks are paused if `isUserMouseDown` is true (detected via `isTrusted` mousedown events). This allows users to manually look around without interference.
+- **Targeting**: Default clicks at 70% height (`screenWidth * 0.5, screenHeight * 0.7`).
 - **Session-Based**: Dimensions recalculated on every START.
 
 ### 2. YOLO Mode
@@ -64,7 +65,7 @@ A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effect
 
 - [x] Manifest V3 Setup (Cross-browser compatible)
 - [x] Background State Management (Service Worker mode)
-- [x] Cursor-relative Click Simulation (v1.1) [DEPRECATED in v2.4]
+- [x] Cursor-relative Click Simulation (v1.1) [DEPRECATED in v2.4, but restored interaction in v2.5]
 - [x] Simplified Movement (v1.2): Default Forward.
 - [x] Minimalist UI (Single Toggle)
 - [x] **One-Click Installation Page** (GitHub Pages)
@@ -73,7 +74,7 @@ A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effect
 - [x] **Horizon Finder (v2.1)**: Auto-pitch adjustment via URL parsing.
 - [x] **Leveling & Horizon Guides (v2.2)**: Manual leveling tools.
 - [x] **Draw Click Area (v2.3)**: Polygon-based click targeting.
-- [x] **Strictly Autonomous (v2.4)**: Removed all drag detection and mouse tracking.
+- [x] **Smart Observation (v2.5)**: Restored drag-detection pause logic.
 - [ ] **Next Up**: Dynamic Radius scaling (increasing wobble over time)
 - [ ] **Next Up**: Screen shake effects on click
 
