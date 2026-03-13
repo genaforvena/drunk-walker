@@ -1,6 +1,6 @@
 {
   "name": "drunk-walker",
-  "version": "2.0.0-exp",
+  "version": "2.3.0-exp",
   "description": "Automated chaotic Street View navigation",
   "type": "module",
   "scripts": {

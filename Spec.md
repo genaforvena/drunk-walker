@@ -1,4 +1,4 @@
-# Drunk Walker: Street View Chaos Specification (v2.1-EXP)
+# Drunk Walker: Street View Chaos Specification (v2.3-EXP)
 
 ## Executive Summary
 
@@ -9,14 +9,14 @@
 ## 1. Overview
 
 ### 1.1 Concept
-The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius. v2.1-EXP introduces **Experimental Mode** for automatic recovery and **Horizon Finder** for camera stabilization.
+The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius or constrained by a user-drawn polygon. v2.3-EXP introduces **Draw Click Area** for precision targeting and **Manual Leveling Tools**.
 
 ### 1.2 Core Philosophy
-- **No DOM interaction** – Never reads or manipulates page elements.
-- **Coordinate-based only** – All interaction is via screen coordinates.
-- **Forward-Default** – Clicks happen near the "Forward" direction (50% width, 70% height).
-- **Chaos-Driven Recovery** – If the URL remains unchanged, the system expands its search radius exponentially.
-- **Auto-Leveling** – Real-time URL parsing to maintain a horizontal perspective.
+- **No DOM interaction** – All interaction is via coordinate clicks.
+- **Forward-Default** – Default clicks at 50% width, 70% height.
+- **Custom Selection** – User can draw a polygon to define a specific click zone.
+- **Auto-Recovery** – Exponential radius growth when the URL remains unchanged.
+- **Leveling Guides** – Manual tools to flatten the URL pitch and show a horizon line.
 
 ---
 
@@ -28,31 +28,30 @@ The engine simulates user clicks at strategic screen locations. Movement is rand
 |-------|------|-------------|
 | Pace | Slider | 0.5 - 5.0 seconds between clicks |
 | Experimental Mode | Toggle | Enables URL-stuck detection and exponential chaos recovery |
-| Horizon Finder | Toggle | Enables auto-leveling based on URL pitch parsing |
+| LEVEL URL | Button | Modifies URL pitch to 90t (horizontal) |
+| SHOW HORIZON | Button | Toggles a guide line at 50% screen height |
+| DRAW CLICK AREA | Button | Opens an overlay to draw a custom click polygon |
 
-### 3.2 Core Algorithm (v2.1-EXP)
+### 3.2 Core Algorithm (v2.3-EXP)
 
 1. **Track State**:
-    - Monitor `window.location.href` for stuck detection and pitch adjustment.
+    - Monitor `window.location.href` for stuck detection.
     - Monitor `mousedown/up` to pause during manual drags.
-2. **Horizon Adjustment**:
-    - If `Horizon Finder` ON:
-        - Extract pitch from URL (pattern: `(\d+(\.\d+)?)t`).
-        - If `pitch > 91`: Trigger `ArrowUp`.
-        - If `pitch < 89`: Trigger `ArrowDown`.
-3. **Determine Target**:
-    - Target = "Forward" (50% width, 70% height).
-4. **Calculate Radius**:
+2. **Determine Target**:
+    - If `customArea` (polygon) is defined:
+        - Pick a random point `(tx, ty)` inside the polygon using a point-in-polygon algorithm.
+    - Else:
+        - Target = "Forward" (50% width, 70% height).
+3. **Calculate Radius**:
     - If `Experimental Mode` ON and `currentUrl == lastUrl`:
-        - `stuckCount++`
-        - `radius = 50 * (1.5 ^ stuckCount)`
+        - `stuckCount++`, `radius = 50 * (1.5 ^ stuckCount)`
     - Else:
         - `stuckCount = 0`, `radius = 50`
-5. **Trigger Click**:
-    - Apply random offset within `radius` to X and Y.
+4. **Trigger Click**:
+    - If no `customArea`, apply random offset within `radius` to `tx, ty`.
     - Dispatch `mousedown/up/click` events at target.
-6. **Update HUD**:
-    - Show steps and status (e.g., `WALKING` or `STUCK CHAOS LVL X`).
+5. **Update HUD**:
+    - Show steps and status (e.g., `WALKING`, `STUCK CHAOS LVL X`, or `DRAWING`).
 
 ---
 

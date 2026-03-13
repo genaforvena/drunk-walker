@@ -10,6 +10,9 @@ javascript:(function(){
   let cw = window.innerWidth;
   let ch = window.innerHeight;
   let hzLine = null;
+  let poly = [];
+  let isDrawing = false;
+  let drawOverlay = null;
 
   document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
   document.addEventListener('mouseup', (e) => { if (e.isTrusted) isUserMouseDown = false; }, true);
@@ -19,7 +22,7 @@ javascript:(function(){
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v2.2-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v2.3-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -91,6 +94,63 @@ javascript:(function(){
   };
   container.appendChild(hzBtn);
 
+  // DRAW AREA Button
+  const drawBtn = document.createElement('button');
+  drawBtn.innerText = '📐 DRAW CLICK AREA';
+  drawBtn.style.cssText = 'width:100%;margin-top:5px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
+  drawBtn.onclick = () => {
+    if(isDrawing) finishDrawing();
+    else startDrawing();
+  };
+  container.appendChild(drawBtn);
+
+  function startDrawing(){
+    isDrawing = true;
+    poly = [];
+    drawBtn.innerText = '✅ DONE SELECTION';
+    drawBtn.style.background = '#060';
+    drawOverlay = document.createElement('canvas');
+    drawOverlay.width = window.innerWidth;
+    drawOverlay.height = window.innerHeight;
+    drawOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999997;cursor:crosshair;';
+    document.body.appendChild(drawOverlay);
+    const ctx = drawOverlay.getContext('2d');
+    
+    drawOverlay.onclick = (e) => {
+      const p = {x: e.clientX, y: e.clientY};
+      if(poly.length > 2 && Math.hypot(p.x - poly[0].x, p.y - poly[0].y) < 20) {
+        finishDrawing();
+        return;
+      }
+      poly.push(p);
+      redraw();
+    };
+
+    function redraw(){
+      ctx.clearRect(0,0,drawOverlay.width,drawOverlay.height);
+      ctx.strokeStyle = '#0f0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      poly.forEach((p, i) => {
+        if(i===0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+      poly.forEach(p => {
+        ctx.fillStyle = '#f0f';
+        ctx.fillRect(p.x-3, p.y-3, 6, 6);
+      });
+    }
+  }
+
+  function finishDrawing(){
+    isDrawing = false;
+    drawBtn.innerText = '📐 DRAW CLICK AREA' + (poly.length > 2 ? ' (SET)' : '');
+    drawBtn.style.background = '#444';
+    if(drawOverlay) drawOverlay.remove();
+    drawOverlay = null;
+  }
+
   const btn = document.createElement('button');
   btn.innerText = '▶ START';
   btn.style.cssText = 'width:100%;margin-top:10px;padding:8px;background:#0f0;color:#000;border:none;font-weight:bold;cursor:pointer;border-radius:5px;';
@@ -115,6 +175,16 @@ javascript:(function(){
     setTimeout(() => { m.style.transform='translate(-50%,-50%) scale(2)'; m.style.opacity='0'; setTimeout(()=>m.remove(),300); }, 50);
   }
 
+  function inPoly(p, vs) {
+    var x = p.x, y = p.y, inside = false;
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i].x, yi = vs[i].y, xj = vs[j].x, yj = vs[j].y;
+        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
   function start(){
     cw = window.innerWidth;
     ch = window.innerHeight;
@@ -125,7 +195,7 @@ javascript:(function(){
     btn.style.background = '#f00';
     document.getElementById('dw-status').innerText = 'WALKING';
     intervalId = setInterval(() => {
-      if (isUserMouseDown) return; 
+      if (isUserMouseDown || isDrawing) return; 
       const expOn = document.getElementById('dw-exp-toggle')?.checked;
       let radius = 50;
       if (expOn) {
@@ -145,9 +215,23 @@ javascript:(function(){
           stuckCount = 0;
           document.getElementById('dw-status').innerText = 'WALKING';
       }
-      const off = () => (Math.random()*2-1)*radius;
-      const tx = cw * 0.5 + off();
-      const ty = ch * 0.7 + off();
+      
+      let tx, ty;
+      if(poly.length > 2){
+        const minX = Math.min(...poly.map(p=>p.x)), maxX = Math.max(...poly.map(p=>p.x));
+        const minY = Math.min(...poly.map(p=>p.y)), maxY = Math.max(...poly.map(p=>p.y));
+        let attempts = 0;
+        do {
+          tx = minX + Math.random() * (maxX - minX);
+          ty = minY + Math.random() * (maxY - minY);
+          attempts++;
+        } while(!inPoly({x:tx, y:ty}, poly) && attempts < 100);
+      } else {
+        const off = () => (Math.random()*2-1)*radius;
+        tx = cw * 0.5 + off();
+        ty = ch * 0.7 + off();
+      }
+      
       click(tx, ty);
       steps++;
       document.getElementById('dw-steps').innerText = steps;

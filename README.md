@@ -23,11 +23,12 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ---
 
-## 🌟 Key Features (v2.1-EXP)
+## 🌟 Key Features (v2.3-EXP)
 
-- **Horizon Finder:** Automatically detects your camera pitch from the URL and keeps you level with the horizon using auto-adjustment keys.
-- **Experimental Mode:** Detects if you're stuck (URL hasn't changed) and triggers "Exponential Chaos Recovery." The click radius grows exponentially with each stuck step, searching a wider and wider area to find a way out.
-- **Optimized Forward-Targeting:** Automatically clicks at 70% height—the "sweet spot" for moving forward in Street View.
+- **Draw Click Area:** Draw a custom polygon on the screen to define exactly where the walker should click. Perfect for following specific paths or staying on the road.
+- **Leveling Tools:** Use "LEVEL URL" to instantly flatten your view or "SHOW HORIZON" to toggle a visual guide.
+- **Experimental Mode:** Detects if you're stuck and triggers exponential chaos recovery.
+- **Optimized Forward-Targeting:** Default behavior clicks at 70% height—the "sweet spot" for Street View movement.
 - **Persistent Control Panel:** Injects a minimalist UI into the page with a **START/STOP** toggle, **Pace Slider**, and **Experimental Toggle**.
 - **Smart Observation:** Automatically pauses clicking whenever you drag the mouse to look around or change perspective.
 - **Session-Aware:** Recalculates screen dimensions every time you hit START, ensuring perfect centering even after window resizes.
