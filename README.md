@@ -23,10 +23,11 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ---
 
-## 🌟 Key Features (v1.9.0)
+## 🌟 Key Features (v2.0-EXP)
 
+- **Experimental Mode:** Detects if you're stuck (URL hasn't changed) and triggers "Exponential Chaos Recovery." The click radius grows exponentially with each stuck step, searching a wider and wider area to find a way out.
 - **Optimized Forward-Targeting:** Automatically clicks at 70% height—the "sweet spot" for moving forward in Street View.
-- **Persistent Control Panel:** Injects a minimalist UI into the page with a **START/STOP** toggle and **Pace Slider**.
+- **Persistent Control Panel:** Injects a minimalist UI into the page with a **START/STOP** toggle, **Pace Slider**, and **Experimental Toggle**.
 - **Smart Observation:** Automatically pauses clicking whenever you drag the mouse to look around or change perspective.
 - **Session-Aware:** Recalculates screen dimensions every time you hit START, ensuring perfect centering even after window resizes.
 - **Cross-Browser:** Works via Console or Extension on Chrome, Firefox, Safari, and Edge.

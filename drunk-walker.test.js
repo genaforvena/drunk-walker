@@ -9,6 +9,9 @@ const createDrunkWalkerLogic = () => {
   let intervalId = null;
   let pace = 2000;
   let isUserMouseDown = false;
+  let experimentalMode = false;
+  let url = 'http://maps.google.com/test';
+  let stuckCount = 0;
   
   let cw = 0;
   let ch = 0;
@@ -22,14 +25,32 @@ const createDrunkWalkerLogic = () => {
     const { width, height } = getWindow();
     cw = width;
     ch = height;
+    
+    let lastUrl = url;
+    stuckCount = 0;
 
     status = 'WALKING';
     intervalId = setInterval(() => {
       if (isUserMouseDown) return;
       
+      let radius = 50;
+      if (experimentalMode) {
+        if (url === lastUrl) {
+          stuckCount++;
+        } else {
+          lastUrl = url;
+          stuckCount = 0;
+        }
+        
+        if (stuckCount > 0) {
+          radius = 50 * Math.pow(1.5, stuckCount);
+        }
+      } else {
+          stuckCount = 0;
+      }
+
       const off = () => 0; // Mock random offset as 0
       
-      // v1.9: Slightly lower than center (0.7)
       const tx = cw * 0.5 + off();
       const ty = ch * 0.7 + off();
       
@@ -50,11 +71,14 @@ const createDrunkWalkerLogic = () => {
     stop,
     setPace: (p) => { pace = p; },
     setUserMouseDown: (v) => { isUserMouseDown = v; },
+    setExperimentalMode: (v) => { experimentalMode = v; },
+    setUrl: (u) => { url = u; },
+    getStuckCount: () => stuckCount,
     clickMock
   };
 };
 
-describe('Drunk Walker Logic v1.4', () => {
+describe('Drunk Walker Logic v2.0-EXP', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -127,5 +151,24 @@ describe('Drunk Walker Logic v1.4', () => {
     vi.advanceTimersByTime(2000);
     // width=1920, height=1080 -> 1920*0.5=960, 1080*0.7=756
     expect(dw.clickMock).toHaveBeenCalledWith(960, 756);
+  });
+
+  it('should trigger chaos clicks in experimental mode and increase radius exponentially', () => {
+    const dw = createDrunkWalkerLogic();
+    dw.setExperimentalMode(true);
+    dw.start();
+    
+    // Step 1: Same URL
+    vi.advanceTimersByTime(2000);
+    expect(dw.getStuckCount()).toBe(1);
+    
+    // Step 2: Same URL
+    vi.advanceTimersByTime(2000);
+    expect(dw.getStuckCount()).toBe(2);
+    
+    // Step 3: URL changes
+    dw.setUrl('http://maps.google.com/new');
+    vi.advanceTimersByTime(2000);
+    expect(dw.getStuckCount()).toBe(0);
   });
 });

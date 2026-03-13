@@ -1,66 +1,51 @@
-# Drunk Walker: Firefox Extension Specification (v1.2)
+# Drunk Walker: Street View Chaos Specification (v2.0-EXP)
 
 ## Executive Summary
 
-**Drunk Walker** is a Firefox extension that transforms Google Street View into an automated, chaotic travelogue. It programmatically clicks at screen coordinates relative to the user's cursor or the "Forward" arrow region, attempting to "walk" through the map without any actual pathfinding logic or HTML awareness.
+**Drunk Walker** is a cross-browser automation engine that transforms Google Street View into a chaotic travelogue. It programmatically clicks at screen coordinates to navigate the map. The primary version is a **Console Script** distributed via a "One-Click Copy" web page.
 
 ---
 
 ## 1. Overview
 
 ### 1.1 Concept
-The extension treats Google Street View as a black box. It simulates user clicks at strategic screen locations. Movement is "guided" by the user's mouse position but randomized by a "wobble" radius. If the mouse is not present, it defaults to clicking forward.
+The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius. v2.0-EXP introduces **Experimental Mode** for automatic recovery when the walker gets stuck in a loop or a dead end.
 
 ### 1.2 Core Philosophy
 - **No DOM interaction** – Never reads or manipulates page elements.
 - **Coordinate-based only** – All interaction is via screen coordinates.
-- **Cursor-Relative / Forward-Default** – Clicks happen near where the user points or in the forward direction.
-- **Agnostic** – No concept of specific destinations.
-
----
-
-## 2. Technical Architecture
-
-### 2.1 Component Architecture
-
-```
-┌─────────────────┐
-│   popup.html    │  User sets parameters (Interval, Radius)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  background.js  │  Manages state, triggers navigation loop
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   content.js    │  Injected into Maps tab
-│                 │  • Tracks mouse position
-│                 │  • Executes coordinate clicks
-└─────────────────┘
-```
+- **Forward-Default** – Clicks happen near the "Forward" direction (50% width, 70% height).
+- **Chaos-Driven Recovery** – If the URL remains unchanged, the system expands its search radius exponentially to find a clickable path.
 
 ---
 
 ## 3. Functional Requirements
 
-### 3.1 User Input (Popup UI)
+### 3.1 User Input (Control Panel UI)
 
 | Field | Type | Description |
 |-------|------|-------------|
-| Click Interval | Slider | 1-10 seconds between clicks |
-| Click Radius | Slider | Random offset (px) from target |
-| Max Steps | Number | Auto-stop limit |
+| Pace | Slider | 0.5 - 5.0 seconds between clicks |
+| Experimental Mode | Toggle | Enables URL-stuck detection and exponential chaos recovery |
 
-### 3.2 Core Algorithm (v1.2)
+### 3.2 Core Algorithm (v2.0-EXP)
 
-1. **Track Cursor** – Content script monitors `mousemove` to store `lastMouseX/Y`.
+1. **Track State**:
+    - Monitor `window.location.href` to detect stuck state.
+    - Monitor `mousedown/up` to pause during manual drags.
 2. **Determine Target**:
-    - If mouse is in window: Target = Cursor Position.
-    - If mouse is absent: Target = "Forward" (50% width, 70% height).
-3. **Add Wobble** – Add random offset within `clickRadius`.
-4. **Trigger Click** – Dispatch `mousedown/up/click` events at target.
+    - Target = "Forward" (50% width, 70% height).
+3. **Calculate Radius**:
+    - If `Experimental Mode` ON and `currentUrl == lastUrl`:
+        - `stuckCount++`
+        - `radius = 50 * (1.5 ^ stuckCount)`
+    - Else:
+        - `stuckCount = 0`, `radius = 50`
+4. **Trigger Click**:
+    - Apply random offset within `radius` to X and Y.
+    - Dispatch `mousedown/up/click` events at target.
+5. **Update HUD**:
+    - Show steps and status (e.g., `WALKING` or `STUCK CHAOS LVL X`).
 
 ---
 

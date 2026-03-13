@@ -19,7 +19,7 @@ javascript:(function(){
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v1.9<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v2.0-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -49,6 +49,16 @@ javascript:(function(){
   };
   container.appendChild(paceSlider);
 
+  const expLabel = document.createElement('label');
+  expLabel.style.cssText = 'display:flex;align-items:center;font-size:10px;margin-top:5px;cursor:pointer;';
+  const expToggle = document.createElement('input');
+  expToggle.type = 'checkbox';
+  expToggle.id = 'dw-exp-toggle';
+  expToggle.style.marginRight = '5px';
+  expLabel.appendChild(expToggle);
+  expLabel.appendChild(document.createTextNode('EXPERIMENTAL MODE (v2.0)'));
+  container.appendChild(expLabel);
+
   const btn = document.createElement('button');
   btn.innerText = '▶ START';
   btn.style.cssText = 'width:100%;margin-top:10px;padding:8px;background:#0f0;color:#000;border:none;font-weight:bold;cursor:pointer;border-radius:5px;';
@@ -77,19 +87,46 @@ javascript:(function(){
     cw = window.innerWidth;
     ch = window.innerHeight;
 
+    let lastUrl = window.location.href;
+    let stuckCount = 0;
+
     status = 'WALKING';
     btn.innerText = '🔴 STOP';
     btn.style.background = '#f00';
     document.getElementById('dw-status').innerText = 'WALKING';
     intervalId = setInterval(() => {
       if (isUserMouseDown) return; 
-      
-      const off = () => (Math.random()*2-1)*50;
-      
-      // v1.9: Click slightly lower than center (70% height)
+
+      const expOn = document.getElementById('dw-exp-toggle')?.checked;
+      let radius = 50;
+
+      if (expOn) {
+        if (window.location.href === lastUrl) {
+          stuckCount++;
+        } else {
+          lastUrl = window.location.href;
+          stuckCount = 0;
+        }
+
+        // Exponential Chaos Recovery
+        if (stuckCount > 0) {
+          // Radius grows exponentially: 50, 75, 112, 168...
+          radius = 50 * Math.pow(1.5, stuckCount);
+          document.getElementById('dw-status').innerText = `STUCK (CHAOS LVL ${stuckCount})`;
+        } else {
+          document.getElementById('dw-status').innerText = 'WALKING';
+        }
+      } else {
+          stuckCount = 0;
+          document.getElementById('dw-status').innerText = 'WALKING';
+      }
+
+      const off = () => (Math.random()*2-1)*radius;
+
+      // Target: Lower-center (70% height) + Chaos Offset
       const tx = cw * 0.5 + off();
       const ty = ch * 0.7 + off();
-      
+
       click(tx, ty);
       steps++;
       document.getElementById('dw-steps').innerText = steps;
