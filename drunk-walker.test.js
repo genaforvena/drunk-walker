@@ -4,13 +4,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // We don't want to test the literal browser bookmarklet, but its behavioral logic.
 
 const createDrunkWalkerLogic = () => {
+  // Capture once at "start" of script simulation
+  const width = 1920;
+  const height = 1080;
+
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
   let pace = 2000;
   let isUserMouseDown = false;
-  // Dynamic window mock
-  const getWindow = () => ({ width: 1920, height: 1080 });
 
   const clickMock = vi.fn();
 
@@ -19,10 +21,9 @@ const createDrunkWalkerLogic = () => {
     intervalId = setInterval(() => {
       if (isUserMouseDown) return;
       
-      const { width, height } = getWindow();
       const off = () => 0; // Mock random offset as 0
       
-      // v1.6: Always center
+      // v1.7: Static center
       const tx = width * 0.5 + off();
       const ty = height * 0.5 + off();
       
@@ -93,7 +94,7 @@ describe('Drunk Walker Logic v1.4', () => {
     expect(dw.clickMock).toHaveBeenCalled();
   });
 
-  it('should always target the center area', () => {
+  it('should target the static center area', () => {
     const dw = createDrunkWalkerLogic();
     dw.start();
     

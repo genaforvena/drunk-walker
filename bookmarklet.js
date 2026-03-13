@@ -2,6 +2,8 @@ javascript:(function(){
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
 
+  const width = window.innerWidth;
+  const height = window.innerHeight;
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
@@ -17,7 +19,7 @@ javascript:(function(){
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v1.6<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v1.7<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -79,13 +81,11 @@ javascript:(function(){
     intervalId = setInterval(() => {
       if (isUserMouseDown) return; 
       
-      const w = window.innerWidth;
-      const h = window.innerHeight;
       const off = () => (Math.random()*2-1)*50;
       
-      // Always target around the center
-      const tx = w * 0.5 + off();
-      const ty = h * 0.5 + off();
+      // Target around the static center
+      const tx = width * 0.5 + off();
+      const ty = height * 0.5 + off();
       
       click(tx, ty);
       steps++;
