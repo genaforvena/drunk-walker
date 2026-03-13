@@ -30,6 +30,8 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 ### GitHub Automation (User Preference)
 - **Prefer `gh` CLI**: The user prefers using the GitHub CLI (`gh`) for automating repository settings, creating releases, and enabling GitHub Pages.
 - **Bypass Jekyll**: A `.nojekyll` file is used to ensure simple HTML deployment on Pages.
+- **Mandatory Testing**: Run `npm test` before every push to ensure no regressions in core logic (Start/Stop, Drag-detection, Targeting).
+- **CI/CD**: GitHub Actions (`.github/workflows/ci.yml`) automatically runs tests on every push to `main`.
 
 ---
 
