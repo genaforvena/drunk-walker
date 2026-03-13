@@ -23,8 +23,9 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ---
 
-## 🌟 Key Features (v2.0-EXP)
+## 🌟 Key Features (v2.1-EXP)
 
+- **Horizon Finder:** Automatically detects your camera pitch from the URL and keeps you level with the horizon using auto-adjustment keys.
 - **Experimental Mode:** Detects if you're stuck (URL hasn't changed) and triggers "Exponential Chaos Recovery." The click radius grows exponentially with each stuck step, searching a wider and wider area to find a way out.
 - **Optimized Forward-Targeting:** Automatically clicks at 70% height—the "sweet spot" for moving forward in Street View.
 - **Persistent Control Panel:** Injects a minimalist UI into the page with a **START/STOP** toggle, **Pace Slider**, and **Experimental Toggle**.

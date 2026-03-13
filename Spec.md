@@ -1,4 +1,4 @@
-# Drunk Walker: Street View Chaos Specification (v2.0-EXP)
+# Drunk Walker: Street View Chaos Specification (v2.1-EXP)
 
 ## Executive Summary
 
@@ -9,13 +9,14 @@
 ## 1. Overview
 
 ### 1.1 Concept
-The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius. v2.0-EXP introduces **Experimental Mode** for automatic recovery when the walker gets stuck in a loop or a dead end.
+The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius. v2.1-EXP introduces **Experimental Mode** for automatic recovery and **Horizon Finder** for camera stabilization.
 
 ### 1.2 Core Philosophy
 - **No DOM interaction** – Never reads or manipulates page elements.
 - **Coordinate-based only** – All interaction is via screen coordinates.
 - **Forward-Default** – Clicks happen near the "Forward" direction (50% width, 70% height).
-- **Chaos-Driven Recovery** – If the URL remains unchanged, the system expands its search radius exponentially to find a clickable path.
+- **Chaos-Driven Recovery** – If the URL remains unchanged, the system expands its search radius exponentially.
+- **Auto-Leveling** – Real-time URL parsing to maintain a horizontal perspective.
 
 ---
 
@@ -27,24 +28,30 @@ The engine simulates user clicks at strategic screen locations. Movement is rand
 |-------|------|-------------|
 | Pace | Slider | 0.5 - 5.0 seconds between clicks |
 | Experimental Mode | Toggle | Enables URL-stuck detection and exponential chaos recovery |
+| Horizon Finder | Toggle | Enables auto-leveling based on URL pitch parsing |
 
-### 3.2 Core Algorithm (v2.0-EXP)
+### 3.2 Core Algorithm (v2.1-EXP)
 
 1. **Track State**:
-    - Monitor `window.location.href` to detect stuck state.
+    - Monitor `window.location.href` for stuck detection and pitch adjustment.
     - Monitor `mousedown/up` to pause during manual drags.
-2. **Determine Target**:
+2. **Horizon Adjustment**:
+    - If `Horizon Finder` ON:
+        - Extract pitch from URL (pattern: `(\d+(\.\d+)?)t`).
+        - If `pitch > 91`: Trigger `ArrowUp`.
+        - If `pitch < 89`: Trigger `ArrowDown`.
+3. **Determine Target**:
     - Target = "Forward" (50% width, 70% height).
-3. **Calculate Radius**:
+4. **Calculate Radius**:
     - If `Experimental Mode` ON and `currentUrl == lastUrl`:
         - `stuckCount++`
         - `radius = 50 * (1.5 ^ stuckCount)`
     - Else:
         - `stuckCount = 0`, `radius = 50`
-4. **Trigger Click**:
+5. **Trigger Click**:
     - Apply random offset within `radius` to X and Y.
     - Dispatch `mousedown/up/click` events at target.
-5. **Update HUD**:
+6. **Update HUD**:
     - Show steps and status (e.g., `WALKING` or `STUCK CHAOS LVL X`).
 
 ---

@@ -10,7 +10,8 @@ const createDrunkWalkerLogic = () => {
   let pace = 2000;
   let isUserMouseDown = false;
   let experimentalMode = false;
-  let url = 'http://maps.google.com/test';
+  let horizonFinder = false;
+  let url = 'http://maps.google.com/test/@0,0,3a,75y,0h,90t';
   let stuckCount = 0;
   
   let cw = 0;
@@ -20,6 +21,7 @@ const createDrunkWalkerLogic = () => {
   const getWindow = () => ({ width: 1920, height: 1080 });
 
   const clickMock = vi.fn();
+  const dispatchMock = vi.fn();
 
   const start = () => {
     const { width, height } = getWindow();
@@ -33,6 +35,15 @@ const createDrunkWalkerLogic = () => {
     intervalId = setInterval(() => {
       if (isUserMouseDown) return;
       
+      if (horizonFinder) {
+        const match = url.match(/,(\d+(\.\d+)?)t/);
+        if (match) {
+          const pitch = parseFloat(match[1]);
+          if (pitch > 91) dispatchMock('ArrowUp');
+          else if (pitch < 89) dispatchMock('ArrowDown');
+        }
+      }
+
       let radius = 50;
       if (experimentalMode) {
         if (url === lastUrl) {
@@ -72,13 +83,15 @@ const createDrunkWalkerLogic = () => {
     setPace: (p) => { pace = p; },
     setUserMouseDown: (v) => { isUserMouseDown = v; },
     setExperimentalMode: (v) => { experimentalMode = v; },
+    setHorizonFinder: (v) => { horizonFinder = v; },
     setUrl: (u) => { url = u; },
     getStuckCount: () => stuckCount,
-    clickMock
+    clickMock,
+    dispatchMock
   };
 };
 
-describe('Drunk Walker Logic v2.0-EXP', () => {
+describe('Drunk Walker Logic v2.1-EXP', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -170,5 +183,26 @@ describe('Drunk Walker Logic v2.0-EXP', () => {
     dw.setUrl('http://maps.google.com/new');
     vi.advanceTimersByTime(2000);
     expect(dw.getStuckCount()).toBe(0);
+  });
+
+  it('should adjust camera when horizon finder is enabled', () => {
+    const dw = createDrunkWalkerLogic();
+    dw.setHorizonFinder(true);
+    dw.start();
+    
+    // 1. Looking down (110t) -> ArrowUp
+    dw.setUrl('http://maps.google.com/test/@0,0,3a,75y,0h,110t');
+    vi.advanceTimersByTime(2000);
+    expect(dw.dispatchMock).toHaveBeenCalledWith('ArrowUp');
+    
+    // 2. Looking up (70t) -> ArrowDown
+    dw.setUrl('http://maps.google.com/test/@0,0,3a,75y,0h,70t');
+    vi.advanceTimersByTime(2000);
+    expect(dw.dispatchMock).toHaveBeenCalledWith('ArrowDown');
+    
+    // 3. Near horizon (90t) -> No adjustment
+    dw.setUrl('http://maps.google.com/test/@0,0,3a,75y,0h,90.5t');
+    vi.advanceTimersByTime(2000);
+    expect(dw.dispatchMock).toHaveBeenCalledTimes(2); // No new call
   });
 });

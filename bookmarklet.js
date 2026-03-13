@@ -19,7 +19,7 @@ javascript:(function(){
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v2.0-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v2.1-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -58,6 +58,16 @@ javascript:(function(){
   expLabel.appendChild(expToggle);
   expLabel.appendChild(document.createTextNode('EXPERIMENTAL MODE (v2.0)'));
   container.appendChild(expLabel);
+
+  const hzLabel = document.createElement('label');
+  hzLabel.style.cssText = 'display:flex;align-items:center;font-size:10px;margin-top:5px;cursor:pointer;';
+  const hzToggle = document.createElement('input');
+  hzToggle.type = 'checkbox';
+  hzToggle.id = 'dw-hz-toggle';
+  hzToggle.style.marginRight = '5px';
+  hzLabel.appendChild(hzToggle);
+  hzLabel.appendChild(document.createTextNode('HORIZON FINDER'));
+  container.appendChild(hzLabel);
 
   const btn = document.createElement('button');
   btn.innerText = '▶ START';
@@ -98,7 +108,17 @@ javascript:(function(){
       if (isUserMouseDown) return; 
 
       const expOn = document.getElementById('dw-exp-toggle')?.checked;
+      const hzOn = document.getElementById('dw-hz-toggle')?.checked;
       let radius = 50;
+
+      if (hzOn) {
+        const match = window.location.href.match(/,(\d+(\.\d+)?)t/);
+        if (match) {
+          const pitch = parseFloat(match[1]);
+          if (pitch > 91) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+          else if (pitch < 89) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+        }
+      }
 
       if (expOn) {
         if (window.location.href === lastUrl) {
@@ -110,7 +130,6 @@ javascript:(function(){
 
         // Exponential Chaos Recovery
         if (stuckCount > 0) {
-          // Radius grows exponentially: 50, 75, 112, 168...
           radius = 50 * Math.pow(1.5, stuckCount);
           document.getElementById('dw-status').innerText = `STUCK (CHAOS LVL ${stuckCount})`;
         } else {
@@ -123,7 +142,6 @@ javascript:(function(){
 
       const off = () => (Math.random()*2-1)*radius;
 
-      // Target: Lower-center (70% height) + Chaos Offset
       const tx = cw * 0.5 + off();
       const ty = ch * 0.7 + off();
 

@@ -41,12 +41,15 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 
 ## ⚡ Key Implementations & Logic
 
-### 1. Click Algorithm (v2.0-EXP)
-- **Control Panel**: Injected UI with **START/STOP**, **PACE slider**, and **EXPERIMENTAL MODE** toggle.
+### 1. Click Algorithm (v2.1-EXP)
+- **Control Panel**: Injected UI with **START/STOP**, **PACE slider**, **EXPERIMENTAL MODE**, and **HORIZON FINDER**.
 - **Experimental Mode**: 
     - **URL-Stuck Detection**: Tracks `window.location.href`. If it hasn't changed between steps, the system identifies a "STUCK" state.
-    - **Exponential Chaos Recovery**: When stuck, the click radius grows exponentially: `radius = 50 * (1.5 ^ stuckCount)`. This creates an increasingly large "search area" to find a clickable path out of the current location.
+    - **Exponential Chaos Recovery**: When stuck, the click radius grows exponentially: `radius = 50 * (1.5 ^ stuckCount)`.
     - **Reset**: `stuckCount` resets to 0 immediately upon URL change or if Experimental Mode is toggled off.
+- **Horizon Finder**: 
+    - **Pitch Extraction**: Parses the camera pitch from the URL (e.g., `90t`).
+    - **Auto-Leveling**: If enabled, it automatically dispatches `ArrowUp` or `ArrowDown` key events to keep the camera tilt near the horizon (`89-91t`).
 - **Drag Detection**: Automated clicks are paused if `isUserMouseDown` is true.
 - **Targeting**: Default clicks at 70% height (`screenWidth * 0.5, screenHeight * 0.7`).
 - **Session-Based**: Dimensions recalculated on every START.
@@ -66,6 +69,7 @@ A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effect
 - [x] **One-Click Installation Page** (GitHub Pages)
 - [x] **Bookmarklet Version** (Mobile Support)
 - [x] **Experimental Mode (v2.0)**: URL-stuck detection and chaos recovery.
+- [x] **Horizon Finder (v2.1)**: Auto-pitch adjustment via URL parsing.
 - [ ] **Next Up**: Dynamic Radius scaling (increasing wobble over time)
 - [ ] **Next Up**: Screen shake effects on click
 
