@@ -41,7 +41,7 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 
 ## ⚡ Key Implementations & Logic
 
-### 1. Click Algorithm (v2.5-EXP)
+### 1. Click Algorithm (v3.0-EXP)
 - **Control Panel**: Injected UI with **START/STOP**, **PACE slider**, **EXPERIMENTAL MODE**, **LEVEL URL**, **SHOW HORIZON**, and **DRAW CLICK AREA**.
 - **Experimental Mode**: 
     - **URL-Stuck Detection**: Tracks `window.location.href`.
@@ -65,16 +65,18 @@ A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effect
 
 - [x] Manifest V3 Setup (Cross-browser compatible)
 - [x] Background State Management (Service Worker mode)
-- [x] Cursor-relative Click Simulation (v1.1) [DEPRECATED in v2.4, but restored interaction in v2.5]
+- [x] Cursor-relative Click Simulation (v1.1) [DEPRECATED in v2.4, but restored interaction in v3.0]
 - [x] Simplified Movement (v1.2): Default Forward.
 - [x] Minimalist UI (Single Toggle)
 - [x] **One-Click Installation Page** (GitHub Pages)
 - [x] **Bookmarklet Version** (Mobile Support)
 - [x] **Experimental Mode (v2.0)**: URL-stuck detection and chaos recovery.
+- [x] **Keyboard Mode (v3.0)**: Simulates "Arrow Up" navigation instead of clicks.
+- [x] **Panic Mode (v3.0)**: Triggers 30° left turn (Arrow Left) if stuck, with adjustable threshold.
 - [x] **Horizon Finder (v2.1)**: Auto-pitch adjustment via URL parsing.
 - [x] **Leveling & Horizon Guides (v2.2)**: Manual leveling tools.
 - [x] **Draw Click Area (v2.3)**: Polygon-based click targeting.
-- [x] **Smart Observation (v2.5)**: Restored drag-detection pause logic.
+- [x] **Smart Observation (v3.0)**: Restored drag-detection pause logic.
 - [ ] **Next Up**: Dynamic Radius scaling (increasing wobble over time)
 - [ ] **Next Up**: Screen shake effects on click
 

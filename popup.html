@@ -94,7 +94,7 @@
 <body>
   <div class="header">
     <h1>Drunk Walker</h1>
-    <span style="font-size: 10px; color: #999;">v1.0.0</span>
+    <span style="font-size: 10px; color: #999;">v3.0.0-exp</span>
   </div>
 
   <div id="fs-warning" class="warning">
@@ -114,6 +114,21 @@
   <div class="input-group">
     <label for="max-steps">Max Steps</label>
     <input type="number" id="max-steps" value="1000" min="1" max="10000">
+  </div>
+
+  <div class="input-group" style="display: flex; align-items: center; justify-content: space-between;">
+    <label for="panic-threshold" style="margin-bottom: 0;">Panic Threshold (stuck steps)</label>
+    <input type="number" id="panic-threshold" value="3" min="1" max="20" style="width: 50px;">
+  </div>
+
+  <div class="input-group" style="display: flex; align-items: center;">
+    <input type="checkbox" id="experimental-mode" style="margin-right: 10px;">
+    <label for="experimental-mode" style="margin-bottom: 0;">Experimental Mode (Stuck Detection)</label>
+  </div>
+
+  <div class="input-group" style="display: flex; align-items: center;">
+    <input type="checkbox" id="keyboard-mode" style="margin-right: 10px;">
+    <label for="keyboard-mode" style="margin-bottom: 0;">Keyboard Mode (Arrow Keys)</label>
   </div>
 
   <div class="controls">

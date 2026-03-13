@@ -1,4 +1,4 @@
-# Drunk Walker: Street View Chaos Specification (v2.4-EXP)
+# Drunk Walker: Street View Chaos Specification (v3.0-EXP)
 
 ## Executive Summary
 
@@ -9,7 +9,7 @@
 ## 1. Overview
 
 ### 1.1 Concept
-The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius or constrained by a user-drawn polygon. v2.4-EXP enforces **Strict Autonomy**, removing all dependencies on user mouse movement or drag states.
+The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius or constrained by a user-drawn polygon. v3.0-EXP enforces **Strict Autonomy**, removing all dependencies on user mouse movement or drag states.
 
 ### 1.2 Core Philosophy
 - **No DOM interaction** – All interaction is via coordinate clicks.
@@ -27,30 +27,40 @@ The engine simulates user clicks at strategic screen locations. Movement is rand
 | Field | Type | Description |
 |-------|------|-------------|
 | Pace | Slider | 0.5 - 5.0 seconds between clicks |
-| Experimental Mode | Toggle | Enables URL-stuck detection and exponential chaos recovery |
+| Panic Threshold | Number | Steps before entering "Panic Mode" if URL is stuck |
+| Experimental Mode | Toggle | Enables URL-stuck detection and chaos recovery |
+| Keyboard Mode | Toggle | Simulates Arrow Up instead of mouse clicks |
 | LEVEL URL | Button | Modifies URL pitch to 90t (horizontal) |
 | SHOW HORIZON | Button | Toggles a guide line at 50% screen height |
 | DRAW CLICK AREA | Button | Opens an overlay to draw a custom click polygon |
 
-### 3.2 Core Algorithm (v2.4-EXP)
+### 3.2 Core Algorithm (v3.0)
 
 1. **Track State**:
     - Monitor `window.location.href` for stuck detection.
-2. **Determine Target**:
-    - If `customArea` (polygon) is defined:
-        - Pick a random point `(tx, ty)` inside the polygon.
-    - Else:
-        - Target = "Forward" (50% width, 70% height).
-3. **Calculate Radius**:
+2. **Determine Mode**:
+    - If `Keyboard Mode` ON:
+        - If `Experimental Mode` ON and `isPanicMode`:
+            - Target = "ArrowLeft" (30° turn).
+        - Else:
+            - Target = "ArrowUp" (Forward).
+    - Else (Click Mode):
+        - If `customArea` (polygon) is defined:
+            - Pick a random point `(tx, ty)` inside the polygon.
+        - Else:
+            - Target = "Forward" (50% width, 70% height).
+3. **Calculate Radius / Panic**:
     - If `Experimental Mode` ON and `currentUrl == lastUrl`:
-        - `stuckCount++`, `radius = 50 * (1.5 ^ stuckCount)`
+        - `stuckCount++`.
+        - If `stuckCount >= panicThreshold`: `isPanicMode = true`.
+        - If in Click Mode and `isPanicMode`: `radius = clickRadius * (1.5 ^ (stuckCount - panicThreshold + 1))`.
     - Else:
-        - `stuckCount = 0`, `radius = 50`
-4. **Trigger Click**:
-    - Apply random offset within `radius` if no `customArea`.
-    - Dispatch `mousedown/up/click` events at target.
+        - `stuckCount = 0`, `isPanicMode = false`, `radius = clickRadius`.
+4. **Trigger Action**:
+    - If `Keyboard Mode`: Dispatch `keydown/keyup` for target key.
+    - Else: Dispatch `mousedown/up/click` events at target with `radius` offset.
 5. **Update HUD**:
-    - Show steps and status.
+    - Show steps, status (NAVIGATING/STUCK), target, and mode.
 
 ---
 

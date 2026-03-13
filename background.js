@@ -10,7 +10,13 @@ let state = {
   tabId: null,
   isFullScreen: false,
   isStreetView: false,
-  isYoloMode: false
+  isYoloMode: false,
+  isExperimentalMode: false,
+  isKeyboardMode: false,
+  panicThreshold: 3,
+  stuckCount: 0,
+  isPanicMode: false,
+  lastUrl: ""
 };
 
 // Listen for messages from popup or content scripts
@@ -21,7 +27,7 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
     
     case 'START':
-      state = { ...state, ...message.payload, status: 'navigating', stepsTaken: 0 };
+      state = { ...state, ...message.payload, status: 'navigating', stepsTaken: 0, stuckCount: 0, isPanicMode: false, lastUrl: "" };
       startNavigation();
       sendResponse({ status: 'started' });
       break;
@@ -62,25 +68,40 @@ function startNavigation() {
     const tabs = await browserAPI.tabs.query({ active: true, currentWindow: true });
     if (tabs[0] && tabs[0].url.includes('google.com/maps')) {
       state.tabId = tabs[0].id;
-      
-      state.stuckCount++;
-      
-      // Stagnation detection: If stuck for 3 clicks, enter panic mode
-      if (state.stuckCount >= 3) {
-        state.isPanicMode = true;
-      }
-      
-      // Reset after 10 stuck clicks
-      if (state.stuckCount >= 10) {
+      const currentUrl = tabs[0].url;
+
+      if (state.isExperimentalMode) {
+        if (currentUrl === state.lastUrl) {
+          state.stuckCount++;
+        } else {
+          state.stuckCount = 0;
+          state.lastUrl = currentUrl;
+        }
+
+        if (state.stuckCount >= state.panicThreshold) {
+          state.isPanicMode = true;
+        } else {
+          state.isPanicMode = false;
+        }
+      } else {
         state.stuckCount = 0;
         state.isPanicMode = false;
       }
 
+      // Calculate radius with exponential chaos if in click mode and panic mode
+      let currentRadius = state.clickRadius;
+      if (state.isExperimentalMode && state.isPanicMode && !state.isKeyboardMode) {
+        currentRadius = state.clickRadius * Math.pow(1.5, state.stuckCount - state.panicThreshold + 1);
+      }
+
       browserAPI.tabs.sendMessage(state.tabId, { 
-        type: 'PERFORM_CLICK', 
+        type: 'PERFORM_ACTION', 
         payload: { 
-          radius: state.clickRadius,
-          isYoloMode: state.isYoloMode
+          radius: currentRadius,
+          isYoloMode: state.isYoloMode,
+          isKeyboardMode: state.isKeyboardMode,
+          isPanicMode: state.isPanicMode,
+          stuckCount: state.stuckCount
         } 
       }).catch(err => console.error("Error sending message to tab:", err));
       

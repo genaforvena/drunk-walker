@@ -7,6 +7,9 @@ const els = {
   clickRadius: document.getElementById('click-radius'),
   radiusVal: document.getElementById('radius-val'),
   maxSteps: document.getElementById('max-steps'),
+  panicThreshold: document.getElementById('panic-threshold'),
+  experimentalMode: document.getElementById('experimental-mode'),
+  keyboardMode: document.getElementById('keyboard-mode'),
   statusText: document.getElementById('status-text'),
   progressText: document.getElementById('progress-text'),
   fsWarning: document.getElementById('fs-warning'),
@@ -19,6 +22,17 @@ function updateUI(state) {
   els.statusText.style.color = "inherit";
 
   els.progressText.textContent = `${state.stepsTaken} / ${state.maxSteps} steps`;
+
+  // Update form fields from state (when initializing/refreshing)
+  if (state.clickInterval) els.clickInterval.value = state.clickInterval / 1000;
+  if (state.clickRadius) els.clickRadius.value = state.clickRadius;
+  if (state.maxSteps) els.maxSteps.value = state.maxSteps;
+  if (state.panicThreshold) els.panicThreshold.value = state.panicThreshold;
+  if (state.isExperimentalMode !== undefined) els.experimentalMode.checked = state.isExperimentalMode;
+  if (state.isKeyboardMode !== undefined) els.keyboardMode.checked = state.isKeyboardMode;
+
+  els.intervalVal.textContent = els.clickInterval.value;
+  els.radiusVal.textContent = els.clickRadius.value;
   
   // Update toggle button
   if (isNavigating) {
@@ -70,6 +84,9 @@ els.btnToggle.onclick = async () => {
         clickInterval: parseFloat(els.clickInterval.value) * 1000,
         clickRadius: parseInt(els.clickRadius.value),
         maxSteps: parseInt(els.maxSteps.value),
+        panicThreshold: parseInt(els.panicThreshold.value),
+        isExperimentalMode: els.experimentalMode.checked,
+        isKeyboardMode: els.keyboardMode.checked,
         isYoloMode: false
       }
     });

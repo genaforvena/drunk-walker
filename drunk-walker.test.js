@@ -10,6 +10,8 @@ const createDrunkWalkerLogic = () => {
   let pace = 2000;
   let isUserMouseDown = false;
   let experimentalMode = false;
+  let keyboardMode = false;
+  let panicThreshold = 3;
   let horizonFinder = false;
   let url = 'http://maps.google.com/test/@0,0,3a,75y,0h,90t';
   let stuckCount = 0;
@@ -41,23 +43,33 @@ const createDrunkWalkerLogic = () => {
     status = 'WALKING';
     intervalId = setInterval(() => {
       if (isUserMouseDown) return;
-      if (horizonFinder) {
-        const match = url.match(/,(\d+(\.\d+)?)t/);
-        if (match) {
-          const pitch = parseFloat(match[1]);
-          if (pitch > 91) dispatchMock('ArrowUp');
-          else if (pitch < 89) dispatchMock('ArrowDown');
-        }
-      }
-      let radius = 50;
+      
       if (experimentalMode) {
         if (url === lastUrl) { stuckCount++; } else { lastUrl = url; stuckCount = 0; }
-        if (stuckCount > 0) { radius = 50 * Math.pow(1.5, stuckCount); }
       } else { stuckCount = 0; }
-      let tx, ty;
-      if (poly.length > 2) { tx = 100; ty = 100; } 
-      else { const off = () => 0; tx = cw * 0.5 + off(); ty = ch * 0.7 + off(); }
-      clickMock(tx, ty);
+
+      if (keyboardMode) {
+        if (experimentalMode && stuckCount >= panicThreshold) {
+          dispatchMock('ArrowLeft');
+        } else {
+          dispatchMock('ArrowUp');
+        }
+      } else {
+        if (horizonFinder) {
+          const match = url.match(/,(\d+(\.\d+)?)t/);
+          if (match) {
+            const pitch = parseFloat(match[1]);
+            if (pitch > 91) dispatchMock('ArrowUp');
+            else if (pitch < 89) dispatchMock('ArrowDown');
+          }
+        }
+        let radius = 50;
+        if (experimentalMode && stuckCount > 0) { radius = 50 * Math.pow(1.5, stuckCount); }
+        let tx, ty;
+        if (poly.length > 2) { tx = 100; ty = 100; } 
+        else { const off = () => 0; tx = cw * 0.5 + off(); ty = ch * 0.7 + off(); }
+        clickMock(tx, ty);
+      }
       steps++;
     }, pace);
   };
@@ -72,6 +84,8 @@ const createDrunkWalkerLogic = () => {
     setPace: (p) => { pace = p; },
     setUserMouseDown: (v) => { isUserMouseDown = v; },
     setExperimentalMode: (v) => { experimentalMode = v; },
+    setKeyboardMode: (v) => { keyboardMode = v; },
+    setPanicThreshold: (v) => { panicThreshold = v; },
     setHorizonFinder: (v) => { horizonFinder = v; },
     setUrl: (u) => { url = u; },
     setPoly: (p) => { poly = p; },
@@ -81,7 +95,7 @@ const createDrunkWalkerLogic = () => {
   };
 };
 
-describe('Drunk Walker Logic v2.5-EXP', () => {
+describe('Drunk Walker Logic v3.0-EXP', () => {
   beforeEach(() => { vi.useFakeTimers(); });
   afterEach(() => { vi.restoreAllMocks(); });
 
@@ -92,6 +106,36 @@ describe('Drunk Walker Logic v2.5-EXP', () => {
     vi.advanceTimersByTime(2000);
     expect(dw.getSteps()).toBe(1);
     expect(dw.clickMock).toHaveBeenCalled();
+  });
+
+  it('should switch to ArrowUp in Keyboard Mode', () => {
+    const dw = createDrunkWalkerLogic();
+    dw.setKeyboardMode(true);
+    dw.start();
+    vi.advanceTimersByTime(2000);
+    expect(dw.dispatchMock).toHaveBeenCalledWith('ArrowUp');
+    expect(dw.clickMock).not.toHaveBeenCalled();
+  });
+
+  it('should trigger ArrowLeft in Keyboard + Panic Mode', () => {
+    const dw = createDrunkWalkerLogic();
+    dw.setKeyboardMode(true);
+    dw.setExperimentalMode(true);
+    dw.setPanicThreshold(2);
+    dw.start();
+    
+    // Step 1: Same URL (stuckCount = 1)
+    vi.advanceTimersByTime(2000);
+    expect(dw.dispatchMock).toHaveBeenCalledWith('ArrowUp');
+    
+    // Step 2: Same URL (stuckCount = 2, panic!)
+    vi.advanceTimersByTime(2000);
+    expect(dw.dispatchMock).toHaveBeenCalledWith('ArrowLeft');
+    
+    // Step 3: URL changes (stuckCount = 0)
+    dw.setUrl('http://maps.google.com/new');
+    vi.advanceTimersByTime(2000);
+    expect(dw.dispatchMock).toHaveBeenLastCalledWith('ArrowUp');
   });
 
   it('should stop and halt increments', () => {

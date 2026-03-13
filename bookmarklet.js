@@ -1,7 +1,7 @@
 (function(){
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
-  console.log("🤪 DRUNK WALKER v2.5-EXP Loaded.");
+  console.log("🤪 DRUNK WALKER v3.0-EXP Loaded.");
 
   let status = 'IDLE';
   let steps = 0;
@@ -23,7 +23,7 @@
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v2.5-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v3.0-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -60,8 +60,18 @@
   expToggle.id = 'dw-exp-toggle';
   expToggle.style.marginRight = '5px';
   expLabel.appendChild(expToggle);
-  expLabel.appendChild(document.createTextNode('EXPERIMENTAL MODE (v2.0)'));
+  expLabel.appendChild(document.createTextNode('EXPERIMENTAL MODE (STUCK DETECT)'));
   container.appendChild(expLabel);
+
+  const kbLabel = document.createElement('label');
+  kbLabel.style.cssText = 'display:flex;align-items:center;font-size:10px;margin-top:5px;cursor:pointer;';
+  const kbToggle = document.createElement('input');
+  kbToggle.type = 'checkbox';
+  kbToggle.id = 'dw-kb-toggle';
+  kbToggle.style.marginRight = '5px';
+  kbLabel.appendChild(kbToggle);
+  kbLabel.appendChild(document.createTextNode('KEYBOARD MODE (ARROW UP)'));
+  container.appendChild(kbLabel);
 
   const lvlBtn = document.createElement('button');
   lvlBtn.innerText = '⚖️ LEVEL URL';
@@ -164,6 +174,12 @@
     setTimeout(() => { m.style.transform='translate(-50%,-50%) scale(2)'; m.style.opacity='0'; setTimeout(()=>m.remove(),300); }, 50);
   }
 
+  function key(k){
+    const opt = { key: k, code: k, keyCode: k === 'ArrowUp' ? 38 : 37, which: k === 'ArrowUp' ? 38 : 37, bubbles: true, cancelable: true };
+    document.dispatchEvent(new KeyboardEvent('keydown', opt));
+    setTimeout(() => document.dispatchEvent(new KeyboardEvent('keyup', opt)), 50);
+  }
+
   function inPoly(p, vs) {
     var x = p.x, y = p.y, inside = false;
     for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
@@ -186,7 +202,10 @@
     intervalId = setInterval(() => {
       if (isUserMouseDown || isDrawing) return; 
       const expOn = document.getElementById('dw-exp-toggle')?.checked;
+      const kbOn = document.getElementById('dw-kb-toggle')?.checked;
       let radius = 50;
+      let panicThreshold = 3;
+
       if (expOn) {
         if (window.location.href === lastUrl) {
           stuckCount++;
@@ -194,9 +213,10 @@
           lastUrl = window.location.href;
           stuckCount = 0;
         }
-        if (stuckCount > 0) {
-          radius = 50 * Math.pow(1.5, stuckCount);
-          document.getElementById('dw-status').innerText = `STUCK (CHAOS LVL ${stuckCount})`;
+        if (stuckCount >= panicThreshold) {
+          document.getElementById('dw-status').innerText = `PANIC! (STUCK ${stuckCount})`;
+        } else if (stuckCount > 0) {
+          document.getElementById('dw-status').innerText = `STUCK (${stuckCount})`;
         } else {
           document.getElementById('dw-status').innerText = 'WALKING';
         }
@@ -204,22 +224,34 @@
           stuckCount = 0;
           document.getElementById('dw-status').innerText = 'WALKING';
       }
-      let tx, ty;
-      if(poly.length > 2){
-        const minX = Math.min(...poly.map(p=>p.x)), maxX = Math.max(...poly.map(p=>p.x));
-        const minY = Math.min(...poly.map(p=>p.y)), maxY = Math.max(...poly.map(p=>p.y));
-        let attempts = 0;
-        do {
-          tx = minX + Math.random() * (maxX - minX);
-          ty = minY + Math.random() * (maxY - minY);
-          attempts++;
-        } while(!inPoly({x:tx, y:ty}, poly) && attempts < 100);
+
+      if (kbOn) {
+        if (expOn && stuckCount >= panicThreshold) {
+          key('ArrowLeft');
+        } else {
+          key('ArrowUp');
+        }
       } else {
-        const off = () => (Math.random()*2-1)*radius;
-        tx = cw * 0.5 + off();
-        ty = ch * 0.7 + off();
+        if (expOn && stuckCount >= panicThreshold) {
+          radius = 50 * Math.pow(1.5, stuckCount - panicThreshold + 1);
+        }
+        let tx, ty;
+        if(poly.length > 2){
+          const minX = Math.min(...poly.map(p=>p.x)), maxX = Math.max(...poly.map(p=>p.x));
+          const minY = Math.min(...poly.map(p=>p.y)), maxY = Math.max(...poly.map(p=>p.y));
+          let attempts = 0;
+          do {
+            tx = minX + Math.random() * (maxX - minX);
+            ty = minY + Math.random() * (maxY - minY);
+            attempts++;
+          } while(!inPoly({x:tx, y:ty}, poly) && attempts < 100);
+        } else {
+          const off = () => (Math.random()*2-1)*radius;
+          tx = cw * 0.5 + off();
+          ty = ch * 0.7 + off();
+        }
+        click(tx, ty);
       }
-      click(tx, ty);
       steps++;
       document.getElementById('dw-steps').innerText = steps;
     }, pace);
@@ -232,4 +264,7 @@
     document.getElementById('dw-status').innerText = 'IDLE';
     if (intervalId) clearInterval(intervalId);
   }
+
+  // Auto-start
+  start();
 })();
