@@ -32,7 +32,10 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 - **Bypass Jekyll**: A `.nojekyll` file is used to ensure simple HTML deployment on Pages.
 - **Mandatory Testing**: Run `npm test` before every push to ensure no regressions in core logic (Start/Stop, Drag-detection, Targeting).
 - **CI/CD**: GitHub Actions (`.github/workflows/ci.yml`) automatically runs tests on every push to `main`.
-- **Post-Push Verification**: Always verify that the live GitHub Pages site (`https://genaforvena.github.io/drunk-walker/`) matches the expected local version after pushing. Use `curl` to check for version strings in the live HTML.
+- **CRITICAL: Post-Push Verification**: ALWAYS verify that the live GitHub Pages site (`https://genaforvena.github.io/drunk-walker/`) matches the local version AFTER pushing.
+    - Check the deployment status using `gh run list`.
+    - Use `curl` to verify the version string in the live HTML.
+    - If deployment fails or version is outdated, do not consider the task finished.
 
 ---
 

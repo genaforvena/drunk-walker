@@ -94,6 +94,26 @@ describe('Drunk Walker Logic v1.4', () => {
     expect(dw.clickMock).toHaveBeenCalled();
   });
 
+  it('should resume clicking after dragging stops', () => {
+    const dw = createDrunkWalkerLogic();
+    dw.start();
+    
+    // 1. First click
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(1);
+    
+    // 2. Start dragging - next click should be skipped
+    dw.setUserMouseDown(true);
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(1); // Still 1
+    
+    // 3. Stop dragging - next click should happen
+    dw.setUserMouseDown(false);
+    vi.advanceTimersByTime(2000);
+    expect(dw.getSteps()).toBe(2);
+    expect(dw.clickMock).toHaveBeenCalledTimes(2);
+  });
+
   it('should target the static center area', () => {
     const dw = createDrunkWalkerLogic();
     dw.start();
