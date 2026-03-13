@@ -9,8 +9,8 @@ javascript:(function(){
   let isUserMouseDown = false;
   let cw = window.innerWidth;
   let ch = window.innerHeight;
+  let hzLine = null;
 
-  // Track real user drag state
   document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
   document.addEventListener('mouseup', (e) => { if (e.isTrusted) isUserMouseDown = false; }, true);
 
@@ -19,7 +19,7 @@ javascript:(function(){
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v2.1-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v2.2-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -59,15 +59,37 @@ javascript:(function(){
   expLabel.appendChild(document.createTextNode('EXPERIMENTAL MODE (v2.0)'));
   container.appendChild(expLabel);
 
-  const hzLabel = document.createElement('label');
-  hzLabel.style.cssText = 'display:flex;align-items:center;font-size:10px;margin-top:5px;cursor:pointer;';
-  const hzToggle = document.createElement('input');
-  hzToggle.type = 'checkbox';
-  hzToggle.id = 'dw-hz-toggle';
-  hzToggle.style.marginRight = '5px';
-  hzLabel.appendChild(hzToggle);
-  hzLabel.appendChild(document.createTextNode('HORIZON FINDER'));
-  container.appendChild(hzLabel);
+  // LEVEL URL Button
+  const lvlBtn = document.createElement('button');
+  lvlBtn.innerText = '⚖️ LEVEL URL';
+  lvlBtn.style.cssText = 'width:100%;margin-top:10px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
+  lvlBtn.onclick = () => {
+    const u = window.location.href;
+    const m = u.match(/,(\d+(\.\d+)?)t/);
+    if(m) {
+      const nu = u.replace(m[0], ',90t');
+      history.replaceState(null, null, nu);
+    }
+  };
+  container.appendChild(lvlBtn);
+
+  // SHOW HORIZON Button
+  const hzBtn = document.createElement('button');
+  hzBtn.innerText = '🌅 SHOW HORIZON';
+  hzBtn.style.cssText = 'width:100%;margin-top:5px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
+  hzBtn.onclick = () => {
+    if(hzLine) {
+      hzLine.remove();
+      hzLine = null;
+      hzBtn.style.background = '#444';
+    } else {
+      hzLine = document.createElement('div');
+      hzLine.style.cssText = 'position:fixed;top:50%;left:0;width:100%;height:2px;background:rgba(255,0,0,0.5);z-index:999998;pointer-events:none;box-shadow:0 0 5px red;';
+      document.body.appendChild(hzLine);
+      hzBtn.style.background = '#060';
+    }
+  };
+  container.appendChild(hzBtn);
 
   const btn = document.createElement('button');
   btn.innerText = '▶ START';
@@ -96,30 +118,16 @@ javascript:(function(){
   function start(){
     cw = window.innerWidth;
     ch = window.innerHeight;
-
     let lastUrl = window.location.href;
     let stuckCount = 0;
-
     status = 'WALKING';
     btn.innerText = '🔴 STOP';
     btn.style.background = '#f00';
     document.getElementById('dw-status').innerText = 'WALKING';
     intervalId = setInterval(() => {
       if (isUserMouseDown) return; 
-
       const expOn = document.getElementById('dw-exp-toggle')?.checked;
-      const hzOn = document.getElementById('dw-hz-toggle')?.checked;
       let radius = 50;
-
-      if (hzOn) {
-        const match = window.location.href.match(/,(\d+(\.\d+)?)t/);
-        if (match) {
-          const pitch = parseFloat(match[1]);
-          if (pitch > 91) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
-          else if (pitch < 89) window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-        }
-      }
-
       if (expOn) {
         if (window.location.href === lastUrl) {
           stuckCount++;
@@ -127,8 +135,6 @@ javascript:(function(){
           lastUrl = window.location.href;
           stuckCount = 0;
         }
-
-        // Exponential Chaos Recovery
         if (stuckCount > 0) {
           radius = 50 * Math.pow(1.5, stuckCount);
           document.getElementById('dw-status').innerText = `STUCK (CHAOS LVL ${stuckCount})`;
@@ -139,12 +145,9 @@ javascript:(function(){
           stuckCount = 0;
           document.getElementById('dw-status').innerText = 'WALKING';
       }
-
       const off = () => (Math.random()*2-1)*radius;
-
       const tx = cw * 0.5 + off();
       const ty = ch * 0.7 + off();
-
       click(tx, ty);
       steps++;
       document.getElementById('dw-steps').innerText = steps;
