@@ -1,21 +1,70 @@
 javascript:(function(){
+  if (window.DRUNK_WALKER_ACTIVE) return;
+  window.DRUNK_WALKER_ACTIVE = true;
+
   const width = window.innerWidth;
   const height = window.innerHeight;
   let status = 'IDLE';
   let steps = 0;
-  let interval = null;
+  let intervalId = null;
+  let pace = 2000; 
   let lastMouseX = null, lastMouseY = null, isMouseIn = false;
+  let isUserMouseDown = false;
+
+  // Track real user drag state
+  document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
+  document.addEventListener('mouseup', (e) => { if (e.isTrusted) isUserMouseDown = false; }, true);
 
   document.addEventListener('mousemove', (e) => { lastMouseX = e.clientX; lastMouseY = e.clientY; isMouseIn = true; });
   document.addEventListener('mouseleave', () => isMouseIn = false);
   document.addEventListener('mouseenter', () => isMouseIn = true);
 
-  const hud = document.createElement('div');
-  hud.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);color:#0f0;padding:10px;font-family:monospace;z-index:999999;border:1px solid #0f0;pointer-events:none;';
-  document.body.appendChild(hud);
-
-  function updateHUD(t){ hud.innerHTML = `DRUNK WALKER v1.2<br>STATUS: ${status}<br>STEPS: ${steps}<br>TARGET: ${t}`; }
+  const container = document.createElement('div');
+  container.id = 'dw-ctrl-panel';
+  container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
+  const title = document.createElement('div');
+  title.innerHTML = '🤪 DRUNK WALKER v1.4<hr style="border-color:#0f0">';
+  container.appendChild(title);
+
+  const stats = document.createElement('div');
+  stats.style.margin = '10px 0';
+  stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>STEPS: <span id="dw-steps">0</span>';
+  container.appendChild(stats);
+
+  const paceLabel = document.createElement('div');
+  paceLabel.style.fontSize = '10px';
+  paceLabel.innerHTML = 'PACE: <span id="dw-pace-val">2.0</span>s';
+  container.appendChild(paceLabel);
+
+  const paceSlider = document.createElement('input');
+  paceSlider.type = 'range';
+  paceSlider.min = '500';
+  paceSlider.max = '5000';
+  paceSlider.step = '100';
+  paceSlider.value = pace;
+  paceSlider.style.width = '100%';
+  paceSlider.oninput = () => {
+    pace = parseInt(paceSlider.value);
+    document.getElementById('dw-pace-val').innerText = (pace/1000).toFixed(1);
+    if (status === 'WALKING') {
+      stop();
+      start();
+    }
+  };
+  container.appendChild(paceSlider);
+
+  const btn = document.createElement('button');
+  btn.innerText = '▶ START';
+  btn.style.cssText = 'width:100%;margin-top:10px;padding:8px;background:#0f0;color:#000;border:none;font-weight:bold;cursor:pointer;border-radius:5px;';
+  btn.onclick = () => {
+    if (status === 'IDLE') start();
+    else stop();
+  };
+  container.appendChild(btn);
+
+  document.body.appendChild(container);
+
   function click(x, y){
     const opt = { bubbles:true, cancelable:true, view:window, clientX:x, clientY:y };
     const el = document.elementFromPoint(x, y) || document.body;
@@ -24,27 +73,34 @@ javascript:(function(){
     el.dispatchEvent(new MouseEvent('click', opt));
     
     const m = document.createElement('div');
-    m.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:15px;height:15px;background:cyan;border-radius:50%;z-index:999999;pointer-events:none;transform:translate(-50%,-50%);`;
+    m.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:15px;height:15px;background:cyan;border-radius:50%;z-index:999999;pointer-events:none;transform:translate(-50%,-50%);opacity:0.8;transition:transform 0.3s, opacity 0.3s;`;
     document.body.appendChild(m);
-    setTimeout(() => m.remove(), 300);
+    setTimeout(() => { m.style.transform='translate(-50%,-50%) scale(2)'; m.style.opacity='0'; setTimeout(()=>m.remove(),300); }, 50);
   }
 
   function start(){
     status = 'WALKING';
-    interval = setInterval(() => {
-      let tx, ty, t;
+    btn.innerText = '🔴 STOP';
+    btn.style.background = '#f00';
+    document.getElementById('dw-status').innerText = 'WALKING';
+    intervalId = setInterval(() => {
+      if (isUserMouseDown) return; // Skip if user is dragging/looking around
+      
+      let tx, ty;
       const off = () => (Math.random()*2-1)*50;
-      if(isMouseIn && lastMouseX !== null){ tx = lastMouseX+off(); ty = lastMouseY+off(); t = 'CURSOR'; }
-      else { tx = width*0.5+off(); ty = height*0.7+off(); t = 'FORWARD'; }
+      if(isMouseIn && lastMouseX !== null){ tx = lastMouseX+off(); ty = lastMouseY+off(); }
+      else { tx = width*0.5+off(); ty = height*0.7+off(); }
       click(tx, ty);
       steps++;
-      updateHUD(t);
-    }, 2000);
+      document.getElementById('dw-steps').innerText = steps;
+    }, pace);
   }
 
-  if(confirm("Drunk Walker: Start walking? (Click anywhere on screen to turn/guide)")){
-    start();
-  } else {
-    hud.remove();
+  function stop(){
+    status = 'IDLE';
+    btn.innerText = '▶ START';
+    btn.style.background = '#0f0';
+    document.getElementById('dw-status').innerText = 'IDLE';
+    if (intervalId) clearInterval(intervalId);
   }
 })();
