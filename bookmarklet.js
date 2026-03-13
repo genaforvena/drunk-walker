@@ -2,29 +2,29 @@ javascript:(function(){
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
 
-  const width = window.innerWidth;
-  const height = window.innerHeight;
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
   let pace = 2000; 
-  let lastMouseX = null, lastMouseY = null, isMouseIn = false;
+  let lastMouseX = null, lastMouseY = null;
   let isUserMouseDown = false;
 
   // Track real user drag state
   document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
   document.addEventListener('mouseup', (e) => { if (e.isTrusted) isUserMouseDown = false; }, true);
 
-  document.addEventListener('mousemove', (e) => { lastMouseX = e.clientX; lastMouseY = e.clientY; isMouseIn = true; });
-  document.addEventListener('mouseleave', () => isMouseIn = false);
-  document.addEventListener('mouseenter', () => isMouseIn = true);
+  // Track cursor position
+  document.addEventListener('mousemove', (e) => { 
+    lastMouseX = e.clientX; 
+    lastMouseY = e.clientY; 
+  });
 
   const container = document.createElement('div');
   container.id = 'dw-ctrl-panel';
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v1.4<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v1.5<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -84,12 +84,22 @@ javascript:(function(){
     btn.style.background = '#f00';
     document.getElementById('dw-status').innerText = 'WALKING';
     intervalId = setInterval(() => {
-      if (isUserMouseDown) return; // Skip if user is dragging/looking around
+      if (isUserMouseDown) return; 
+      
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const off = () => (Math.random()*2-1)*50;
       
       let tx, ty;
-      const off = () => (Math.random()*2-1)*50;
-      if(isMouseIn && lastMouseX !== null){ tx = lastMouseX+off(); ty = lastMouseY+off(); }
-      else { tx = width*0.5+off(); ty = height*0.7+off(); }
+      if (lastMouseX !== null && lastMouseY !== null) {
+        tx = lastMouseX + off();
+        ty = lastMouseY + off();
+      } else {
+        // Center of the actual window
+        tx = w * 0.5 + off();
+        ty = h * 0.5 + off();
+      }
+      
       click(tx, ty);
       steps++;
       document.getElementById('dw-steps').innerText = steps;

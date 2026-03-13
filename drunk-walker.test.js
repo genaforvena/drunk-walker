@@ -9,8 +9,9 @@ const createDrunkWalkerLogic = () => {
   let intervalId = null;
   let pace = 2000;
   let isUserMouseDown = false;
-  let lastMouseX = 500, lastMouseY = 500, isMouseIn = true;
-  const width = 1920, height = 1080;
+  let lastMouseX = 500, lastMouseY = 500;
+  // Dynamic window mock
+  const getWindow = () => ({ width: 1920, height: 1080 });
 
   const clickMock = vi.fn();
 
@@ -19,14 +20,16 @@ const createDrunkWalkerLogic = () => {
     intervalId = setInterval(() => {
       if (isUserMouseDown) return;
       
+      const { width, height } = getWindow();
       let tx, ty;
-      const off = () => (0.5 * 2 - 1) * 50; // Mock random offset as 0 for deterministic tests
-      if (isMouseIn && lastMouseX !== null) {
+      const off = () => 0; // Mock random offset as 0
+      if (lastMouseX !== null && lastMouseY !== null) {
         tx = lastMouseX + off();
         ty = lastMouseY + off();
       } else {
+        // True center
         tx = width * 0.5 + off();
-        ty = height * 0.7 + off();
+        ty = height * 0.5 + off();
       }
       clickMock(tx, ty);
       steps++;
@@ -45,7 +48,7 @@ const createDrunkWalkerLogic = () => {
     stop,
     setPace: (p) => { pace = p; },
     setUserMouseDown: (v) => { isUserMouseDown = v; },
-    setMouseIn: (v) => { isMouseIn = v; },
+    setMouseCoords: (x, y) => { lastMouseX = x; lastMouseY = y; },
     clickMock
   };
 };
@@ -96,23 +99,21 @@ describe('Drunk Walker Logic v1.4', () => {
     expect(dw.clickMock).toHaveBeenCalled();
   });
 
-  it('should target cursor when mouse is in window', () => {
+  it('should target cursor when mouse is active', () => {
     const dw = createDrunkWalkerLogic();
-    dw.setMouseIn(true);
     dw.start();
     
     vi.advanceTimersByTime(2000);
-    // lastMouseX = 500, off = 0 -> 500
     expect(dw.clickMock).toHaveBeenCalledWith(500, 500);
   });
 
-  it('should target forward (center-ish) when mouse is out', () => {
+  it('should target true center (0.5, 0.5) when mouse is absent', () => {
     const dw = createDrunkWalkerLogic();
-    dw.setMouseIn(false);
+    dw.setMouseCoords(null, null);
     dw.start();
     
     vi.advanceTimersByTime(2000);
-    // width=1920, height=1080 -> 1920*0.5=960, 1080*0.7=756
-    expect(dw.clickMock).toHaveBeenCalledWith(960, 756);
+    // width=1920, height=1080 -> 1920*0.5=960, 1080*0.5=540
+    expect(dw.clickMock).toHaveBeenCalledWith(960, 540);
   });
 });
