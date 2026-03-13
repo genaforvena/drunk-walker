@@ -6,19 +6,19 @@
 
 **Drunk Walker** is a chaotic, "blind" automation engine for Google Street View. It transforms the world’s most famous mapping service into an unpredictable travelogue by simulating human-like clicks to move through the streets.
 
-Unlike traditional navigators, Drunk Walker has no destination and no sense of direction. It simply "walks" by clicking where it thinks "forward" should be, leading to mesmerizing, often futile, and occasionally beautiful journeys.
+Unlike traditional navigators, Drunk Walker has no destination and no sense of direction. It simply "walks" by clicking around the center of the screen, leading to mesmerizing, often futile, and occasionally beautiful journeys.
 
 ### How it works:
-- **Blind Navigation:** It treats Street View as a black box, using pure screen coordinates to trigger movement.
-- **Guided Chaos:** You can "steer" the walker by simply moving your mouse. The script will anchor its random clicks around your cursor.
+- **Blind Navigation:** It treats Street View as a black box, using pure screen coordinates around the center to trigger movement.
 - **Smart Observation:** It automatically pauses whenever you drag the mouse to look around, letting you take control of the perspective without interference.
+- **Adjustable Pace:** Control the chaos with an on-screen pace slider.
 
 ---
 
 ## 🌟 Features
 
-- **Guided Chaos:** Clicks are relative to your cursor position, allowing you to "steer" the drunken walk.
-- **Forward-Mode:** If the cursor leaves the window, it defaults to clicking near the lower-center "Forward" region.
+- **Center-Targeting:** Always clicks in the central region of the viewport.
+- **HUD Control Panel:** A cyberpunk-style overlay with START/STOP and Pace controls.
 - **HUD Overlay:** A cyberpunk-style in-page display showing live navigation status and target type.
 - **🤪 YOLO Mode:** One-click insanity. Max speed, max radius, and screen glitch effects.
 - **Manifest V3:** Built for modern browser security standards.

@@ -9,7 +9,6 @@ const createDrunkWalkerLogic = () => {
   let intervalId = null;
   let pace = 2000;
   let isUserMouseDown = false;
-  let lastMouseX = 500, lastMouseY = 500;
   // Dynamic window mock
   const getWindow = () => ({ width: 1920, height: 1080 });
 
@@ -21,16 +20,12 @@ const createDrunkWalkerLogic = () => {
       if (isUserMouseDown) return;
       
       const { width, height } = getWindow();
-      let tx, ty;
       const off = () => 0; // Mock random offset as 0
-      if (lastMouseX !== null && lastMouseY !== null) {
-        tx = lastMouseX + off();
-        ty = lastMouseY + off();
-      } else {
-        // True center
-        tx = width * 0.5 + off();
-        ty = height * 0.5 + off();
-      }
+      
+      // v1.6: Always center
+      const tx = width * 0.5 + off();
+      const ty = height * 0.5 + off();
+      
       clickMock(tx, ty);
       steps++;
     }, pace);
@@ -48,7 +43,6 @@ const createDrunkWalkerLogic = () => {
     stop,
     setPace: (p) => { pace = p; },
     setUserMouseDown: (v) => { isUserMouseDown = v; },
-    setMouseCoords: (x, y) => { lastMouseX = x; lastMouseY = y; },
     clickMock
   };
 };
@@ -99,17 +93,8 @@ describe('Drunk Walker Logic v1.4', () => {
     expect(dw.clickMock).toHaveBeenCalled();
   });
 
-  it('should target cursor when mouse is active', () => {
+  it('should always target the center area', () => {
     const dw = createDrunkWalkerLogic();
-    dw.start();
-    
-    vi.advanceTimersByTime(2000);
-    expect(dw.clickMock).toHaveBeenCalledWith(500, 500);
-  });
-
-  it('should target true center (0.5, 0.5) when mouse is absent', () => {
-    const dw = createDrunkWalkerLogic();
-    dw.setMouseCoords(null, null);
     dw.start();
     
     vi.advanceTimersByTime(2000);

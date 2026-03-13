@@ -37,12 +37,11 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 
 ## ⚡ Key Implementations & Logic
 
-### 1. Click Algorithm (v1.4)
+### 1. Click Algorithm (v1.6)
 - **Control Panel**: Injects a fixed UI with a **START/STOP toggle** and a **PACE slider** (0.5s to 5.0s).
-- **Drag Detection**: Automated clicks are paused if `isUserMouseDown` is true (detected via `isTrusted` mousedown events). This allows the user to rotate the camera in Street View without the script clicking.
-- **Targeting**:
-    - If cursor is on screen: Target = `(mouseX, mouseY) + randomOffset(radius)`.
-    - If cursor is off screen: Target = `(screenWidth * 0.5, screenHeight * 0.7) + randomOffset(radius)`.
+- **Drag Detection**: Automated clicks are paused if `isUserMouseDown` is true (detected via `isTrusted` mousedown events).
+- **Targeting**: Clicks are always targeted around the **True Center** of the viewport (`screenWidth * 0.5, screenHeight * 0.5`) with a random offset.
+- **No Cursor Tracking**: The script no longer follows or anchors clicks to the user's mouse position.
 
 ### 2. YOLO Mode
 A high-chaos preset: Interval 1.0s, Radius 100px, Glitch effects.
