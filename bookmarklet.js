@@ -1,6 +1,7 @@
-javascript:(function(){
+(function(){
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
+  console.log("🤪 DRUNK WALKER v2.5-EXP Loaded.");
 
   let status = 'IDLE';
   let steps = 0;
