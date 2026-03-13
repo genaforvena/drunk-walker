@@ -1,6 +1,9 @@
 # 🤪 Drunk Walker: Street View Chaos
 
-**Drunk Walker** is a Firefox extension that transforms Google Street View into an automated, chaotic travelogue. It navigates by blindly clicking near your cursor or the "Forward" arrow region, prioritizing exploration and visual chaos over accuracy.
+**[👉 Launch Drunk Walker Instantly (Any Device)](https://genaforvena.github.io/drunk-walker/)**
+
+**Drunk Walker** is a Firefox extension that transforms Google Street View into an automated, chaotic travelogue.
+ It navigates by blindly clicking near your cursor or the "Forward" arrow region, prioritizing exploration and visual chaos over accuracy.
 
 ## 🌟 Features
 
