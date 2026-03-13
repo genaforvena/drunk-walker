@@ -8,7 +8,6 @@ const createDrunkWalkerLogic = () => {
   let steps = 0;
   let intervalId = null;
   let pace = 2000;
-  let isUserMouseDown = false;
   let experimentalMode = false;
   let horizonFinder = false;
   let url = 'http://maps.google.com/test/@0,0,3a,75y,0h,90t';
@@ -18,9 +17,7 @@ const createDrunkWalkerLogic = () => {
   let cw = 0;
   let ch = 0;
 
-  // Dynamic window mock
   const getWindow = () => ({ width: 1920, height: 1080 });
-
   const clickMock = vi.fn();
   const dispatchMock = vi.fn();
 
@@ -38,14 +35,10 @@ const createDrunkWalkerLogic = () => {
     const { width, height } = getWindow();
     cw = width;
     ch = height;
-    
     let lastUrl = url;
     stuckCount = 0;
-
     status = 'WALKING';
     intervalId = setInterval(() => {
-      if (isUserMouseDown) return;
-      
       if (horizonFinder) {
         const match = url.match(/,(\d+(\.\d+)?)t/);
         if (match) {
@@ -54,45 +47,20 @@ const createDrunkWalkerLogic = () => {
           else if (pitch < 89) dispatchMock('ArrowDown');
         }
       }
-
       let radius = 50;
       if (experimentalMode) {
-        if (url === lastUrl) {
-          stuckCount++;
-        } else {
-          lastUrl = url;
-          stuckCount = 0;
-        }
-        
-        if (stuckCount > 0) {
-          radius = 50 * Math.pow(1.5, stuckCount);
-        }
-      } else {
-          stuckCount = 0;
-      }
-
+        if (url === lastUrl) { stuckCount++; } else { lastUrl = url; stuckCount = 0; }
+        if (stuckCount > 0) { radius = 50 * Math.pow(1.5, stuckCount); }
+      } else { stuckCount = 0; }
       let tx, ty;
-      if (poly.length > 2) {
-        // In real code we pick random points, in test we use a predictable one if it's in poly
-        // To simplify test, we'll just check if the "center of poly" is used or similar
-        // For actual test we'll mock the random part or just check the logic branch
-        tx = 100; // Mocked predictable point
-        ty = 100;
-      } else {
-        const off = () => 0; // Mock random offset as 0
-        tx = cw * 0.5 + off();
-        ty = ch * 0.7 + off();
-      }
-      
+      if (poly.length > 2) { tx = 100; ty = 100; } 
+      else { const off = () => 0; tx = cw * 0.5 + off(); ty = ch * 0.7 + off(); }
       clickMock(tx, ty);
       steps++;
     }, pace);
   };
 
-  const stop = () => {
-    status = 'IDLE';
-    if (intervalId) clearInterval(intervalId);
-  };
+  const stop = () => { status = 'IDLE'; if (intervalId) clearInterval(intervalId); };
 
   return {
     getStatus: () => status,
@@ -100,7 +68,6 @@ const createDrunkWalkerLogic = () => {
     start,
     stop,
     setPace: (p) => { pace = p; },
-    setUserMouseDown: (v) => { isUserMouseDown = v; },
     setExperimentalMode: (v) => { experimentalMode = v; },
     setHorizonFinder: (v) => { horizonFinder = v; },
     setUrl: (u) => { url = u; },
@@ -111,20 +78,14 @@ const createDrunkWalkerLogic = () => {
   };
 };
 
-describe('Drunk Walker Logic v2.3-EXP', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+describe('Drunk Walker Logic v2.4-EXP', () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.restoreAllMocks(); });
 
   it('should start and increment steps', () => {
     const dw = createDrunkWalkerLogic();
     dw.start();
     expect(dw.getStatus()).toBe('WALKING');
-    
     vi.advanceTimersByTime(2000);
     expect(dw.getSteps()).toBe(1);
     expect(dw.clickMock).toHaveBeenCalled();
@@ -135,54 +96,16 @@ describe('Drunk Walker Logic v2.3-EXP', () => {
     dw.start();
     vi.advanceTimersByTime(2000);
     expect(dw.getSteps()).toBe(1);
-    
     dw.stop();
     expect(dw.getStatus()).toBe('IDLE');
     vi.advanceTimersByTime(2000);
     expect(dw.getSteps()).toBe(1);
   });
 
-  it('should skip clicks if user is dragging (isUserMouseDown)', () => {
-    const dw = createDrunkWalkerLogic();
-    dw.start();
-    dw.setUserMouseDown(true);
-    
-    vi.advanceTimersByTime(2000);
-    expect(dw.getSteps()).toBe(0);
-    expect(dw.clickMock).not.toHaveBeenCalled();
-    
-    dw.setUserMouseDown(false);
-    vi.advanceTimersByTime(2000);
-    expect(dw.getSteps()).toBe(1);
-    expect(dw.clickMock).toHaveBeenCalled();
-  });
-
-  it('should resume clicking after dragging stops', () => {
-    const dw = createDrunkWalkerLogic();
-    dw.start();
-    
-    // 1. First click
-    vi.advanceTimersByTime(2000);
-    expect(dw.getSteps()).toBe(1);
-    
-    // 2. Start dragging - next click should be skipped
-    dw.setUserMouseDown(true);
-    vi.advanceTimersByTime(2000);
-    expect(dw.getSteps()).toBe(1); // Still 1
-    
-    // 3. Stop dragging - next click should happen
-    dw.setUserMouseDown(false);
-    vi.advanceTimersByTime(2000);
-    expect(dw.getSteps()).toBe(2);
-    expect(dw.clickMock).toHaveBeenCalledTimes(2);
-  });
-
   it('should target the area slightly lower than center (0.7 height)', () => {
     const dw = createDrunkWalkerLogic();
     dw.start();
-    
     vi.advanceTimersByTime(2000);
-    // width=1920, height=1080 -> 1920*0.5=960, 1080*0.7=756
     expect(dw.clickMock).toHaveBeenCalledWith(960, 756);
   });
 

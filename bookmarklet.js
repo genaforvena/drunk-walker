@@ -6,7 +6,6 @@ javascript:(function(){
   let steps = 0;
   let intervalId = null;
   let pace = 2000; 
-  let isUserMouseDown = false;
   let cw = window.innerWidth;
   let ch = window.innerHeight;
   let hzLine = null;
@@ -14,15 +13,12 @@ javascript:(function(){
   let isDrawing = false;
   let drawOverlay = null;
 
-  document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
-  document.addEventListener('mouseup', (e) => { if (e.isTrusted) isUserMouseDown = false; }, true);
-
   const container = document.createElement('div');
   container.id = 'dw-ctrl-panel';
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v2.3-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v2.4-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -62,7 +58,6 @@ javascript:(function(){
   expLabel.appendChild(document.createTextNode('EXPERIMENTAL MODE (v2.0)'));
   container.appendChild(expLabel);
 
-  // LEVEL URL Button
   const lvlBtn = document.createElement('button');
   lvlBtn.innerText = '⚖️ LEVEL URL';
   lvlBtn.style.cssText = 'width:100%;margin-top:10px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
@@ -76,7 +71,6 @@ javascript:(function(){
   };
   container.appendChild(lvlBtn);
 
-  // SHOW HORIZON Button
   const hzBtn = document.createElement('button');
   hzBtn.innerText = '🌅 SHOW HORIZON';
   hzBtn.style.cssText = 'width:100%;margin-top:5px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
@@ -94,7 +88,6 @@ javascript:(function(){
   };
   container.appendChild(hzBtn);
 
-  // DRAW AREA Button
   const drawBtn = document.createElement('button');
   drawBtn.innerText = '📐 DRAW CLICK AREA';
   drawBtn.style.cssText = 'width:100%;margin-top:5px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
@@ -115,7 +108,6 @@ javascript:(function(){
     drawOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999997;cursor:crosshair;';
     document.body.appendChild(drawOverlay);
     const ctx = drawOverlay.getContext('2d');
-    
     drawOverlay.onclick = (e) => {
       const p = {x: e.clientX, y: e.clientY};
       if(poly.length > 2 && Math.hypot(p.x - poly[0].x, p.y - poly[0].y) < 20) {
@@ -125,21 +117,14 @@ javascript:(function(){
       poly.push(p);
       redraw();
     };
-
     function redraw(){
       ctx.clearRect(0,0,drawOverlay.width,drawOverlay.height);
       ctx.strokeStyle = '#0f0';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      poly.forEach((p, i) => {
-        if(i===0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-      });
+      poly.forEach((p, i) => { if(i===0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
       ctx.stroke();
-      poly.forEach(p => {
-        ctx.fillStyle = '#f0f';
-        ctx.fillRect(p.x-3, p.y-3, 6, 6);
-      });
+      poly.forEach(p => { ctx.fillStyle = '#f0f'; ctx.fillRect(p.x-3, p.y-3, 6, 6); });
     }
   }
 
@@ -168,7 +153,6 @@ javascript:(function(){
     el.dispatchEvent(new MouseEvent('mousedown', opt));
     el.dispatchEvent(new MouseEvent('mouseup', opt));
     el.dispatchEvent(new MouseEvent('click', opt));
-    
     const m = document.createElement('div');
     m.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:15px;height:15px;background:cyan;border-radius:50%;z-index:999999;pointer-events:none;transform:translate(-50%,-50%);opacity:0.8;transition:transform 0.3s, opacity 0.3s;`;
     document.body.appendChild(m);
@@ -195,7 +179,7 @@ javascript:(function(){
     btn.style.background = '#f00';
     document.getElementById('dw-status').innerText = 'WALKING';
     intervalId = setInterval(() => {
-      if (isUserMouseDown || isDrawing) return; 
+      if (isDrawing) return; 
       const expOn = document.getElementById('dw-exp-toggle')?.checked;
       let radius = 50;
       if (expOn) {
@@ -215,7 +199,6 @@ javascript:(function(){
           stuckCount = 0;
           document.getElementById('dw-status').innerText = 'WALKING';
       }
-      
       let tx, ty;
       if(poly.length > 2){
         const minX = Math.min(...poly.map(p=>p.x)), maxX = Math.max(...poly.map(p=>p.x));
@@ -231,7 +214,6 @@ javascript:(function(){
         tx = cw * 0.5 + off();
         ty = ch * 0.7 + off();
       }
-      
       click(tx, ty);
       steps++;
       document.getElementById('dw-steps').innerText = steps;

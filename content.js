@@ -3,25 +3,7 @@ const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 console.log("Drunk Walker content script loaded.");
 
-// --- HUD & Visuals ---
 let hudElement = null;
-let lastMouseX = null;
-let lastMouseY = null;
-let isMouseInWindow = false;
-
-document.addEventListener('mousemove', (e) => {
-  lastMouseX = e.clientX;
-  lastMouseY = e.clientY;
-  isMouseInWindow = true;
-});
-
-document.addEventListener('mouseleave', () => {
-  isMouseInWindow = false;
-});
-
-document.addEventListener('mouseenter', () => {
-  isMouseInWindow = true;
-});
 
 function createHUD() {
   if (hudElement) return;
@@ -45,9 +27,9 @@ function createHUD() {
   `;
   
   hudElement.innerHTML = `
-  <h2 style="margin: 0 0 10px; border-bottom: 1px solid #0f0;">DRUNK WALKER v1.2</h2>
+  <h2 style="margin: 0 0 10px; border-bottom: 1px solid #0f0;">DRUNK WALKER v2.4</h2>
   <div id="dw-status" style="margin-bottom: 5px;">STATUS: IDLE</div>
-  <div id="dw-target" style="margin-bottom: 5px;">TARGET: CENTER</div>
+  <div id="dw-target" style="margin-bottom: 5px;">TARGET: FORWARD</div>
   <div id="dw-yolo" style="color: #ff00ff; display: none; font-weight: bold; margin-top: 5px; font-size: 1.2em;">🤪 YOLO MODE ACTIVE</div>
   `;
   document.body.appendChild(hudElement);
@@ -84,8 +66,6 @@ function glitchEffect() {
   setTimeout(() => glitch.remove(), 100);
 }
 
-// --- Core Logic ---
-
 function simulateClick(x, y) {
   const eventOptions = {
     bubbles: true,
@@ -106,8 +86,6 @@ function simulateClick(x, y) {
   element.dispatchEvent(mousedown);
   element.dispatchEvent(mouseup);
   element.dispatchEvent(click);
-  
-  console.log(`[Drunk Walker] Clicked at (${x}, ${y}) on element:`, element);
 }
 
 function isStreetView() {
@@ -118,7 +96,6 @@ function isFullScreen() {
   return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
 }
 
-// Notify background about status changes
 let lastState = { isStreetView: false, isFullScreen: false, url: "" };
 setInterval(() => {
   const currentIsStreetView = isStreetView();
@@ -134,13 +111,9 @@ setInterval(() => {
   }
 }, 1000);
 
-// Listen for click commands from background
 browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'PERFORM_CLICK') {
-    if (!isStreetView()) {
-      console.warn("[Drunk Walker] Not in Street View mode!");
-      return;
-    }
+    if (!isStreetView()) return;
 
     const { radius, isYoloMode } = message.payload;
     const width = window.innerWidth;
@@ -150,23 +123,14 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
     const randomOffset = () => (Math.random() * 2 - 1) * radius;
     
-    let clickX, clickY, targetType;
-
-    if (isMouseInWindow && lastMouseX !== null && lastMouseY !== null) {
-      clickX = lastMouseX + randomOffset();
-      clickY = lastMouseY + randomOffset();
-      targetType = 'CURSOR';
-    } else {
-      // Default "Forward" target (lower-center)
-      clickX = width * 0.5 + randomOffset();
-      clickY = height * 0.7 + randomOffset();
-      targetType = 'FORWARD';
-    }
+    // Default "Forward" target (lower-center)
+    const clickX = width * 0.5 + randomOffset();
+    const clickY = height * 0.7 + randomOffset();
+    const targetType = 'FORWARD';
 
     updateHUD('NAVIGATING', targetType, isYoloMode);
     if (isYoloMode) glitchEffect();
 
-    // Visual Click Marker
     const marker = document.createElement('div');
     marker.style.cssText = `
       position: fixed;
@@ -190,4 +154,3 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
     simulateClick(clickX, clickY);
   }
 });
-

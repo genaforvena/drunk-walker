@@ -1,4 +1,4 @@
-# Drunk Walker: Street View Chaos Specification (v2.3-EXP)
+# Drunk Walker: Street View Chaos Specification (v2.4-EXP)
 
 ## Executive Summary
 
@@ -9,14 +9,14 @@
 ## 1. Overview
 
 ### 1.1 Concept
-The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius or constrained by a user-drawn polygon. v2.3-EXP introduces **Draw Click Area** for precision targeting and **Manual Leveling Tools**.
+The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius or constrained by a user-drawn polygon. v2.4-EXP enforces **Strict Autonomy**, removing all dependencies on user mouse movement or drag states.
 
 ### 1.2 Core Philosophy
 - **No DOM interaction** – All interaction is via coordinate clicks.
 - **Forward-Default** – Default clicks at 50% width, 70% height.
 - **Custom Selection** – User can draw a polygon to define a specific click zone.
 - **Auto-Recovery** – Exponential radius growth when the URL remains unchanged.
-- **Leveling Guides** – Manual tools to flatten the URL pitch and show a horizon line.
+- **Strictly Autonomous** – No mouse tracking, no drag detection. The script ONLY clicks.
 
 ---
 
@@ -32,14 +32,13 @@ The engine simulates user clicks at strategic screen locations. Movement is rand
 | SHOW HORIZON | Button | Toggles a guide line at 50% screen height |
 | DRAW CLICK AREA | Button | Opens an overlay to draw a custom click polygon |
 
-### 3.2 Core Algorithm (v2.3-EXP)
+### 3.2 Core Algorithm (v2.4-EXP)
 
 1. **Track State**:
     - Monitor `window.location.href` for stuck detection.
-    - Monitor `mousedown/up` to pause during manual drags.
 2. **Determine Target**:
     - If `customArea` (polygon) is defined:
-        - Pick a random point `(tx, ty)` inside the polygon using a point-in-polygon algorithm.
+        - Pick a random point `(tx, ty)` inside the polygon.
     - Else:
         - Target = "Forward" (50% width, 70% height).
 3. **Calculate Radius**:
@@ -48,10 +47,10 @@ The engine simulates user clicks at strategic screen locations. Movement is rand
     - Else:
         - `stuckCount = 0`, `radius = 50`
 4. **Trigger Click**:
-    - If no `customArea`, apply random offset within `radius` to `tx, ty`.
+    - Apply random offset within `radius` if no `customArea`.
     - Dispatch `mousedown/up/click` events at target.
 5. **Update HUD**:
-    - Show steps and status (e.g., `WALKING`, `STUCK CHAOS LVL X`, or `DRAWING`).
+    - Show steps and status.
 
 ---
 

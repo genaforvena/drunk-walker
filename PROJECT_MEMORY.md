@@ -41,20 +41,18 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 
 ## ⚡ Key Implementations & Logic
 
-### 1. Click Algorithm (v2.3-EXP)
+### 1. Click Algorithm (v2.4-EXP)
 - **Control Panel**: Injected UI with **START/STOP**, **PACE slider**, **EXPERIMENTAL MODE**, **LEVEL URL**, **SHOW HORIZON**, and **DRAW CLICK AREA**.
 - **Experimental Mode**: 
-    - **URL-Stuck Detection**: Tracks `window.location.href`. If it hasn't changed between steps, the system identifies a "STUCK" state.
+    - **URL-Stuck Detection**: Tracks `window.location.href`.
     - **Exponential Chaos Recovery**: When stuck, the click radius grows exponentially.
-    - **Reset**: `stuckCount` resets to 0 immediately upon URL change or if Experimental Mode is toggled off.
 - **Horizon Finder & Guides**: 
-    - **LEVEL URL**: Directly modifies URL pitch to 90t via `history.replaceState`.
+    - **LEVEL URL**: Directly modifies URL pitch to 90t.
     - **SHOW HORIZON**: Toggles a red line guide at 50% screen height.
 - **Draw Click Area**: 
-    - **Selection**: Allows user to draw a polygon on a canvas overlay.
-    - **Targeting**: Clicks are randomly picked from within the defined polygon using a point-in-polygon algorithm. Clicks default to "Forward" if no area is set.
-- **Drag Detection**: Automated clicks are paused if `isUserMouseDown` is true.
-- **Targeting**: Default clicks at 70% height (`screenWidth * 0.5, screenHeight * 0.7`).
+    - **Selection**: User draws a polygon on a canvas overlay.
+    - **Targeting**: Clicks are randomly picked within the polygon.
+- **Strictly Autonomous**: No mouse tracking or drag detection. The script performs ONLY clicks at the calculated target, ensuring continuous execution.
 - **Session-Based**: Dimensions recalculated on every START.
 
 ### 2. YOLO Mode
@@ -66,7 +64,7 @@ A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effect
 
 - [x] Manifest V3 Setup (Cross-browser compatible)
 - [x] Background State Management (Service Worker mode)
-- [x] Cursor-relative Click Simulation (v1.1)
+- [x] Cursor-relative Click Simulation (v1.1) [DEPRECATED in v2.4]
 - [x] Simplified Movement (v1.2): Default Forward.
 - [x] Minimalist UI (Single Toggle)
 - [x] **One-Click Installation Page** (GitHub Pages)
@@ -75,6 +73,7 @@ A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effect
 - [x] **Horizon Finder (v2.1)**: Auto-pitch adjustment via URL parsing.
 - [x] **Leveling & Horizon Guides (v2.2)**: Manual leveling tools.
 - [x] **Draw Click Area (v2.3)**: Polygon-based click targeting.
+- [x] **Strictly Autonomous (v2.4)**: Removed all drag detection and mouse tracking.
 - [ ] **Next Up**: Dynamic Radius scaling (increasing wobble over time)
 - [ ] **Next Up**: Screen shake effects on click
 
