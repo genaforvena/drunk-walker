@@ -48,7 +48,14 @@ function createEngine(config = {}) {
   const isNavigating = () => status === 'WALKING';
 
   // Configuration setters
-  const setPace = (newPace) => { cfg.pace = newPace; };
+  const setPace = (newPace) => {
+    cfg.pace = newPace;
+    // Update interval if running without resetting steps
+    if (intervalId && status === 'WALKING') {
+      clearInterval(intervalId);
+      intervalId = setInterval(tick, cfg.pace);
+    }
+  };
   const setKeyboardMode = (on) => { cfg.kbOn = on; };
   const setExperimentalMode = (on) => { cfg.expOn = on; };
   const setPolygon = (points) => { poly = points; };
@@ -168,14 +175,16 @@ function createEngine(config = {}) {
     if (status === 'WALKING') return;
 
     status = 'WALKING';
-    steps = 0;
-    stuckCount = 0;
-    lastUrl = window.location.href;
+    // Only reset on first start, not on resume
+    if (steps === 0) {
+      stuckCount = 0;
+      lastUrl = window.location.href;
+    }
 
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(tick, cfg.pace);
 
-    if (onStatusUpdate) onStatusUpdate('WALKING', 0, 0);
+    if (onStatusUpdate) onStatusUpdate('WALKING', steps, stuckCount);
   };
 
   const stop = () => {
@@ -417,10 +426,6 @@ function createControlPanel(engine, options = {}) {
       const newPace = parseInt(paceSlider.value);
       if (paceValEl) paceValEl.innerText = (newPace / 1000).toFixed(1);
       engine.setPace(newPace);
-      if (engine.isNavigating()) {
-        engine.stop();
-        engine.start();
-      }
     };
     container.appendChild(paceSlider);
 

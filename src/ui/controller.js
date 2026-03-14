@@ -52,10 +52,6 @@ export function createControlPanel(engine, options = {}) {
       const newPace = parseInt(paceSlider.value);
       if (paceValEl) paceValEl.innerText = (newPace / 1000).toFixed(1);
       engine.setPace(newPace);
-      if (engine.isNavigating()) {
-        engine.stop();
-        engine.start();
-      }
     };
     container.appendChild(paceSlider);
 
