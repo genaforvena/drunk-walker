@@ -19,16 +19,17 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should have keyboard mode enabled by default', () => {
-    expect(bookmarkletContent).toContain('kbOn = true');
+    expect(bookmarkletContent).toContain('kbOn: true');
   });
 
-  it('should keep click function for fallback', () => {
-    expect(bookmarkletContent).toContain('function click(x, y)');
+  it('should keep simulateClick function for fallback', () => {
+    expect(bookmarkletContent).toContain('function simulateClick(x, y, showMarker = true)');
   });
 
   it('should implement the start() function with auto-start logic in bookmarklet.js', () => {
-    expect(bookmarkletContent).toContain('start();\n})();');
+    expect(bookmarkletContent).toContain('ui.init()');
     expect(bookmarkletContent).toContain('btn.innerText = \'🔴 STOP\'');
+    expect(bookmarkletContent).toContain('autoStart: true');
   });
 
   describe('copyToClipboard functionality', () => {
