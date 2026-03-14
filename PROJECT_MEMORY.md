@@ -5,21 +5,21 @@
 
 ---
 
-## 🏗️ System Architecture (v3.2-EXP - Modular)
+## 🏗️ System Architecture (v3.3-EXP - Modular)
 
 ### 1. Component Roles
-- **`src/core/engine.js`** - Independent navigation logic with state management
-- **`src/input/handlers.js`** - Keyboard/mouse event simulation
+- **`src/core/engine.js`** - Independent navigation logic with state management and Auto-Unstuck algorithm
+- **`src/input/handlers.js`** - Keyboard/mouse event simulation (including long-press for turns)
 - **`src/ui/controller.js`** - Control panel UI management
 - **`src/main.js`** - Entry point combining all modules
 - **`bookmarklet.js`** - Auto-generated bundle from `npm run build`
 - **`index.html`** - One-click installation page (fetches bookmarklet from GitHub)
 
 ### 2. Test Structure
-- **`src/core/engine.test.js`** - 22 tests for navigation logic
-- **`src/input/handlers.test.js`** - 18 tests for event simulation
-- **`src/bundle.test.js`** - 29 tests validating bundled output
-- **`index.test.js`** - 14 integration tests
+- **`src/core/engine.test.js`** - Tests for navigation logic and unstuck algorithm
+- **`src/input/handlers.test.js`** - Tests for event simulation (including longKeyPress)
+- **`src/bundle.test.js`** - Tests validating bundled output
+- **`index.test.js`** - Integration tests
 - **Total: 83 tests** - All must pass before push
 
 ---
@@ -50,29 +50,28 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 
 ## ⚡ Key Implementations & Logic
 
-### 1. Navigation Algorithm (v3.2-EXP)
+### 1. Navigation Algorithm (v3.3-EXP)
 - **Control Panel**: Injected UI with **START/STOP** and **PACE slider**.
 - **Keyboard Mode (DEFAULT)**: Simulates Arrow Up key press for forward movement.
-- **Panic Mode**: Simulates Arrow Left key press when stuck (experimental mode).
-- **Click Mode (Fallback)**: 
-  - Default target: 50% width, 70% height ( Forward direction).
+- **Auto-Unstuck Algorithm** (Experimental Mode):
+  - Triggers when URL unchanged for `panicThreshold` steps
+  - **Step 1**: Hold ArrowLeft for 300ms (~30° turn left)
+  - **Step 2**: Press ArrowUp to move forward
+  - **Step 3**: Verify URL changed, reset stuck count on success
+- **Click Mode (Fallback)**:
+  - Default target: 50% width, 70% height (Forward direction).
   - Visual markers show click locations.
-- **Smart Observation**: Pauses when user drags mouse (detected via `isTrusted` mousedown events).
+- **Smart Observation**: Pauses when user clicks/drags (`isUserMouseDown`).
 - **Session-Based**: Dimensions recalculated on every START.
 
 ### 2. Extra Features (Kept in Code, Not Exposed in UI)
-- Experimental Mode (stuck detection via URL tracking)
 - Polygon-based click targeting
 - Horizon finder and guides
-- Dynamic radius scaling
-    - **Selection**: User draws a polygon on a canvas overlay.
-    - **Targeting**: Clicks are randomly picked within the polygon.
-- **Drag Detection (Smart Observation)**: Automated clicks are paused if `isUserMouseDown` is true (detected via `isTrusted` mousedown events). This allows users to manually look around without interference.
+- Dynamic pace adjustment via slider
+- **Selection**: User draws a polygon on a canvas overlay.
+- **Targeting**: Clicks are randomly picked within the polygon.
 - **Targeting**: Default clicks at 70% height (`screenWidth * 0.5, screenHeight * 0.7`).
 - **Session-Based**: Dimensions recalculated on every START.
-
-### 2. YOLO Mode
-A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effects.
 
 ---
 
@@ -85,17 +84,21 @@ A high-chaos preset (Extension only): Interval 1.0s, Radius 100px, Glitch effect
 - [x] Keyboard Mode Default - Simulates Arrow Up for navigation
 - [x] Smart Observation - Pauses on user drag
 - [x] One-Click Installation Page - GitHub Pages with clipboard copy
+- [x] Auto-Unstuck Algorithm (v3.3) - Turn left 30°, move forward, verify
+- [x] Documentation Update - README, Spec, UNSTUCK_ALGORITHM.md
 - [x] Repo Cleanup - Removed unnecessary files
 
 ---
 
 ## 📂 File Map
-- `src/core/engine.js` - Navigation logic (testable without UI)
-- `src/input/handlers.js` - Keyboard/mouse event simulation
+- `src/core/engine.js` - Navigation logic with unstuck state machine (testable without UI)
+- `src/input/handlers.js` - Keyboard/mouse event simulation (including simulateLongKeyPress)
 - `src/ui/controller.js` - Control panel management
 - `src/main.js` - Entry point
 - `bookmarklet.js` - Auto-generated bundle
 - `index.html` - One-click installation page
 - `index.test.js` - Integration tests
 - `build.js` - Bundles src/ → bookmarklet.js
+- `UNSTUCK_ALGORITHM.md` - Detailed unstuck algorithm documentation
 - `PROJECT_MEMORY.md` - This knowledge base
+- `backup/` - Rollback point (v3.2-stable)

@@ -4,7 +4,7 @@
 
 ## 🌀 What is Drunk Walker?
 
-**Drunk Walker** is a chaotic, "blind" automation engine for Google Street View. It transforms the world’s most famous mapping service into an unpredictable travelogue by simulating human-like clicks to move through the streets.
+**Drunk Walker** is a chaotic, "blind" automation engine for Google Street View. It transforms the world's most famous mapping service into an unpredictable travelogue by simulating human-like clicks to move through the streets.
 
 Unlike traditional navigators, Drunk Walker has no destination and no sense of direction. It simply "walks" by clicking around the center of the screen, leading to mesmerizing, often futile, and occasionally beautiful journeys.
 
@@ -23,16 +23,30 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ---
 
-## 🌟 Key Features (v3.2-EXP)
+## 🌟 Key Features (v3.3-EXP)
 
-- **Draw Click Area:** Draw a custom polygon on the screen to define exactly where the walker should click.
-- **Smart Observation:** Automatically pauses clicking whenever you manually drag the mouse to look around or change perspective, then resumes when you release.
-- **Leveling Tools:** Use "LEVEL URL" to instantly flatten your view or "SHOW HORIZON" to toggle a visual guide.
-- **Experimental Mode:** Detects if you're stuck and triggers exponential chaos recovery.
-- **Optimized Forward-Targeting:** Default behavior clicks at 70% height—the "sweet spot" for Street View movement.
-- **Persistent Control Panel:** Injects a minimalist UI into the page with a **START/STOP** toggle, **Pace Slider**, and **Experimental Toggle**.
-- **Session-Aware:** Recalculates screen dimensions every time you hit START, ensuring perfect centering even after window resizes.
-- **Cross-Browser:** Works via Console or Extension on Chrome, Firefox, Safari, and Edge.
+- **🔄 Auto-Unstuck Algorithm**: When stuck, automatically turns left 30° and moves forward to recover navigation.
+- **🧩 Draw Click Area:** Draw a custom polygon on the screen to define exactly where the walker should click.
+- **👀 Smart Observation:** Automatically pauses clicking whenever you manually drag the mouse to look around or change perspective, then resumes when you release.
+- **🎚️ Leveling Tools:** Use "LEVEL URL" to instantly flatten your view or "SHOW HORIZON" to toggle a visual guide.
+- **🔬 Experimental Mode:** Detects if you're stuck and triggers automatic recovery sequences.
+- **🎯 Optimized Forward-Targeting:** Default behavior clicks at 70% height—the "sweet spot" for Street View movement.
+- **⌨️ Keyboard Mode (Default):** Simulates Arrow Up key press for smoother, more reliable navigation.
+- **📊 Persistent Control Panel:** Injects a minimalist UI into the page with a **START/STOP** toggle, **Pace Slider**, and step counter.
+- **💾 Session-Aware:** Recalculates screen dimensions every time you hit START, ensuring perfect centering even after window resizes.
+- **🌐 Cross-Browser:** Works via Console or Extension on Chrome, Firefox, Safari, and Edge.
+
+---
+
+## 🔄 Auto-Unstuck Algorithm
+
+When Drunk Walker detects it's stuck (URL unchanged for 3 consecutive steps), it automatically:
+
+1. **Turns Left ~30°** - Holds ArrowLeft for 300ms
+2. **Moves Forward** - Presses ArrowUp in the new direction
+3. **Verifies Success** - Checks if URL changed, resets on success
+
+This recovery sequence runs automatically in Experimental Mode when panic threshold is reached.
 
 ---
 
@@ -44,13 +58,21 @@ If you prefer a permanent extension over the console method:
     ```bash
     git clone https://github.com/genaforvena/drunk-walker.git
     ```
-2.  **Firefox:** 
+2.  **Firefox:**
     - Go to `about:debugging` > "This Firefox" > "Load Temporary Add-on...".
     - Select `manifest.json`.
-3.  **Chrome/Chromium:** 
+3.  **Chrome/Chromium:**
     - Go to `chrome://extensions`.
     - Enable "Developer mode" and click "Load unpacked".
     - Select the project folder.
+
+---
+
+## 📚 Documentation
+
+- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** - Detailed documentation of the auto-recovery system
+- **[Spec.md](Spec.md)** - Full technical specification
+- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** - Architecture and deployment guide
 
 ---
 
