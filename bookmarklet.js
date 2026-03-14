@@ -23,7 +23,7 @@ const defaultConfig = {
   radius: 50,
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
-  turnDuration: 300  // ms to hold ArrowLeft for ~30° turn
+  turnDuration: 600  // ms to hold ArrowLeft for ~60° turn (doubled from 300ms)
 };
 
 function createEngine(config = {}) {
@@ -58,6 +58,7 @@ function createEngine(config = {}) {
       intervalId = setInterval(tick, cfg.pace);
     }
   };
+  const setTurnDuration = (newDuration) => { cfg.turnDuration = newDuration; };
   const setKeyboardMode = (on) => { cfg.kbOn = on; };
   const setExperimentalMode = (on) => { cfg.expOn = on; };
   const setPolygon = (points) => { poly = points; };
@@ -260,6 +261,7 @@ function createEngine(config = {}) {
 
     // Configuration
     setPace,
+    setTurnDuration,
     setKeyboardMode,
     setExperimentalMode,
     setPolygon,
@@ -473,6 +475,8 @@ function createControlPanel(engine, options = {}) {
   let stepsEl = null;
   let paceValEl = null;
   let paceSlider = null;
+  let turnValEl = null;
+  let turnSlider = null;
 
   // Create UI elements
   const createUI = () => {
@@ -513,6 +517,28 @@ function createControlPanel(engine, options = {}) {
       engine.setPace(newPace);
     };
     container.appendChild(paceSlider);
+
+    // Turn duration control
+    const turnLabel = document.createElement('div');
+    turnLabel.style.fontSize = '10px';
+    turnLabel.style.marginTop = '8px';
+    turnLabel.innerHTML = 'TURN: <span id="dw-turn-val">60</span>°';
+    container.appendChild(turnLabel);
+    turnValEl = turnLabel.querySelector('#dw-turn-val');
+
+    turnSlider = document.createElement('input');
+    turnSlider.type = 'range';
+    turnSlider.min = '150';
+    turnSlider.max = '1200';
+    turnSlider.step = '50';
+    turnSlider.value = engine.getConfig().turnDuration;
+    turnSlider.style.width = '100%';
+    turnSlider.oninput = () => {
+      const newDuration = parseInt(turnSlider.value);
+      if (turnValEl) turnValEl.innerText = Math.round(newDuration / 10);
+      engine.setTurnDuration(newDuration);
+    };
+    container.appendChild(turnSlider);
 
     // Start/Stop button
     btn = document.createElement('button');

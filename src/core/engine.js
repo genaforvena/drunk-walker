@@ -13,7 +13,7 @@ export const defaultConfig = {
   radius: 50,
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
-  turnDuration: 300  // ms to hold ArrowLeft for ~30° turn
+  turnDuration: 600  // ms to hold ArrowLeft for ~60° turn (doubled from 300ms)
 };
 
 export function createEngine(config = {}) {
@@ -48,6 +48,7 @@ export function createEngine(config = {}) {
       intervalId = setInterval(tick, cfg.pace);
     }
   };
+  const setTurnDuration = (newDuration) => { cfg.turnDuration = newDuration; };
   const setKeyboardMode = (on) => { cfg.kbOn = on; };
   const setExperimentalMode = (on) => { cfg.expOn = on; };
   const setPolygon = (points) => { poly = points; };
@@ -250,6 +251,7 @@ export function createEngine(config = {}) {
 
     // Configuration
     setPace,
+    setTurnDuration,
     setKeyboardMode,
     setExperimentalMode,
     setPolygon,

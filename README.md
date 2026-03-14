@@ -25,11 +25,12 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ## 🌟 Key Features (v3.3-EXP)
 
-- **🔄 Auto-Unstuck Algorithm**: When stuck, automatically turns left 30° and moves forward to recover navigation (always on).
+- **🔄 Auto-Unstuck Algorithm**: When stuck, automatically turns left and moves forward to recover navigation (always on).
+- **🎚️ Turn Angle Control**: Adjustable turn duration (15°-120°) for customized unstuck recovery.
 - **👀 Smart Observation**: Automatically pauses clicking whenever you manually drag the mouse to look around, then resumes when you release.
 - **🎯 Optimized Forward-Targeting:** Default clicks at 70% height—the "sweet spot" for Street View movement.
 - **⌨️ Keyboard Mode (Default):** Simulates Arrow Up key press for smoother, more reliable navigation.
-- **📊 Control Panel:** Minimalist UI with **START/STOP** toggle, **Pace Slider**, and live step counter.
+- **📊 Control Panel:** Minimalist UI with **START/STOP** toggle, **Pace Slider**, **Turn Slider**, and live step counter.
 - **🎚️ Adjustable Pace:** Speed control from 0.5 to 5.0 seconds per step.
 - **💾 Session-Aware:** Recalculates screen dimensions every time you hit START.
 - **🌐 Cross-Browser:** Works on Chrome, Firefox, Safari, and Edge.
@@ -40,11 +41,11 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 When Drunk Walker detects it's stuck (URL unchanged for 3 consecutive steps), it automatically:
 
-1. **Turns Left ~30°** - Holds ArrowLeft for 300ms
+1. **Turns Left** - Holds ArrowLeft for configured duration (default 600ms = ~60°)
 2. **Moves Forward** - Presses ArrowUp in the new direction
 3. **Verifies Success** - Checks if URL changed, resets on success
 
-This recovery sequence runs **automatically**—no configuration needed.
+**Adjustable Turn Angle:** Use the TURN slider in the control panel to customize the turn duration (15°-120°). Default is 60° for reliable recovery.
 
 ---
 

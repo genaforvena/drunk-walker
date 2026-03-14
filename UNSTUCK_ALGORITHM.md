@@ -66,7 +66,7 @@ The unstuck algorithm uses a state machine with 4 states:
 | State       | Description                          | Action                            |
 |-------------|--------------------------------------|-----------------------------------|
 | `IDLE`      | Normal walking                       | Press ArrowUp                     |
-| `TURNING`   | Executing turn left                  | Hold ArrowLeft for 300ms          |
+| `TURNING`   | Executing turn left                  | Hold ArrowLeft (150-1200ms)       |
 | `MOVING`    | Moving forward after turn            | Press ArrowUp                     |
 | `VERIFYING` | Checking if unstuck succeeded        | Compare URL before/after sequence |
 
@@ -76,9 +76,11 @@ The unstuck algorithm uses a state machine with 4 states:
 const config = {
   pace: 2000,           // Time between steps (ms)
   panicThreshold: 3,    // Stuck count before unstuck triggers
-  turnDuration: 300     // Hold ArrowLeft for ~30° turn (ms)
+  turnDuration: 600     // Hold ArrowLeft for ~60° turn (ms) - adjustable via slider
 };
 ```
+
+**Turn Angle Range:** 150ms-1200ms (approximately 15°-120°)
 
 ## How It Works
 
@@ -94,10 +96,11 @@ When `stuckCount >= panicThreshold`:
 - Normal walking pauses
 - Unstuck sequence begins
 
-### 3. Turn Left (~30°)
+### 3. Turn Left
 
-The algorithm holds `ArrowLeft` for `turnDuration` (300ms):
-- This rotates the view left by approximately 30 degrees
+The algorithm holds `ArrowLeft` for `turnDuration` (default 600ms):
+- This rotates the view left by approximately 60 degrees
+- **Adjustable:** Use the TURN slider in the control panel (15°-120° range)
 - Duration calibrated for Google Street View's turn speed
 
 ### 4. Move Forward
