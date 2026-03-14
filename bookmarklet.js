@@ -392,15 +392,15 @@ function createControlPanel(engine, options = {}) {
     stats.style.margin = '10px 0';
     stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>STEPS: <span id="dw-steps">0</span>';
     container.appendChild(stats);
-    statusEl = document.getElementById('dw-status');
-    stepsEl = document.getElementById('dw-steps');
+    statusEl = stats.querySelector('#dw-status');
+    stepsEl = stats.querySelector('#dw-steps');
 
     // Pace control
     const paceLabel = document.createElement('div');
     paceLabel.style.fontSize = '10px';
     paceLabel.innerHTML = 'PACE: <span id="dw-pace-val">2.0</span>s';
     container.appendChild(paceLabel);
-    paceValEl = document.getElementById('dw-pace-val');
+    paceValEl = paceLabel.querySelector('#dw-pace-val');
 
     paceSlider = document.createElement('input');
     paceSlider.type = 'range';
