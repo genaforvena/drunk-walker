@@ -98,17 +98,29 @@ export function createControlPanel(engine, options = {}) {
 
   // Initialize
   const init = () => {
-    createUI();
-    engine.setActionHandlers({
-      statusUpdate: onStatusUpdate
-    });
-    updateButton();
-
-    if (autoStart) {
-      engine.start();
+    // Wait for DOM to be ready
+    if (!document.body) {
+      console.error('🤪 DRUNK WALKER: document.body not ready yet');
+      return { destroy: () => {} };
     }
 
-    return { destroy };
+    try {
+      createUI();
+      engine.setActionHandlers({
+        statusUpdate: onStatusUpdate
+      });
+      updateButton();
+
+      if (autoStart) {
+        engine.start();
+      }
+
+      console.log('🤪 Control panel created successfully');
+      return { destroy };
+    } catch (error) {
+      console.error('🤪 DRUNK WALKER: Failed to initialize UI:', error);
+      return { destroy: () => {} };
+    }
   };
 
   // Cleanup

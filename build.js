@@ -48,6 +48,7 @@ let bundled = `
     .replace(/import \{[^}]+\} from ['"]\.\/core\/engine\.js['"];?/g, '')
     .replace(/import \{[^}]+\} from ['"]\.\/input\/handlers\.js['"];?/g, '')
     .replace(/import \{[^}]+\} from ['"]\.\/ui\/controller\.js['"];?/g, '')
+    // main.js already has its own IIFE, so we just include it as-is
   }
 })();
 `.trim();
