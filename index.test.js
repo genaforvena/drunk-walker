@@ -1,43 +1,57 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import { JSDOM } from 'jsdom';
 
 describe('GitHub Pages One-Click Copy Verification', () => {
   const indexContent = fs.readFileSync('index.html', 'utf8');
   const bookmarkletContent = fs.readFileSync('bookmarklet.js', 'utf8');
-  
-  // Extract scriptCode content (unescaping it from the JSON-stringified format in index.html)
-  // The line is: const scriptCode = " ... ";
-  const match = indexContent.match(/const scriptCode = (.*);/);
-  const rawScriptContent = match ? match[1] : '';
-  const scriptCode = JSON.parse(rawScriptContent);
 
-  it('should match bookmarklet.js exactly', () => {
-    expect(scriptCode).toBe(bookmarkletContent);
+  // Extract the BOOKMARKLET_URL from index.html
+  const urlMatch = indexContent.match(/const BOOKMARKLET_URL = ['"](.+)['"]/);
+  const bookmarkletUrl = urlMatch ? urlMatch[1] : '';
+
+  it('should have correct GitHub raw URL for bookmarklet', () => {
+    expect(bookmarkletUrl).toBe('https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet.js');
   });
 
-  it('should contain the latest version string', () => {
-    expect(scriptCode).toContain('v3.0-EXP');
+  it('should contain the latest version string in bookmarklet.js', () => {
+    expect(bookmarkletContent).toContain('v3.0-EXP');
   });
 
-  it('should include Keyboard Mode toggle', () => {
-    expect(scriptCode).toContain('dw-kb-toggle');
-    expect(scriptCode).toContain('KEYBOARD MODE (ARROW UP)');
+  it('should include Keyboard Mode toggle in bookmarklet.js', () => {
+    expect(bookmarkletContent).toContain('dw-kb-toggle');
+    expect(bookmarkletContent).toContain('KEYBOARD MODE (ARROW UP)');
   });
 
-  it('should implement the start() function with auto-start logic', () => {
-    expect(scriptCode).toContain('start();\n})();');
-    expect(scriptCode).toContain('btn.innerText = \'🔴 STOP\'');
+  it('should implement the start() function with auto-start logic in bookmarklet.js', () => {
+    expect(bookmarkletContent).toContain('start();\n})();');
+    expect(bookmarkletContent).toContain('btn.innerText = \'🔴 STOP\'');
   });
 
   describe('copyToClipboard functionality', () => {
     let dom, window, document;
 
     beforeEach(() => {
-      dom = new JSDOM(indexContent, { runScripts: "dangerously", resources: "usable" });
+      // Mock fetch globally before creating JSDOM
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        text: async () => bookmarkletContent
+      });
+
+      // Mock alert
+      global.alert = vi.fn();
+
+      dom = new JSDOM(indexContent, { 
+        runScripts: "dangerously", 
+        resources: "usable",
+        beforeParse(w) {
+          // Ensure fetch is available in the window context
+          w.fetch = global.fetch;
+        }
+      });
       window = dom.window;
       document = window.document;
-      
+
       // Mock clipboard API
       Object.defineProperty(window.navigator, 'clipboard', {
         value: {
@@ -46,28 +60,62 @@ describe('GitHub Pages One-Click Copy Verification', () => {
       });
     });
 
-    it('should call navigator.clipboard.writeText with the correct scriptCode', () => {
-      // Trigger the function
-      window.copyToClipboard();
+    afterEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should call navigator.clipboard.writeText with the bookmarklet content', async () => {
+      // Wait for script to load
+      await new Promise(resolve => setTimeout(resolve, 50));
       
-      expect(window.navigator.clipboard.writeText).toHaveBeenCalledWith(scriptCode);
+      window.copyToClipboard();
+      expect(window.navigator.clipboard.writeText).toHaveBeenCalledWith(bookmarkletContent);
     });
 
     it('should show success message after copying', async () => {
+      // Wait for script to load
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const successMsg = document.getElementById('success');
-      // Initially it might be empty string in JSDOM because it's defined in <style> block, not inline
       expect(['none', '']).toContain(successMsg.style.display);
-      
+
       window.copyToClipboard();
-      
-      // Since it's a promise, we wait a bit
+
       await new Promise(resolve => setTimeout(resolve, 0));
-      
+
       expect(successMsg.style.display).toBe('block');
+    });
+
+    it('should handle case when script is not loaded yet', () => {
+      // Create a fresh DOM where fetch fails
+      const mockAlert = vi.fn();
+      const freshDom = new JSDOM(indexContent, { 
+        runScripts: "dangerously", 
+        resources: "usable",
+        beforeParse(w) {
+          w.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+          w.alert = mockAlert;
+        }
+      });
+      const freshWindow = freshDom.window;
+      
+      // Try to copy before script loads (scriptCode will be null)
+      freshWindow.copyToClipboard();
+      
+      // Should have shown alert about script not loaded
+      expect(mockAlert).toHaveBeenCalled();
     });
   });
 
   it('should have the correct version in the title', () => {
     expect(indexContent).toContain('<title>🤪 Drunk Walker v3.0-EXP');
+  });
+
+  it('should have loading message for script fetch', () => {
+    expect(indexContent).toContain('Loading script from repository');
+  });
+
+  it('should have disabled copy button initially', () => {
+    expect(indexContent).toContain('disabled');
   });
 });

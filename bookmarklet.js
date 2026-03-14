@@ -175,9 +175,17 @@
   }
 
   function key(k){
-    const opt = { key: k, code: k, keyCode: k === 'ArrowUp' ? 38 : 37, which: k === 'ArrowUp' ? 38 : 37, bubbles: true, cancelable: true };
-    document.dispatchEvent(new KeyboardEvent('keydown', opt));
-    setTimeout(() => document.dispatchEvent(new KeyboardEvent('keyup', opt)), 50);
+    const keyCodes = {
+      ArrowUp: { keyCode: 38, code: 'ArrowUp' },
+      ArrowLeft: { keyCode: 37, code: 'ArrowLeft' },
+      ArrowDown: { keyCode: 40, code: 'ArrowDown' },
+      ArrowRight: { keyCode: 39, code: 'ArrowRight' }
+    };
+    const { keyCode, code } = keyCodes[k] || { keyCode: 0, code: k };
+    const opt = { key: k, code: code, keyCode: keyCode, which: keyCode, bubbles: true, cancelable: true, view: window, location: 2 };
+    const target = document.documentElement;
+    target.dispatchEvent(new KeyboardEvent('keydown', opt));
+    setTimeout(() => target.dispatchEvent(new KeyboardEvent('keyup', opt)), 50);
   }
 
   function inPoly(p, vs) {

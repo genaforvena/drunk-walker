@@ -84,25 +84,38 @@ function simulateClick(x, y) {
   const click = new MouseEvent('click', eventOptions);
 
   const element = document.elementFromPoint(x, y) || document.body;
-  
+
   element.dispatchEvent(mousedown);
   element.dispatchEvent(mouseup);
   element.dispatchEvent(click);
 }
 
 function simulateKeyPress(key) {
-  const options = {
-    key: key,
-    code: key,
-    keyCode: key === 'ArrowUp' ? 38 : (key === 'ArrowLeft' ? 37 : 0),
-    which: key === 'ArrowUp' ? 38 : (key === 'ArrowLeft' ? 37 : 0),
-    bubbles: true,
-    cancelable: true
+  const keyCodes = {
+    ArrowUp: { keyCode: 38, code: 'ArrowUp' },
+    ArrowLeft: { keyCode: 37, code: 'ArrowLeft' },
+    ArrowDown: { keyCode: 40, code: 'ArrowDown' },
+    ArrowRight: { keyCode: 39, code: 'ArrowRight' }
   };
-  
-  document.dispatchEvent(new KeyboardEvent('keydown', options));
+
+  const { keyCode, code } = keyCodes[key] || { keyCode: 0, code: key };
+
+  const eventOptions = {
+    key: key,
+    code: code,
+    keyCode: keyCode,
+    which: keyCode,
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    location: 2
+  };
+
+  const target = document.documentElement;
+
+  target.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
   setTimeout(() => {
-    document.dispatchEvent(new KeyboardEvent('keyup', options));
+    target.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
   }, 50);
 }
 
