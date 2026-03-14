@@ -1,53 +1,100 @@
-# 🤪 Drunk Walker: Street View Chaos
+# 🤪 Drunk Walker
 
-**[👉 Launch Drunk Walker Instantly (Any Device)](https://genaforvena.github.io/drunk-walker/)**
+**[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)**
 
-## 🌀 What is Drunk Walker?
+## What Is It?
 
-**Drunk Walker** is a chaotic, "blind" automation engine for Google Street View. It transforms the world's most famous mapping service into an unpredictable travelogue by simulating human-like clicks to move through the streets.
+Drunk Walker is an automation engine for Google Street View that walks for you. It presses the **Arrow Up** key repeatedly to move forward through streets, creating an endless, directionless journey.
 
-Unlike traditional navigators, Drunk Walker has no destination and no sense of direction. It simply "walks" by clicking around the center of the screen, leading to mesmerizing, often futile, and occasionally beautiful journeys.
-
----
-
-## 🚀 Instant Launch (No Install)
-
-For the fastest experience on any browser (Desktop or Mobile), use the **Developer Console** method:
-
-1.  **[Click here for the One-Click Copy Page](https://genaforvena.github.io/drunk-walker/)**
-2.  Click **COPY JS TO CLIPBOARD**.
-3.  Open [Google Maps Street View](https://www.google.com/maps).
-4.  Press `F12` (or `Right-Click > Inspect`) and go to the **Console** tab.
-5.  Paste the code and press **Enter**.
-6.  Use the on-screen control panel to **START** the walk!
+No destination. No control. Just walking.
 
 ---
 
-## 🌟 Key Features (v3.4-EXP)
+## How It Works
 
-- **🔄 Auto-Unstuck Algorithm**: When stuck, automatically turns left 60° and moves forward to recover navigation (always on).
-- **📍 Path Recording (Opt-In)**: Record your walk path locally and copy as JSON with one click.
-- **👀 Smart Observation**: Automatically pauses clicking whenever you manually drag the mouse to look around, then resumes when you release.
-- **🎯 Optimized Forward-Targeting:** Default clicks at 70% height—the "sweet spot" for Street View movement.
-- **⌨️ Keyboard Mode (Default):** Simulates Arrow Up key press for smoother, more reliable navigation.
-- **📊 Control Panel:** Minimalist UI with **START/STOP** toggle, **Pace Slider**, **Record Path** checkbox, **Copy Path JSON** button, and live step counter.
-- **🎚️ Adjustable Pace:** Speed control from 0.5 to 5.0 seconds per step.
-- **💾 Session-Aware:** Recalculates screen dimensions every time you hit START.
-- **🌐 Cross-Browser:** Works on Chrome, Firefox, Safari, and Edge.
+### 1. Launch
+- Open Google Maps Street View
+- Paste the script into your browser console (F12)
+- A control panel appears
+
+### 2. Start Walking
+- Click **START**
+- The script presses **Arrow Up** at regular intervals
+- You move forward automatically
+
+### 3. Smart Recovery
+When you get stuck (same location for 3 steps):
+- Automatically turns left 60°
+- Tries to move forward
+- If successful, resumes normal walking
+
+### 4. Record Your Path (Optional)
+- Check **Record Path** to save your route
+- Click **Copy Path JSON** to export
+- Get a list of all URLs visited with rotation angles
 
 ---
 
-## 📍 Path Recording (Opt-In)
+## Control Panel
 
-**Completely optional.** Check the "Record Path" checkbox in the control panel to record your walk path.
+```
+┌─────────────────────────────┐
+│ 🤪 DRUNK WALKER v3.4-EXP   │
+├─────────────────────────────┤
+│ STATUS: WALKING             │
+│ STEPS: 42                   │
+│ PACE: 2.0s     [━━━━○━━━]   │
+│ ☐ Record Path               │
+│ [📋 Copy Path JSON]         │
+│ [🔴 STOP]                   │
+└─────────────────────────────┘
+```
 
-**What is recorded:**
-- URL after each step
-- Fixed rotation angle (60°)
-- Stored locally in browser memory
+| Control | What It Does |
+|---------|--------------|
+| **START/STOP** | Begin or end the walk |
+| **Pace Slider** | Adjust speed (0.5–5.0 seconds per step) |
+| **Record Path** | Enable path recording (off by default) |
+| **Copy Path JSON** | Export your walk as JSON |
+| **Step Counter** | Shows total steps taken |
+| **Status** | Shows WALKING, STUCK, or IDLE |
 
-**Copy Path JSON:** Click the "📋 Copy Path JSON" button to copy your recorded path to clipboard as JSON:
+---
 
+## Features
+
+### Always On
+- **Auto-Unstuck**: Recovers automatically when stuck (60° left turn)
+- **Smart Pause**: Stops when you drag to look around, resumes when done
+
+### Optional
+- **Path Recording**: Save and export your walk route
+
+### Configurable
+- **Walking Speed**: Adjust pace from 0.5 to 5.0 seconds
+
+---
+
+## Quick Start
+
+1. Go to [Google Maps Street View](https://www.google.com/maps)
+2. Enter Street View mode
+3. Press **F12** (or Right-Click → Inspect)
+4. Go to **Console** tab
+5. Visit [genaforvena.github.io/drunk-walker/](https://genaforvena.github.io/drunk-walker/)
+6. Click **COPY JS TO CLIPBOARD**
+7. Paste into console, press Enter
+8. Click **START**
+
+---
+
+## Path Recording
+
+When enabled, Drunk Walker records:
+- Street View URL after each step
+- Rotation angle (fixed at 60°)
+
+**Exported JSON format:**
 ```json
 [
   {"url": "https://www.google.com/maps/...", "rotation": 60},
@@ -55,99 +102,42 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 ]
 ```
 
-**What is NOT collected:**
-- No IP addresses
-- No personal identifiers
-- No browser fingerprints
-- No location data beyond Street View URLs
-
-**Privacy:** Path recording is local-only unless you manually copy and share the JSON.
+**Privacy:** Path data stays in your browser. Nothing is sent anywhere unless you manually copy and share it.
 
 ---
 
-## 🌍 Global Walk Dashboard
+## Auto-Unstuck Algorithm
 
-View collected walks from users worldwide:
+Drunk Walker detects when you're stuck (same URL for 3 consecutive steps) and automatically:
 
-- **Total walks** collected
-- **Total steps** recorded
-- **Expandable walk details** showing each step's URL and rotation
+1. **Turns Left 60°** — Holds ArrowLeft key for 600ms
+2. **Moves Forward** — Presses ArrowUp
+3. **Checks Result** — If URL changed, continues walking; if still stuck, increments counter and tries again on next cycle
 
-**[📊 View Dashboard](/dashboard)** | **[📈 Stats API](/api/stats)**
-
-### Backend Server Setup
-
-To enable path collection and the dashboard:
-
-```bash
-cd server
-npm install
-npm start
-```
-
-Server runs on `http://localhost:3000` with:
-- `POST /api/submit-walk` - Submit walk data
-- `GET /api/stats` - Get aggregate statistics
-- `GET /api/walks` - List recent walks
-- `GET /api/walk/:id` - Get walk details
-- `/dashboard` - Public dashboard page
-
-### Deployment
-
-Deploy the server to any Node.js hosting platform (Heroku, Railway, Render, etc.):
-
-```bash
-# Example: Deploy to Railway
-railway init
-railway up
-```
-
-Set the `PORT` environment variable as needed.
+This happens automatically—no configuration needed.
 
 ---
 
-## 🔄 Auto-Unstuck Algorithm
+## Compatibility
 
-When Drunk Walker detects it's stuck (URL unchanged for 3 consecutive steps), it automatically:
-
-1. **Turns Left 60°** - Holds ArrowLeft for 600ms
-2. **Moves Forward** - Presses ArrowUp in the new direction
-3. **Verifies Success** - Checks if URL changed, resets on success
-
-The turn angle is fixed at 60° for reliable recovery.
+- **Browsers:** Chrome, Firefox, Safari, Edge
+- **Devices:** Desktop and mobile (via console apps)
+- **No installation required**
 
 ---
 
-## 🛠️ Extension Installation (Optional)
+## Documentation
 
-For a permanent browser extension instead of the console method:
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/genaforvena/drunk-walker.git
-    ```
-2.  **Firefox (Temporary):**
-    - Go to `about:debugging` > "This Firefox" > "Load Temporary Add-on...".
-    - Select `manifest.json`.
-3.  **Chrome/Chromium:**
-    - Go to `chrome://extensions`.
-    - Enable "Developer mode" and click "Load unpacked".
-    - Select the project folder.
-
-> **Note:** The console method (above) is recommended for quick access on any device.
+- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Technical details of auto-recovery
+- **[Spec.md](Spec.md)** — Full specification
+- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** — Architecture guide
 
 ---
 
-## 📚 Documentation
+## ⚠️ Note
 
-- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** - Detailed documentation of the auto-recovery system
-- **[Spec.md](Spec.md)** - Full technical specification
-- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** - Architecture and deployment guide
+This is a technical experiment. Use responsibly.
 
 ---
 
-## ⚠️ Ethical Note
-This is a technical experiment and art project. It includes rate-limiting (min 0.5s interval) to avoid appearing as an automated attack on Google services. Use responsibly.
-
----
-*Created with ❤️ and a lot of confusion.*
+*Created with ❤️ and confusion.*

@@ -23,10 +23,10 @@
         <h1>🤪 DRUNK WALKER</h1>
 
         <div class="instructions" style="background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; margin-bottom: 30px; text-align: center;">
-            <strong>THE "NO-INSTALL" STREET VIEW CHAOS ENGINE</strong><br><br>
-            Drunk Walker transforms Google Street View into a mesmerizing, automated travelogue.
-            It simulates keyboard input to navigate forward through streets, with intelligent
-            auto-recovery when stuck—creating an unpredictable journey through the world's streets.
+            <strong>THE "NO-INSTALL" STREET VIEW WALKER</strong><br><br>
+            Drunk Walker automates Google Street View navigation by pressing Arrow Up<br>
+            to move forward. When stuck, it automatically turns left 60° and continues.<br>
+            Optional path recording lets you export your journey as JSON.
         </div>
 
         <button class="btn-main" id="copyBtn" onclick="copyToClipboard()" disabled>📋 COPY JS TO CLIPBOARD</button>
@@ -35,12 +35,11 @@
 
         <div class="instructions">
             <strong>CORE FEATURES:</strong><br>
-            🔄 <strong>Auto-Unstuck:</strong> Automatically recovers when stuck by turning and moving forward (always on).<br>
-            🎚️ <strong>Turn Control:</strong> Adjustable turn angle (15°-120°) for customized recovery.<br>
-            🎯 <strong>Forward Navigation:</strong> Simulates Arrow Up key press for smooth, reliable movement.<br>
+            🔄 <strong>Auto-Unstuck:</strong> Automatically recovers when stuck by turning left 60°.<br>
+            ⌨️ <strong>Arrow Up Movement:</strong> Simulates Arrow Up key press for smooth forward movement.<br>
             🎚️ <strong>Adjustable Pace:</strong> Control walking speed from 0.5 to 5.0 seconds per step.<br>
-            ⏸ <strong>Smart Observation:</strong> Pauses automatically when you click/drag to look around.<br>
-            📊 <strong>Live Stats:</strong> Real-time step counter and status display.<br>
+            ⏸ <strong>Smart Pause:</strong> Pauses when you drag to look around, resumes automatically.<br>
+            📍 <strong>Record Path:</strong> Optional path recording with JSON export.<br>
             🛠️ <strong>Zero Install:</strong> Runs entirely in your browser console.
         </div>
 
@@ -51,6 +50,14 @@
             3. Paste (<code>Ctrl+V</code> or <code>Cmd+V</code>) and press <strong>Enter</strong>.<br>
             4. Type <code>allow pasting</code> if your browser asks, then paste again.<br>
             5. The control panel appears—click <strong>START</strong> to begin walking!
+        </div>
+
+        <div class="instructions" style="background: rgba(0, 255, 0, 0.05); border-color: #0f0; margin-top: 20px;">
+            <strong>WHAT HAPPENS:</strong><br>
+            • Script presses <strong>Arrow Up</strong> repeatedly to move forward<br>
+            • <strong>Auto-unstuck</strong> turns left 60° when stuck (3 same URLs)<br>
+            • <strong>Record Path</strong> checkbox saves your route for export<br>
+            • <strong>Copy Path JSON</strong> button exports your walk as JSON
         </div>
 
         <div class="footer">
