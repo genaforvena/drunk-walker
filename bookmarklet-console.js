@@ -1,4 +1,4 @@
-// Drunk Walker v3.4-EXP - CONSOLE VERSION
+// Drunk Walker v3.66.6-EXP - CONSOLE VERSION
 // This version is optimized for pasting into browser console
 // 1. Type: allow pasting
 // 2. Paste this code
@@ -17,7 +17,7 @@ void function initDrunkWalker(){
  * Independent navigation logic - works without UI
  */
 
-const VERSION = '3.4-EXP';
+const VERSION = '3.66.6-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -505,7 +505,7 @@ function setupInteractionListeners(callbacks = {}) {
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '3.4-EXP',
+    version = '3.66.6-EXP',
     autoStart = true,
     onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;

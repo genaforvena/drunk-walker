@@ -3,7 +3,7 @@
  * Independent navigation logic - works without UI
  */
 
-export const VERSION = '3.4-EXP';
+export const VERSION = '3.66.6-EXP';
 
 export const defaultConfig = {
   pace: 2000,

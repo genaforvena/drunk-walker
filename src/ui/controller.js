@@ -4,7 +4,7 @@
 
 export function createControlPanel(engine, options = {}) {
   const {
-    version = '3.4-EXP',
+    version = '3.66.6-EXP',
     autoStart = true,
     onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
