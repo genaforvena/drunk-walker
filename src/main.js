@@ -4,7 +4,7 @@
  */
 
 import { createEngine, VERSION } from './core/engine.js';
-import { simulateKeyPress, simulateClick, setupInteractionListeners, findStreetViewTarget } from './input/handlers.js';
+import { simulateKeyPress, simulateLongKeyPress, simulateClick, setupInteractionListeners, findStreetViewTarget } from './input/handlers.js';
 import { createControlPanel } from './ui/controller.js';
 
 // Allow restart by clearing previous instance
@@ -43,6 +43,10 @@ const initialize = () => {
       },
       mouseClick: (x, y) => {
         simulateClick(x, y, true);
+      },
+      longKeyPress: (key, duration, callback) => {
+        const target = findStreetViewTarget();
+        simulateLongKeyPress(key, duration, callback, target);
       },
       statusUpdate: ui.onStatusUpdate  // Connect UI status updates
     });

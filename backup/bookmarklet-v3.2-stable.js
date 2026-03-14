@@ -1,4 +1,4 @@
-// Drunk Walker v3.3-EXP - Bundled Build
+// Drunk Walker v3.2-EXP - Bundled Build
 // Generated automatically by build.js
 // Paste this entire code into browser console on Google Street View
 // NOTE: If you see "Allow pasting?" warning, type: allow pasting
@@ -13,7 +13,7 @@
  * Independent navigation logic - works without UI
  */
 
-const VERSION = '3.3-EXP';
+const VERSION = '3.2-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -22,13 +22,12 @@ const defaultConfig = {
   panicThreshold: 3,
   radius: 50,
   targetX: 0.5,    // 50% of screen width
-  targetY: 0.7,    // 70% of screen height
-  turnDuration: 300  // ms to hold ArrowLeft for ~30° turn
+  targetY: 0.7     // 70% of screen height
 };
 
 function createEngine(config = {}) {
   const cfg = { ...defaultConfig, ...config };
-
+  
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
@@ -37,11 +36,6 @@ function createEngine(config = {}) {
   let isUserMouseDown = false;
   let poly = [];
   let isDrawing = false;
-  
-  // Unstuck algorithm state machine
-  let unstuckState = 'IDLE';  // 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING'
-  let unstuckTimer = null;
-  let urlBeforeUnstuck = '';
 
   // State getters
   const getStatus = () => status;
@@ -70,13 +64,11 @@ function createEngine(config = {}) {
   let onKeyPress = null;
   let onMouseClick = null;
   let onStatusUpdate = null;
-  let onLongKeyPress = null;
 
-  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress }) => {
+  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate }) => {
     onKeyPress = keyPress;
     onMouseClick = mouseClick;
     onStatusUpdate = statusUpdate;
-    onLongKeyPress = longKeyPress;
   };
 
   // Navigation logic
@@ -92,45 +84,6 @@ function createEngine(config = {}) {
     } else {
       lastUrl = currentUrl;
       stuckCount = 0;
-    }
-  };
-
-  // Unstuck algorithm state machine
-  const executeUnstuckSequence = () => {
-    if (unstuckState !== 'IDLE') return;
-    
-    // Start unstuck sequence: TURN -> MOVE -> VERIFY
-    urlBeforeUnstuck = window.location.href;
-    unstuckState = 'TURNING';
-    
-    // Step 1: Turn left (hold ArrowLeft for ~30°)
-    if (onLongKeyPress) {
-      onLongKeyPress('ArrowLeft', cfg.turnDuration, () => {
-        // After turn, move forward
-        unstuckState = 'MOVING';
-        if (onKeyPress) onKeyPress('ArrowUp');
-        
-        // Step 3: Verify after a short delay
-        setTimeout(() => {
-          unstuckState = 'VERIFYING';
-          const newUrl = window.location.href;
-          
-          if (newUrl !== urlBeforeUnstuck) {
-            // Successfully unstuck!
-            stuckCount = 0;
-            console.log('🤪 DRUNK WALKER: Unstuck successfully!');
-          } else {
-            // Still stuck, increment stuck count
-            stuckCount++;
-            console.log('🤪 DRUNK WALKER: Still stuck after unstuck attempt');
-          }
-          
-          unstuckState = 'IDLE';
-          if (onStatusUpdate) {
-            onStatusUpdate(getStatusText(), steps, stuckCount);
-          }
-        }, cfg.pace);
-      });
     }
   };
 
@@ -189,7 +142,7 @@ function createEngine(config = {}) {
   // Main navigation tick
   const tick = () => {
     // Skip if user is interacting
-    if (isUserMouseDown || isDrawing || unstuckState !== 'IDLE') return;
+    if (isUserMouseDown || isDrawing) return;
 
     updateStuckDetection();
 
@@ -197,16 +150,13 @@ function createEngine(config = {}) {
       onStatusUpdate(getStatusText(), steps, stuckCount);
     }
 
-    // Check if stuck and need to execute unstuck sequence
-    if (cfg.expOn && stuckCount >= cfg.panicThreshold) {
-      executeUnstuckSequence();
-      return;
-    }
-
     // Execute action based on mode
     if (cfg.kbOn) {
       // Keyboard mode (DEFAULT)
-      if (onKeyPress) onKeyPress('ArrowUp');
+      const key = (cfg.expOn && stuckCount >= cfg.panicThreshold)
+        ? 'ArrowLeft'
+        : 'ArrowUp';
+      if (onKeyPress) onKeyPress(key);
     } else {
       // Click mode
       const target = calculateClickTarget();
@@ -225,7 +175,6 @@ function createEngine(config = {}) {
     if (steps === 0) {
       stuckCount = 0;
       lastUrl = window.location.href;
-      unstuckState = 'IDLE';
     }
 
     if (intervalId) clearInterval(intervalId);
@@ -337,44 +286,6 @@ function simulateKeyPress(key, target = null) {
   setTimeout(() => {
     targetEl.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
   }, 50);
-}
-
-/**
- * Simulate long-press keyboard event (keydown -> hold -> keyup)
- * Used for turning (e.g., hold ArrowLeft for 30° turn)
- * @param {string} key - Key to simulate (e.g., 'ArrowLeft')
- * @param {number} duration - How long to hold the key (ms)
- * @param {Function} callback - Called after key is released
- * @param {HTMLElement} target - Target element (optional)
- */
-function simulateLongKeyPress(key, duration, callback, target = null) {
-  const { keyCode, code } = KEY_CODES[key] || { keyCode: 0, code: key };
-
-  const eventOptions = {
-    key,
-    code,
-    keyCode,
-    which: keyCode,
-    bubbles: true,
-    cancelable: true,
-    location: 2,
-    repeat: false,
-    altKey: false,
-    ctrlKey: false,
-    metaKey: false,
-    shiftKey: false
-  };
-
-  const targetEl = target || findStreetViewTarget();
-
-  // Key down
-  targetEl.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
-  
-  // Hold for duration, then release
-  setTimeout(() => {
-    targetEl.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
-    if (callback) callback();
-  }, duration);
 }
 
 /**
@@ -632,10 +543,6 @@ const initialize = () => {
       },
       mouseClick: (x, y) => {
         simulateClick(x, y, true);
-      },
-      longKeyPress: (key, duration, callback) => {
-        const target = findStreetViewTarget();
-        simulateLongKeyPress(key, duration, callback, target);
       },
       statusUpdate: ui.onStatusUpdate  // Connect UI status updates
     });

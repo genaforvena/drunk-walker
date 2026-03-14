@@ -27,7 +27,7 @@ describe('Bundled Bookmarklet Validation', () => {
     });
 
     it('should have version header', () => {
-      expect(bookmarkletCode).toContain('Drunk Walker v3.2-EXP');
+      expect(bookmarkletCode).toContain('Drunk Walker v3.3-EXP');
     });
 
     it('should prevent multiple instances', () => {
@@ -166,7 +166,7 @@ describe('Bundled Bookmarklet Validation', () => {
   describe('Functional Requirements', () => {
     it('should have user interaction pause support', () => {
       expect(bookmarkletCode).toContain('isUserMouseDown');
-      expect(bookmarkletCode).toContain('if (isUserMouseDown || isDrawing) return;');
+      expect(bookmarkletCode).toMatch(/if \(isUserMouseDown \|\| isDrawing.*\) return;/);
     });
 
     it('should have experimental mode support (kept in code)', () => {

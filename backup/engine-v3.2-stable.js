@@ -3,7 +3,7 @@
  * Independent navigation logic - works without UI
  */
 
-export const VERSION = '3.3-EXP';
+export const VERSION = '3.2-EXP';
 
 export const defaultConfig = {
   pace: 2000,
@@ -12,13 +12,12 @@ export const defaultConfig = {
   panicThreshold: 3,
   radius: 50,
   targetX: 0.5,    // 50% of screen width
-  targetY: 0.7,    // 70% of screen height
-  turnDuration: 300  // ms to hold ArrowLeft for ~30° turn
+  targetY: 0.7     // 70% of screen height
 };
 
 export function createEngine(config = {}) {
   const cfg = { ...defaultConfig, ...config };
-
+  
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
@@ -27,11 +26,6 @@ export function createEngine(config = {}) {
   let isUserMouseDown = false;
   let poly = [];
   let isDrawing = false;
-  
-  // Unstuck algorithm state machine
-  let unstuckState = 'IDLE';  // 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING'
-  let unstuckTimer = null;
-  let urlBeforeUnstuck = '';
 
   // State getters
   const getStatus = () => status;
@@ -60,13 +54,11 @@ export function createEngine(config = {}) {
   let onKeyPress = null;
   let onMouseClick = null;
   let onStatusUpdate = null;
-  let onLongKeyPress = null;
 
-  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress }) => {
+  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate }) => {
     onKeyPress = keyPress;
     onMouseClick = mouseClick;
     onStatusUpdate = statusUpdate;
-    onLongKeyPress = longKeyPress;
   };
 
   // Navigation logic
@@ -82,45 +74,6 @@ export function createEngine(config = {}) {
     } else {
       lastUrl = currentUrl;
       stuckCount = 0;
-    }
-  };
-
-  // Unstuck algorithm state machine
-  const executeUnstuckSequence = () => {
-    if (unstuckState !== 'IDLE') return;
-    
-    // Start unstuck sequence: TURN -> MOVE -> VERIFY
-    urlBeforeUnstuck = window.location.href;
-    unstuckState = 'TURNING';
-    
-    // Step 1: Turn left (hold ArrowLeft for ~30°)
-    if (onLongKeyPress) {
-      onLongKeyPress('ArrowLeft', cfg.turnDuration, () => {
-        // After turn, move forward
-        unstuckState = 'MOVING';
-        if (onKeyPress) onKeyPress('ArrowUp');
-        
-        // Step 3: Verify after a short delay
-        setTimeout(() => {
-          unstuckState = 'VERIFYING';
-          const newUrl = window.location.href;
-          
-          if (newUrl !== urlBeforeUnstuck) {
-            // Successfully unstuck!
-            stuckCount = 0;
-            console.log('🤪 DRUNK WALKER: Unstuck successfully!');
-          } else {
-            // Still stuck, increment stuck count
-            stuckCount++;
-            console.log('🤪 DRUNK WALKER: Still stuck after unstuck attempt');
-          }
-          
-          unstuckState = 'IDLE';
-          if (onStatusUpdate) {
-            onStatusUpdate(getStatusText(), steps, stuckCount);
-          }
-        }, cfg.pace);
-      });
     }
   };
 
@@ -179,7 +132,7 @@ export function createEngine(config = {}) {
   // Main navigation tick
   const tick = () => {
     // Skip if user is interacting
-    if (isUserMouseDown || isDrawing || unstuckState !== 'IDLE') return;
+    if (isUserMouseDown || isDrawing) return;
 
     updateStuckDetection();
 
@@ -187,16 +140,13 @@ export function createEngine(config = {}) {
       onStatusUpdate(getStatusText(), steps, stuckCount);
     }
 
-    // Check if stuck and need to execute unstuck sequence
-    if (cfg.expOn && stuckCount >= cfg.panicThreshold) {
-      executeUnstuckSequence();
-      return;
-    }
-
     // Execute action based on mode
     if (cfg.kbOn) {
       // Keyboard mode (DEFAULT)
-      if (onKeyPress) onKeyPress('ArrowUp');
+      const key = (cfg.expOn && stuckCount >= cfg.panicThreshold)
+        ? 'ArrowLeft'
+        : 'ArrowUp';
+      if (onKeyPress) onKeyPress(key);
     } else {
       // Click mode
       const target = calculateClickTarget();
@@ -215,7 +165,6 @@ export function createEngine(config = {}) {
     if (steps === 0) {
       stuckCount = 0;
       lastUrl = window.location.href;
-      unstuckState = 'IDLE';
     }
 
     if (intervalId) clearInterval(intervalId);

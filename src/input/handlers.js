@@ -54,6 +54,44 @@ export function simulateKeyPress(key, target = null) {
 }
 
 /**
+ * Simulate long-press keyboard event (keydown -> hold -> keyup)
+ * Used for turning (e.g., hold ArrowLeft for 30° turn)
+ * @param {string} key - Key to simulate (e.g., 'ArrowLeft')
+ * @param {number} duration - How long to hold the key (ms)
+ * @param {Function} callback - Called after key is released
+ * @param {HTMLElement} target - Target element (optional)
+ */
+export function simulateLongKeyPress(key, duration, callback, target = null) {
+  const { keyCode, code } = KEY_CODES[key] || { keyCode: 0, code: key };
+
+  const eventOptions = {
+    key,
+    code,
+    keyCode,
+    which: keyCode,
+    bubbles: true,
+    cancelable: true,
+    location: 2,
+    repeat: false,
+    altKey: false,
+    ctrlKey: false,
+    metaKey: false,
+    shiftKey: false
+  };
+
+  const targetEl = target || findStreetViewTarget();
+
+  // Key down
+  targetEl.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
+  
+  // Hold for duration, then release
+  setTimeout(() => {
+    targetEl.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
+    if (callback) callback();
+  }, duration);
+}
+
+/**
  * Simulate mouse click at coordinates
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate

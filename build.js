@@ -15,7 +15,7 @@ const main = fs.readFileSync('src/main.js', 'utf8');
 
 // Regular build (IIFE)
 let bundled = `
-// Drunk Walker v3.2-EXP - Bundled Build
+// Drunk Walker v3.3-EXP - Bundled Build
 // Generated automatically by build.js
 // Paste this entire code into browser console on Google Street View
 // NOTE: If you see "Allow pasting?" warning, type: allow pasting
@@ -55,7 +55,7 @@ let bundled = `
 
 // Console-friendly build (no outer IIFE, uses void operator)
 let consoleFriendly = `
-// Drunk Walker v3.2-EXP - CONSOLE VERSION
+// Drunk Walker v3.3-EXP - CONSOLE VERSION
 // This version is optimized for pasting into browser console
 // 1. Type: allow pasting
 // 2. Paste this code

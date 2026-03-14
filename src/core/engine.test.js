@@ -30,7 +30,7 @@ describe('Core Engine', () => {
     });
 
     it('should have correct version', () => {
-      expect(VERSION).toBe('3.2-EXP');
+      expect(VERSION).toBe('3.3-EXP');
     });
   });
 
@@ -122,18 +122,21 @@ describe('Core Engine', () => {
       expect(keyPressMock).toHaveBeenCalledWith('ArrowUp');
     });
 
-    it('should call keyPress handler with ArrowLeft in panic mode', () => {
+    it('should trigger unstuck sequence in panic mode', () => {
       const keyPressMock = vi.fn();
+      const longKeyPressMock = vi.fn();
       const engine = createEngine({ kbOn: true, expOn: true, panicThreshold: 2 });
-      engine.setActionHandlers({ keyPress: keyPressMock });
+      engine.setActionHandlers({ keyPress: keyPressMock, longKeyPress: longKeyPressMock });
       engine.start();
 
-      // Simulate stuck detection
+      // Simulate stuck detection (URL doesn't change)
       engine.tick();
       engine.tick();
-      engine.tick(); // Should trigger panic
+      
+      // At panicThreshold, should trigger unstuck sequence (longKeyPress with ArrowLeft)
+      engine.tick();
 
-      expect(keyPressMock).toHaveBeenCalledWith('ArrowLeft');
+      expect(longKeyPressMock).toHaveBeenCalledWith('ArrowLeft', expect.any(Number), expect.any(Function));
     });
   });
 
