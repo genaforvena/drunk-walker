@@ -1,0 +1,3 @@
+node_modules/
+walks.db
+*.log

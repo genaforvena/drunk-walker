@@ -3,7 +3,7 @@
  * Independent navigation logic - works without UI
  */
 
-export const VERSION = '3.3-EXP';
+export const VERSION = '3.4-EXP';
 
 export const defaultConfig = {
   pace: 2000,
@@ -13,7 +13,8 @@ export const defaultConfig = {
   radius: 50,
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
-  turnDuration: 600  // ms to hold ArrowLeft for ~60° turn (doubled from 300ms)
+  turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
+  collectPath: false  // Path collection disabled by default
 };
 
 export function createEngine(config = {}) {
@@ -32,6 +33,10 @@ export function createEngine(config = {}) {
   let unstuckState = 'IDLE';  // 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING'
   let unstuckTimer = null;
   let urlBeforeUnstuck = '';
+
+  // Path collection (opt-in)
+  let walkPath = [];
+  let isPathCollectionEnabled = false;
 
   // State getters
   const getStatus = () => status;
@@ -52,6 +57,23 @@ export function createEngine(config = {}) {
   const setKeyboardMode = (on) => { cfg.kbOn = on; };
   const setExperimentalMode = (on) => { cfg.expOn = on; };
   const setPolygon = (points) => { poly = points; };
+  const setPathCollection = (enabled) => {
+    isPathCollectionEnabled = enabled;
+    cfg.collectPath = enabled;
+    if (!enabled) {
+      walkPath = [];  // Clear path if disabled
+    }
+  };
+  const getWalkPath = () => [...walkPath];  // Return copy
+  const clearWalkPath = () => { walkPath = []; };
+  const recordStep = () => {
+    if (isPathCollectionEnabled) {
+      walkPath.push({
+        url: window.location.href,
+        rotation: 60  // Fixed rotation angle
+      });
+    }
+  };
 
   // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
@@ -62,12 +84,14 @@ export function createEngine(config = {}) {
   let onMouseClick = null;
   let onStatusUpdate = null;
   let onLongKeyPress = null;
+  let onWalkStop = null;
 
-  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress }) => {
+  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress, walkStop }) => {
     onKeyPress = keyPress;
     onMouseClick = mouseClick;
     onStatusUpdate = statusUpdate;
     onLongKeyPress = longKeyPress;
+    onWalkStop = walkStop;
   };
 
   // Navigation logic
@@ -205,6 +229,9 @@ export function createEngine(config = {}) {
     }
 
     steps++;
+    
+    // Record step for path collection (after movement)
+    recordStep();
   };
 
   // Control functions
@@ -231,6 +258,12 @@ export function createEngine(config = {}) {
       clearInterval(intervalId);
       intervalId = null;
     }
+    
+    // Submit walk path if collection enabled
+    if (onWalkStop && isPathCollectionEnabled && walkPath.length > 0) {
+      onWalkStop(getWalkPath());
+    }
+    
     if (onStatusUpdate) onStatusUpdate('IDLE', steps, 0);
   };
 
@@ -255,6 +288,9 @@ export function createEngine(config = {}) {
     setKeyboardMode,
     setExperimentalMode,
     setPolygon,
+    setPathCollection,
+    getWalkPath,
+    clearWalkPath,
 
     // Interaction
     setUserMouseDown,

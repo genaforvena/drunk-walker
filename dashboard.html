@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤪 Drunk Walker - Global Walk Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #0a0a0a;
+            color: #0f0;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            text-shadow: 0 0 10px #0f0;
+            font-size: 2em;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 20px 40px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        .stat-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .stat-box .value {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .walks-list {
+            margin-top: 40px;
+        }
+        .walk-item {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid #0f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .walk-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .walk-header:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .walk-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        .walk-meta {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+        .walk-details {
+            display: none;
+            padding: 0 20px 20px;
+            border-top: 1px solid rgba(0, 255, 0, 0.3);
+        }
+        .walk-item.expanded .walk-details {
+            display: block;
+        }
+        .walk-item.expanded .walk-header {
+            background: rgba(0, 255, 0, 0.15);
+        }
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .steps-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            font-size: 0.85em;
+            word-break: break-all;
+        }
+        .steps-list li:last-child {
+            border-bottom: none;
+        }
+        .step-num {
+            color: #ff00ff;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step-rotation {
+            color: #0ff;
+            margin-left: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+        }
+        .error {
+            color: #ff4444;
+            text-align: center;
+            padding: 20px;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+            color: #0f0;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+        .walk-item.expanded .toggle-icon {
+            transform: rotate(90deg);
+        }
+        @media (max-width: 600px) {
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            .stat-box {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤪 DRUNK WALKER<br><span style="font-size: 0.6em">Global Walk Dashboard</span></h1>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <h3>Total Walks</h3>
+                <div class="value" id="totalWalks">-</div>
+            </div>
+            <div class="stat-box">
+                <h3>Total Steps</h3>
+                <div class="value" id="totalSteps">-</div>
+            </div>
+        </div>
+
+        <div class="walks-list">
+            <h2 style="border-bottom: 2px solid #0f0; padding-bottom: 10px;">Recent Walks</h2>
+            <div id="walksContainer">
+                <div class="loading">⏳ Loading walks...</div>
+            </div>
+        </div>
+
+        <a href="/" class="back-link">← Back to Home</a>
+    </div>
+
+    <script>
+        // Fetch stats
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                document.getElementById('totalWalks').textContent = data.totalWalks;
+                document.getElementById('totalSteps').textContent = data.totalSteps;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Fetch walks list
+        async function loadWalks() {
+            const container = document.getElementById('walksContainer');
+            try {
+                const res = await fetch('/api/walks?limit=20');
+                const data = await res.json();
+
+                if (!data.walks || data.walks.length === 0) {
+                    container.innerHTML = '<div class="loading">No walks collected yet</div>';
+                    return;
+                }
+
+                container.innerHTML = data.walks.map(walk => `
+                    <div class="walk-item" data-id="${walk.id}">
+                        <div class="walk-header" onclick="toggleWalk(${walk.id})">
+                            <div>
+                                <h3>Walk #${walk.id}</h3>
+                                <div class="walk-meta">
+                                    Steps: ${walk.step_count} • 
+                                    ${new Date(walk.timestamp).toLocaleString()}
+                                </div>
+                            </div>
+                            <span class="toggle-icon">▶</span>
+                        </div>
+                        <div class="walk-details" id="details-${walk.id}">
+                            <div class="loading">Loading steps...</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<div class="error">Failed to load walks: ' + error.message + '</div>';
+            }
+        }
+
+        // Toggle walk details
+        async function toggleWalk(id) {
+            const item = document.querySelector(`.walk-item[data-id="${id}"]`);
+            const details = document.getElementById(`details-${id}`);
+            
+            if (item.classList.contains('expanded')) {
+                item.classList.remove('expanded');
+                return;
+            }
+
+            // Close other expanded items
+            document.querySelectorAll('.walk-item.expanded').forEach(el => {
+                el.classList.remove('expanded');
+            });
+
+            item.classList.add('expanded');
+
+            // Load details if not already loaded
+            if (!details.dataset.loaded) {
+                try {
+                    const res = await fetch(`/api/walk/${id}`);
+                    const walk = await res.json();
+
+                    if (walk.steps && walk.steps.length > 0) {
+                        details.innerHTML = `
+                            <h4>Walk Path (${walk.steps.length} steps)</h4>
+                            <ul class="steps-list">
+                                ${walk.steps.map((step, i) => `
+                                    <li>
+                                        <span class="step-num">${i + 1}.</span>
+                                        ${escapeHtml(step.url)}
+                                        <span class="step-rotation">rotation: ${step.rotation}°</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `;
+                    } else {
+                        details.innerHTML = '<div class="loading">No steps recorded</div>';
+                    }
+                    details.dataset.loaded = 'true';
+                } catch (error) {
+                    details.innerHTML = '<div class="error">Failed to load steps</div>';
+                }
+            }
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initial load
+        loadStats();
+        loadWalks();
+
+        // Refresh stats every 30 seconds
+        setInterval(loadStats, 30000);
+    </script>
+</body>
+</html>
