@@ -452,9 +452,7 @@ function createControlPanel(engine, options = {}) {
   const onStatusUpdate = (statusText, stepCount, stuckCount) => {
     if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
-    if (!engine.isNavigating()) {
-      updateButton();
-    }
+    updateButton();
   };
 
   // Initialize
