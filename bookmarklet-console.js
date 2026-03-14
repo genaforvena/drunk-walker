@@ -680,6 +680,16 @@ window.DRUNK_WALKER_ACTIVE = true;
 
 console.log(`🤪 DRUNK WALKER v${VERSION} Loaded.`);
 
+// Backend URL for path collection (configurable via window.DRUNK_WALKER_BACKEND_URL)
+// Default: relative path (works when served from same server)
+// For deployed server: set window.DRUNK_WALKER_BACKEND_URL = 'https://your-server.railway.app'
+const getBackendUrl = () => {
+  if (window.DRUNK_WALKER_BACKEND_URL) {
+    return window.DRUNK_WALKER_BACKEND_URL.replace(/\/$/, ''); // Remove trailing slash
+  }
+  return ''; // Relative path
+};
+
 // Wait for DOM to be ready before initializing
 const initialize = () => {
   try {
@@ -687,7 +697,8 @@ const initialize = () => {
     const engine = createEngine({
       pace: 2000,
       kbOn: true,      // Keyboard mode is DEFAULT
-      expOn: true      // Unstuck algorithm enabled by default
+      expOn: true,     // Unstuck algorithm enabled by default
+      collectPath: false // Path collection disabled by default (opt-in)
     });
 
     // Path collection submit handler
@@ -698,13 +709,16 @@ const initialize = () => {
           steps: steps
         };
         
+        const backendUrl = getBackendUrl();
+        const submitUrl = backendUrl ? `${backendUrl}/api/submit-walk` : '/api/submit-walk';
+        
         // Send to backend (fail silently if unavailable)
-        await fetch('/api/submit-walk', {
+        await fetch(submitUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        }).catch(() => {
-          console.log('🤪 Walk path submission failed (server unavailable)');
+        }).catch((err) => {
+          console.log('🤪 Walk path submission failed (server unavailable):', err.message);
         });
       } catch (error) {
         console.log('🤪 Walk path submission error:', error.message);
