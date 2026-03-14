@@ -12,10 +12,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
         cache: 'npm'
-    - run: npm install
-    - run: npm test
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+    
+    - name: Build bookmarklet
+      run: npm run build
+    
+    - name: Verify build output
+      run: |
+        test -f bookmarklet.js
+        echo "✓ bookmarklet.js exists"
+        grep -q "DRUNK WALKER" bookmarklet.js
+        echo "✓ bookmarklet.js contains expected content"
