@@ -467,9 +467,6 @@ function createControlPanel(engine, options = {}) {
 
     try {
       createUI();
-      engine.setActionHandlers({
-        statusUpdate: onStatusUpdate
-      });
       updateButton();
 
       if (autoStart) {
