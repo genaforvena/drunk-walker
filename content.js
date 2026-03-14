@@ -108,14 +108,26 @@ function simulateKeyPress(key) {
     bubbles: true,
     cancelable: true,
     view: window,
-    location: 2
+    location: 2,
+    repeat: false,
+    altKey: false,
+    ctrlKey: false,
+    metaKey: false,
+    shiftKey: false
   };
 
-  const target = document.documentElement;
+  // Find the Street View canvas or viewport element
+  // Street View typically listens on canvas elements or the scene container
+  const svCanvas = document.querySelector('canvas[width][height]') || 
+                   document.querySelector('.scene-viewer') ||
+                   document.querySelector('[class*="streetview"]') ||
+                   document.documentElement;
 
-  target.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
+  // Dispatch full key event sequence: keydown -> keypress -> keyup
+  svCanvas.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
+  svCanvas.dispatchEvent(new KeyboardEvent('keypress', eventOptions));
   setTimeout(() => {
-    target.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
+    svCanvas.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
   }, 50);
 }
 
