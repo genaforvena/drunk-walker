@@ -22,7 +22,7 @@ const VERSION = '3.3-EXP';
 const defaultConfig = {
   pace: 2000,
   kbOn: true,      // Keyboard mode ON by default
-  expOn: false,    // Experimental mode OFF by default
+  expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
   radius: 50,
   targetX: 0.5,    // 50% of screen width
@@ -615,11 +615,11 @@ console.log(`🤪 DRUNK WALKER v${VERSION} Loaded.`);
 // Wait for DOM to be ready before initializing
 const initialize = () => {
   try {
-    // Create engine with default config (keyboard mode ON)
+    // Create engine with default config (keyboard mode ON, unstuck enabled)
     const engine = createEngine({
       pace: 2000,
       kbOn: true,      // Keyboard mode is DEFAULT
-      expOn: false
+      expOn: true      // Unstuck algorithm enabled by default
     });
 
     // Create UI first to get its onStatusUpdate callback

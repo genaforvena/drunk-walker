@@ -8,7 +8,7 @@ export const VERSION = '3.3-EXP';
 export const defaultConfig = {
   pace: 2000,
   kbOn: true,      // Keyboard mode ON by default
-  expOn: false,    // Experimental mode OFF by default
+  expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
   radius: 50,
   targetX: 0.5,    // 50% of screen width
