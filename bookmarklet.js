@@ -1,5 +1,6 @@
 // Drunk Walker v3.2-EXP - Bundled Build
 // Generated automatically by build.js
+// Paste this entire code into browser console on Google Street View
 
 (function(){
   if (window.DRUNK_WALKER_ACTIVE) return;
