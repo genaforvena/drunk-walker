@@ -23,7 +23,7 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ---
 
-## 🌟 Key Features (v3.1-EXP)
+## 🌟 Key Features (v3.2-EXP)
 
 - **Draw Click Area:** Draw a custom polygon on the screen to define exactly where the walker should click.
 - **Smart Observation:** Automatically pauses clicking whenever you manually drag the mouse to look around or change perspective, then resumes when you release.

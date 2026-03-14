@@ -1,4 +1,4 @@
-# Drunk Walker: Street View Chaos Specification (v3.1-EXP)
+# Drunk Walker: Street View Chaos Specification (v3.2-EXP)
 
 ## Executive Summary
 
@@ -9,7 +9,7 @@
 ## 1. Overview
 
 ### 1.1 Concept
-The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius or constrained by a user-drawn polygon. v3.1-EXP enforces **Strict Autonomy**, removing all dependencies on user mouse movement or drag states.
+The engine simulates user clicks at strategic screen locations. Movement is randomized by a "wobble" radius or constrained by a user-drawn polygon. v3.2-EXP enforces **Strict Autonomy**, removing all dependencies on user mouse movement or drag states.
 
 ### 1.2 Core Philosophy
 - **No DOM interaction** – All interaction is via coordinate clicks.

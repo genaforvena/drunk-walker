@@ -15,12 +15,15 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should contain the latest version string in bookmarklet.js', () => {
-    expect(bookmarkletContent).toContain('v3.1-EXP');
+    expect(bookmarkletContent).toContain('v3.2-EXP');
   });
 
-  it('should include Keyboard Mode toggle in bookmarklet.js', () => {
-    expect(bookmarkletContent).toContain('dw-kb-toggle');
-    expect(bookmarkletContent).toContain('KEYBOARD MODE (ARROW UP)');
+  it('should have keyboard mode enabled by default', () => {
+    expect(bookmarkletContent).toContain('kbOn = true');
+  });
+
+  it('should keep click function for fallback', () => {
+    expect(bookmarkletContent).toContain('function click(x, y)');
   });
 
   it('should implement the start() function with auto-start logic in bookmarklet.js', () => {
@@ -108,7 +111,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should have the correct version in the title', () => {
-    expect(indexContent).toContain('<title>🤪 Drunk Walker v3.1-EXP');
+    expect(indexContent).toContain('<title>🤪 Drunk Walker v3.2-EXP');
   });
 
   it('should have loading message for script fetch', () => {

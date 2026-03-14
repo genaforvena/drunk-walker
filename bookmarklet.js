@@ -1,19 +1,23 @@
 (function(){
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
-  console.log("🤪 DRUNK WALKER v3.1-EXP Loaded.");
+  console.log("🤪 DRUNK WALKER v3.2-EXP Loaded.");
 
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
-  let pace = 2000; 
+  let pace = 2000;
   let isUserMouseDown = false;
   let cw = window.innerWidth;
   let ch = window.innerHeight;
+
+  // Extra features (kept in code but not exposed in UI)
   let hzLine = null;
   let poly = [];
   let isDrawing = false;
   let drawOverlay = null;
+  let expOn = false;
+  let kbOn = true; // Keyboard mode is DEFAULT
 
   document.addEventListener('mousedown', (e) => { if (e.isTrusted) isUserMouseDown = true; }, true);
   document.addEventListener('mouseup', (e) => { if (e.isTrusted) isUserMouseDown = false; }, true);
@@ -21,9 +25,9 @@
   const container = document.createElement('div');
   container.id = 'dw-ctrl-panel';
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
-  
+
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v3.1-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v3.2-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');
@@ -52,104 +56,6 @@
     }
   };
   container.appendChild(paceSlider);
-
-  const expLabel = document.createElement('label');
-  expLabel.style.cssText = 'display:flex;align-items:center;font-size:10px;margin-top:5px;cursor:pointer;';
-  const expToggle = document.createElement('input');
-  expToggle.type = 'checkbox';
-  expToggle.id = 'dw-exp-toggle';
-  expToggle.style.marginRight = '5px';
-  expLabel.appendChild(expToggle);
-  expLabel.appendChild(document.createTextNode('EXPERIMENTAL MODE (STUCK DETECT)'));
-  container.appendChild(expLabel);
-
-  const kbLabel = document.createElement('label');
-  kbLabel.style.cssText = 'display:flex;align-items:center;font-size:10px;margin-top:5px;cursor:pointer;';
-  const kbToggle = document.createElement('input');
-  kbToggle.type = 'checkbox';
-  kbToggle.id = 'dw-kb-toggle';
-  kbToggle.style.marginRight = '5px';
-  kbLabel.appendChild(kbToggle);
-  kbLabel.appendChild(document.createTextNode('KEYBOARD MODE (ARROW UP)'));
-  container.appendChild(kbLabel);
-
-  const lvlBtn = document.createElement('button');
-  lvlBtn.innerText = '⚖️ LEVEL URL';
-  lvlBtn.style.cssText = 'width:100%;margin-top:10px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
-  lvlBtn.onclick = () => {
-    const u = window.location.href;
-    const m = u.match(/,(\d+(\.\d+)?)t/);
-    if(m) {
-      const nu = u.replace(m[0], ',90t');
-      history.replaceState(null, null, nu);
-    }
-  };
-  container.appendChild(lvlBtn);
-
-  const hzBtn = document.createElement('button');
-  hzBtn.innerText = '🌅 SHOW HORIZON';
-  hzBtn.style.cssText = 'width:100%;margin-top:5px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
-  hzBtn.onclick = () => {
-    if(hzLine) {
-      hzLine.remove();
-      hzLine = null;
-      hzBtn.style.background = '#444';
-    } else {
-      hzLine = document.createElement('div');
-      hzLine.style.cssText = 'position:fixed;top:50%;left:0;width:100%;height:2px;background:rgba(255,0,0,0.5);z-index:999998;pointer-events:none;box-shadow:0 0 5px red;';
-      document.body.appendChild(hzLine);
-      hzBtn.style.background = '#060';
-    }
-  };
-  container.appendChild(hzBtn);
-
-  const drawBtn = document.createElement('button');
-  drawBtn.innerText = '📐 DRAW CLICK AREA';
-  drawBtn.style.cssText = 'width:100%;margin-top:5px;padding:5px;background:#444;color:#0f0;border:1px solid #0f0;font-family:monospace;cursor:pointer;font-size:10px;';
-  drawBtn.onclick = () => {
-    if(isDrawing) finishDrawing();
-    else startDrawing();
-  };
-  container.appendChild(drawBtn);
-
-  function startDrawing(){
-    isDrawing = true;
-    poly = [];
-    drawBtn.innerText = '✅ DONE SELECTION';
-    drawBtn.style.background = '#060';
-    drawOverlay = document.createElement('canvas');
-    drawOverlay.width = window.innerWidth;
-    drawOverlay.height = window.innerHeight;
-    drawOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999997;cursor:crosshair;';
-    document.body.appendChild(drawOverlay);
-    const ctx = drawOverlay.getContext('2d');
-    drawOverlay.onclick = (e) => {
-      const p = {x: e.clientX, y: e.clientY};
-      if(poly.length > 2 && Math.hypot(p.x - poly[0].x, p.y - poly[0].y) < 20) {
-        finishDrawing();
-        return;
-      }
-      poly.push(p);
-      redraw();
-    };
-    function redraw(){
-      ctx.clearRect(0,0,drawOverlay.width,drawOverlay.height);
-      ctx.strokeStyle = '#0f0';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      poly.forEach((p, i) => { if(i===0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
-      ctx.stroke();
-      poly.forEach(p => { ctx.fillStyle = '#f0f'; ctx.fillRect(p.x-3, p.y-3, 6, 6); });
-    }
-  }
-
-  function finishDrawing(){
-    isDrawing = false;
-    drawBtn.innerText = '📐 DRAW CLICK AREA' + (poly.length > 2 ? ' (SET)' : '');
-    drawBtn.style.background = '#444';
-    if(drawOverlay) drawOverlay.remove();
-    drawOverlay = null;
-  }
 
   const btn = document.createElement('button');
   btn.innerText = '▶ START';
@@ -182,14 +88,14 @@
       ArrowRight: { keyCode: 39, code: 'ArrowRight' }
     };
     const { keyCode, code } = keyCodes[k] || { keyCode: 0, code: k };
-    const opt = { 
-      key: k, 
-      code: code, 
-      keyCode: keyCode, 
-      which: keyCode, 
-      bubbles: true, 
-      cancelable: true, 
-      view: window, 
+    const opt = {
+      key: k,
+      code: code,
+      keyCode: keyCode,
+      which: keyCode,
+      bubbles: true,
+      cancelable: true,
+      view: window,
       location: 2,
       repeat: false,
       altKey: false,
@@ -197,17 +103,16 @@
       metaKey: false,
       shiftKey: false
     };
-    // Find the Street View canvas or viewport element
-    const svCanvas = document.querySelector('canvas[width][height]') || 
+    const svCanvas = document.querySelector('canvas[width][height]') ||
                      document.querySelector('.scene-viewer') ||
                      document.querySelector('[class*="streetview"]') ||
                      document.documentElement;
-    // Dispatch full key event sequence: keydown -> keypress -> keyup
     svCanvas.dispatchEvent(new KeyboardEvent('keydown', opt));
     svCanvas.dispatchEvent(new KeyboardEvent('keypress', opt));
     setTimeout(() => svCanvas.dispatchEvent(new KeyboardEvent('keyup', opt)), 50);
   }
 
+  // Extra feature functions (kept for potential future use)
   function inPoly(p, vs) {
     var x = p.x, y = p.y, inside = false;
     for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
@@ -216,6 +121,41 @@
         if (intersect) inside = !inside;
     }
     return inside;
+  }
+
+  function startDrawing(){
+    isDrawing = true;
+    poly = [];
+    drawOverlay = document.createElement('canvas');
+    drawOverlay.width = window.innerWidth;
+    drawOverlay.height = window.innerHeight;
+    drawOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999997;cursor:crosshair;';
+    document.body.appendChild(drawOverlay);
+    const ctx = drawOverlay.getContext('2d');
+    drawOverlay.onclick = (e) => {
+      const p = {x: e.clientX, y: e.clientY};
+      if(poly.length > 2 && Math.hypot(p.x - poly[0].x, p.y - poly[0].y) < 20) {
+        finishDrawing();
+        return;
+      }
+      poly.push(p);
+      redraw();
+    };
+    function redraw(){
+      ctx.clearRect(0,0,drawOverlay.width,drawOverlay.height);
+      ctx.strokeStyle = '#0f0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      poly.forEach((p, i) => { if(i===0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+      ctx.stroke();
+      poly.forEach(p => { ctx.fillStyle = '#f0f'; ctx.fillRect(p.x-3, p.y-3, 6, 6); });
+    }
+  }
+
+  function finishDrawing(){
+    isDrawing = false;
+    if(drawOverlay) drawOverlay.remove();
+    drawOverlay = null;
   }
 
   function start(){
@@ -228,12 +168,9 @@
     btn.style.background = '#f00';
     document.getElementById('dw-status').innerText = 'WALKING';
     intervalId = setInterval(() => {
-      if (isUserMouseDown || isDrawing) return; 
-      const expOn = document.getElementById('dw-exp-toggle')?.checked;
-      const kbOn = document.getElementById('dw-kb-toggle')?.checked;
-      let radius = 50;
-      let panicThreshold = 3;
+      if (isUserMouseDown || isDrawing) return;
 
+      // Experimental mode logic (kept in code)
       if (expOn) {
         if (window.location.href === lastUrl) {
           stuckCount++;
@@ -241,7 +178,7 @@
           lastUrl = window.location.href;
           stuckCount = 0;
         }
-        if (stuckCount >= panicThreshold) {
+        if (stuckCount >= 3) {
           document.getElementById('dw-status').innerText = `PANIC! (STUCK ${stuckCount})`;
         } else if (stuckCount > 0) {
           document.getElementById('dw-status').innerText = `STUCK (${stuckCount})`;
@@ -249,19 +186,21 @@
           document.getElementById('dw-status').innerText = 'WALKING';
         }
       } else {
-          stuckCount = 0;
-          document.getElementById('dw-status').innerText = 'WALKING';
+        stuckCount = 0;
+        document.getElementById('dw-status').innerText = 'WALKING';
       }
 
+      // Keyboard mode (DEFAULT) or click mode
       if (kbOn) {
-        if (expOn && stuckCount >= panicThreshold) {
+        if (expOn && stuckCount >= 3) {
           key('ArrowLeft');
         } else {
           key('ArrowUp');
         }
       } else {
-        if (expOn && stuckCount >= panicThreshold) {
-          radius = 50 * Math.pow(1.5, stuckCount - panicThreshold + 1);
+        let radius = 50;
+        if (expOn && stuckCount >= 3) {
+          radius = 50 * Math.pow(1.5, stuckCount - 3 + 1);
         }
         let tx, ty;
         if(poly.length > 2){

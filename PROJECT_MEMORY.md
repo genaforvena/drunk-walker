@@ -41,7 +41,7 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 
 ## ⚡ Key Implementations & Logic
 
-### 1. Click Algorithm (v3.1-EXP)
+### 1. Click Algorithm (v3.2-EXP)
 - **Control Panel**: Injected UI with **START/STOP**, **PACE slider**, **EXPERIMENTAL MODE**, **LEVEL URL**, **SHOW HORIZON**, and **DRAW CLICK AREA**.
 - **Experimental Mode**: 
     - **URL-Stuck Detection**: Tracks `window.location.href`.
