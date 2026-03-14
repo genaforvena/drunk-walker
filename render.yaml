@@ -1,0 +1,18 @@
+# Render Deployment Configuration
+# https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: drunk-walker-server
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    disk:
+      name: walks-data
+      mountPath: /opt/render/project/src/server/walks.db
+      sizeGB: 1

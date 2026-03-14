@@ -83,17 +83,130 @@ Server runs on `http://localhost:3000` with:
 - `GET /api/walk/:id` - Get walk details
 - `/dashboard` - Public dashboard page
 
-### Deployment
+### 🚀 Deployment (Free Hosting)
 
-Deploy the server to any Node.js hosting platform (Heroku, Railway, Render, etc.):
+Deploy the server to any Node.js hosting platform. Here are recommended free options:
+
+#### Option 1: Railway (Recommended)
+
+**One-Click Deploy:**
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new?template=https://github.com/genaforvena/drunk-walker)
+
+**Manual Deploy:**
 
 ```bash
-# Example: Deploy to Railway
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login to Railway
+railway login
+
+# Initialize project in this repo
 railway init
+
+# Deploy
 railway up
 ```
 
-Set the `PORT` environment variable as needed.
+Railway automatically:
+- Detects Node.js from `server/package.json`
+- Sets the `PORT` environment variable
+- Deploys from the `server` directory (configured in `railway.toml`)
+
+**Your deployed URL:** `https://your-project.railway.app`
+
+#### Option 2: Render
+
+**Manual Deploy:**
+
+1. Create a new **Web Service** on [Render](https://render.com)
+2. Connect your GitHub repository
+3. Configure:
+   - **Build Command:** `cd server && npm install`
+   - **Start Command:** `cd server && npm start`
+   - **Environment:** `Node`
+4. Add a **Disk** for persistent storage:
+   - **Mount Path:** `/opt/render/project/src/server/walks.db`
+   - **Size:** 1GB (free tier)
+
+**Your deployed URL:** `https://your-service.onrender.com`
+
+#### Option 3: Fly.io
+
+```bash
+# Install Fly CLI
+curl -L https://fly.io/install.sh | sh
+
+# Login
+fly auth login
+
+# Launch (creates fly.toml)
+fly launch --no-deploy
+
+# Edit fly.toml to set working directory to server
+# Then deploy
+fly deploy
+```
+
+---
+
+### 🔧 Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server port (set by hosting platform) | `3000` |
+
+Copy `.env.example` to `.env` for local development.
+
+---
+
+### 📊 Dashboard Access
+
+Once deployed, access the dashboard at:
+
+- **Dashboard:** `https://your-deployed-url.com/dashboard`
+- **Stats API:** `https://your-deployed-url.com/api/stats`
+- **Walks API:** `https://your-deployed-url.com/api/walks`
+
+---
+
+### 🔧 Frontend Configuration (Important!)
+
+The bookmarklet needs to know where to send path data. By default, it uses a relative path (works for local development).
+
+**For deployed servers, configure the backend URL:**
+
+#### Method 1: Console Command (Before Starting)
+
+Before running the bookmarklet, paste this in the console:
+
+```javascript
+window.DRUNK_WALKER_BACKEND_URL = 'https://your-server.railway.app';
+```
+
+Then paste the bookmarklet code.
+
+#### Method 2: Modify the Bookmarklet
+
+Edit `src/main.js` and set the default:
+
+```javascript
+const DEFAULT_BACKEND_URL = 'https://your-server.railway.app';
+```
+
+Then rebuild: `npm run build`
+
+#### Method 3: Custom Loader Page
+
+Host your own `index.html` with the backend URL pre-configured:
+
+```html
+<script>
+  window.DRUNK_WALKER_BACKEND_URL = 'https://your-server.railway.app';
+</script>
+<script src="bookmarklet-loader.js"></script>
+```
 
 ---
 
@@ -131,9 +244,10 @@ For a permanent browser extension instead of the console method:
 
 ## 📚 Documentation
 
+- **[🚀 DEPLOYMENT.md](DEPLOYMENT.md)** - Complete deployment guide (Railway, Render, Fly.io)
 - **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** - Detailed documentation of the auto-recovery system
 - **[Spec.md](Spec.md)** - Full technical specification
-- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** - Architecture and deployment guide
+- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** - Architecture and project knowledge base
 
 ---
 
