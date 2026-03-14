@@ -50,7 +50,7 @@ export function createControlPanel(engine, options = {}) {
     paceSlider.style.width = '100%';
     paceSlider.oninput = () => {
       const newPace = parseInt(paceSlider.value);
-      paceValEl.innerText = (newPace / 1000).toFixed(1);
+      if (paceValEl) paceValEl.innerText = (newPace / 1000).toFixed(1);
       engine.setPace(newPace);
       if (engine.isNavigating()) {
         engine.stop();
@@ -132,5 +132,5 @@ export function createControlPanel(engine, options = {}) {
     }
   };
 
-  return { init, destroy };
+  return { init, destroy, onStatusUpdate };
 }

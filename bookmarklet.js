@@ -411,7 +411,7 @@ function createControlPanel(engine, options = {}) {
     paceSlider.style.width = '100%';
     paceSlider.oninput = () => {
       const newPace = parseInt(paceSlider.value);
-      paceValEl.innerText = (newPace / 1000).toFixed(1);
+      if (paceValEl) paceValEl.innerText = (newPace / 1000).toFixed(1);
       engine.setPace(newPace);
       if (engine.isNavigating()) {
         engine.stop();
@@ -493,7 +493,7 @@ function createControlPanel(engine, options = {}) {
     }
   };
 
-  return { init, destroy };
+  return { init, destroy, onStatusUpdate };
 }
 
 
@@ -529,7 +529,13 @@ const initialize = () => {
       expOn: false
     });
 
-    // Set up action handlers
+    // Create UI first to get its onStatusUpdate callback
+    const ui = createControlPanel(engine, {
+      version: VERSION,
+      autoStart: true  // Auto-start on load
+    });
+
+    // Set up action handlers with UI callback
     engine.setActionHandlers({
       keyPress: (key) => {
         const target = findStreetViewTarget();
@@ -538,21 +544,13 @@ const initialize = () => {
       mouseClick: (x, y) => {
         simulateClick(x, y, true);
       },
-      statusUpdate: (status, steps, stuck) => {
-        // Handled by UI controller
-      }
+      statusUpdate: ui.onStatusUpdate  // Connect UI status updates
     });
 
     // Set up interaction listeners (pause on user drag)
     const { cleanup: cleanupListeners } = setupInteractionListeners({
       onUserMouseDown: (down) => engine.setUserMouseDown(down),
       onUserMouseUp: (down) => engine.setUserMouseDown(down)
-    });
-
-    // Create and initialize UI
-    const ui = createControlPanel(engine, {
-      version: VERSION,
-      autoStart: true  // Auto-start on load
     });
 
     // Initialize everything
