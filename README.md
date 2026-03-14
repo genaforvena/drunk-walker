@@ -23,17 +23,77 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 ---
 
-## 🌟 Key Features (v3.3-EXP)
+## 🌟 Key Features (v3.4-EXP)
 
-- **🔄 Auto-Unstuck Algorithm**: When stuck, automatically turns left and moves forward to recover navigation (always on).
-- **🎚️ Turn Angle Control**: Adjustable turn duration (15°-120°) for customized unstuck recovery.
+- **🔄 Auto-Unstuck Algorithm**: When stuck, automatically turns left 60° and moves forward to recover navigation (always on).
+- **📍 Optional Path Collection**: Opt-in to contribute your walk data to the global dashboard (completely optional, privacy-focused).
 - **👀 Smart Observation**: Automatically pauses clicking whenever you manually drag the mouse to look around, then resumes when you release.
 - **🎯 Optimized Forward-Targeting:** Default clicks at 70% height—the "sweet spot" for Street View movement.
 - **⌨️ Keyboard Mode (Default):** Simulates Arrow Up key press for smoother, more reliable navigation.
-- **📊 Control Panel:** Minimalist UI with **START/STOP** toggle, **Pace Slider**, **Turn Slider**, and live step counter.
+- **📊 Control Panel:** Minimalist UI with **START/STOP** toggle, **Pace Slider**, path collection toggle, and live step counter.
 - **🎚️ Adjustable Pace:** Speed control from 0.5 to 5.0 seconds per step.
 - **💾 Session-Aware:** Recalculates screen dimensions every time you hit START.
 - **🌐 Cross-Browser:** Works on Chrome, Firefox, Safari, and Edge.
+
+---
+
+## 📍 Path Collection (Opt-In)
+
+**Completely optional.** Enable the "Collect Walk Path" checkbox in the control panel to contribute your walk data to the global dashboard.
+
+**What is collected:**
+- URL after each step
+- Fixed rotation angle (60°)
+- Timestamp when you stop walking
+
+**What is NOT collected:**
+- No IP addresses
+- No personal identifiers
+- No browser fingerprints
+- No location data beyond Street View URLs
+
+**Privacy:** Data is stored anonymously and used only for the global walk dashboard.
+
+---
+
+## 🌍 Global Walk Dashboard
+
+View collected walks from users worldwide:
+
+- **Total walks** collected
+- **Total steps** recorded
+- **Expandable walk details** showing each step's URL and rotation
+
+**[📊 View Dashboard](/dashboard)** | **[📈 Stats API](/api/stats)**
+
+### Backend Server Setup
+
+To enable path collection and the dashboard:
+
+```bash
+cd server
+npm install
+npm start
+```
+
+Server runs on `http://localhost:3000` with:
+- `POST /api/submit-walk` - Submit walk data
+- `GET /api/stats` - Get aggregate statistics
+- `GET /api/walks` - List recent walks
+- `GET /api/walk/:id` - Get walk details
+- `/dashboard` - Public dashboard page
+
+### Deployment
+
+Deploy the server to any Node.js hosting platform (Heroku, Railway, Render, etc.):
+
+```bash
+# Example: Deploy to Railway
+railway init
+railway up
+```
+
+Set the `PORT` environment variable as needed.
 
 ---
 
@@ -41,11 +101,11 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 
 When Drunk Walker detects it's stuck (URL unchanged for 3 consecutive steps), it automatically:
 
-1. **Turns Left** - Holds ArrowLeft for configured duration (default 600ms = ~60°)
+1. **Turns Left 60°** - Holds ArrowLeft for 600ms
 2. **Moves Forward** - Presses ArrowUp in the new direction
 3. **Verifies Success** - Checks if URL changed, resets on success
 
-**Adjustable Turn Angle:** Use the TURN slider in the control panel to customize the turn duration (15°-120°). Default is 60° for reliable recovery.
+The turn angle is fixed at 60° for reliable recovery.
 
 ---
 

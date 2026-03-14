@@ -29,10 +29,34 @@ const initialize = () => {
       expOn: true      // Unstuck algorithm enabled by default
     });
 
+    // Path collection submit handler
+    const submitWalkPath = async (steps) => {
+      try {
+        const payload = {
+          timestamp: new Date().toISOString(),
+          steps: steps
+        };
+        
+        // Send to backend (fail silently if unavailable)
+        await fetch('/api/submit-walk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {
+          console.log('🤪 Walk path submission failed (server unavailable)');
+        });
+      } catch (error) {
+        console.log('🤪 Walk path submission error:', error.message);
+      }
+    };
+
     // Create UI first to get its onStatusUpdate callback
     const ui = createControlPanel(engine, {
       version: VERSION,
-      autoStart: true  // Auto-start on load
+      autoStart: true,  // Auto-start on load
+      onPathCollectionToggle: (enabled) => {
+        engine.setPathCollection(enabled);
+      }
     });
 
     // Set up action handlers with UI callback
@@ -48,7 +72,8 @@ const initialize = () => {
         const target = findStreetViewTarget();
         simulateLongKeyPress(key, duration, callback, target);
       },
-      statusUpdate: ui.onStatusUpdate  // Connect UI status updates
+      statusUpdate: ui.onStatusUpdate,
+      walkStop: submitWalkPath  // Submit path data when walk stops
     });
 
     // Set up interaction listeners (pause on user drag)

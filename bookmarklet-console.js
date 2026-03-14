@@ -1,4 +1,4 @@
-// Drunk Walker v3.3-EXP - CONSOLE VERSION
+// Drunk Walker v3.4-EXP - CONSOLE VERSION
 // This version is optimized for pasting into browser console
 // 1. Type: allow pasting
 // 2. Paste this code
@@ -17,7 +17,7 @@ void function initDrunkWalker(){
  * Independent navigation logic - works without UI
  */
 
-const VERSION = '3.3-EXP';
+const VERSION = '3.4-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -27,7 +27,8 @@ const defaultConfig = {
   radius: 50,
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
-  turnDuration: 600  // ms to hold ArrowLeft for ~60° turn (doubled from 300ms)
+  turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
+  collectPath: false  // Path collection disabled by default
 };
 
 function createEngine(config = {}) {
@@ -46,6 +47,10 @@ function createEngine(config = {}) {
   let unstuckState = 'IDLE';  // 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING'
   let unstuckTimer = null;
   let urlBeforeUnstuck = '';
+
+  // Path collection (opt-in)
+  let walkPath = [];
+  let isPathCollectionEnabled = false;
 
   // State getters
   const getStatus = () => status;
@@ -66,6 +71,23 @@ function createEngine(config = {}) {
   const setKeyboardMode = (on) => { cfg.kbOn = on; };
   const setExperimentalMode = (on) => { cfg.expOn = on; };
   const setPolygon = (points) => { poly = points; };
+  const setPathCollection = (enabled) => {
+    isPathCollectionEnabled = enabled;
+    cfg.collectPath = enabled;
+    if (!enabled) {
+      walkPath = [];  // Clear path if disabled
+    }
+  };
+  const getWalkPath = () => [...walkPath];  // Return copy
+  const clearWalkPath = () => { walkPath = []; };
+  const recordStep = () => {
+    if (isPathCollectionEnabled) {
+      walkPath.push({
+        url: window.location.href,
+        rotation: 60  // Fixed rotation angle
+      });
+    }
+  };
 
   // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
@@ -76,12 +98,14 @@ function createEngine(config = {}) {
   let onMouseClick = null;
   let onStatusUpdate = null;
   let onLongKeyPress = null;
+  let onWalkStop = null;
 
-  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress }) => {
+  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress, walkStop }) => {
     onKeyPress = keyPress;
     onMouseClick = mouseClick;
     onStatusUpdate = statusUpdate;
     onLongKeyPress = longKeyPress;
+    onWalkStop = walkStop;
   };
 
   // Navigation logic
@@ -219,6 +243,9 @@ function createEngine(config = {}) {
     }
 
     steps++;
+    
+    // Record step for path collection (after movement)
+    recordStep();
   };
 
   // Control functions
@@ -245,6 +272,12 @@ function createEngine(config = {}) {
       clearInterval(intervalId);
       intervalId = null;
     }
+    
+    // Submit walk path if collection enabled
+    if (onWalkStop && isPathCollectionEnabled && walkPath.length > 0) {
+      onWalkStop(getWalkPath());
+    }
+    
     if (onStatusUpdate) onStatusUpdate('IDLE', steps, 0);
   };
 
@@ -269,6 +302,9 @@ function createEngine(config = {}) {
     setKeyboardMode,
     setExperimentalMode,
     setPolygon,
+    setPathCollection,
+    getWalkPath,
+    clearWalkPath,
 
     // Interaction
     setUserMouseDown,
@@ -469,8 +505,9 @@ function setupInteractionListeners(callbacks = {}) {
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '3.2-EXP',
-    autoStart = true
+    version = '3.4-EXP',
+    autoStart = true,
+    onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
 
   let container = null;
@@ -479,8 +516,8 @@ function createControlPanel(engine, options = {}) {
   let stepsEl = null;
   let paceValEl = null;
   let paceSlider = null;
-  let turnValEl = null;
-  let turnSlider = null;
+  let collectCheckbox = null;
+  let isPathCollectionEnabled = false;
 
   // Create UI elements
   const createUI = () => {
@@ -522,27 +559,29 @@ function createControlPanel(engine, options = {}) {
     };
     container.appendChild(paceSlider);
 
-    // Turn duration control
-    const turnLabel = document.createElement('div');
-    turnLabel.style.fontSize = '10px';
-    turnLabel.style.marginTop = '8px';
-    turnLabel.innerHTML = 'TURN: <span id="dw-turn-val">60</span>°';
-    container.appendChild(turnLabel);
-    turnValEl = turnLabel.querySelector('#dw-turn-val');
-
-    turnSlider = document.createElement('input');
-    turnSlider.type = 'range';
-    turnSlider.min = '150';
-    turnSlider.max = '1200';
-    turnSlider.step = '50';
-    turnSlider.value = engine.getConfig().turnDuration;
-    turnSlider.style.width = '100%';
-    turnSlider.oninput = () => {
-      const newDuration = parseInt(turnSlider.value);
-      if (turnValEl) turnValEl.innerText = Math.round(newDuration / 10);
-      engine.setTurnDuration(newDuration);
+    // Path collection toggle (opt-in)
+    const collectDiv = document.createElement('div');
+    collectDiv.style.fontSize = '10px';
+    collectDiv.style.marginTop = '8px';
+    collectDiv.style.display = 'flex';
+    collectDiv.style.alignItems = 'center';
+    collectDiv.style.gap = '5px';
+    collectCheckbox = document.createElement('input');
+    collectCheckbox.type = 'checkbox';
+    collectCheckbox.id = 'dw-collect-path';
+    collectCheckbox.onchange = () => {
+      isPathCollectionEnabled = collectCheckbox.checked;
+      if (onPathCollectionToggle) {
+        onPathCollectionToggle(collectCheckbox.checked);
+      }
     };
-    container.appendChild(turnSlider);
+    const collectLabel = document.createElement('label');
+    collectLabel.htmlFor = 'dw-collect-path';
+    collectLabel.innerText = 'Collect Walk Path';
+    collectLabel.style.cursor = 'pointer';
+    collectDiv.appendChild(collectCheckbox);
+    collectDiv.appendChild(collectLabel);
+    container.appendChild(collectDiv);
 
     // Start/Stop button
     btn = document.createElement('button');
@@ -612,7 +651,10 @@ function createControlPanel(engine, options = {}) {
     }
   };
 
-  return { init, destroy, onStatusUpdate };
+  // Path collection state getter
+  const getPathCollectionEnabled = () => collectCheckbox ? collectCheckbox.checked : false;
+
+  return { init, destroy, onStatusUpdate, getPathCollectionEnabled };
 }
 
 
@@ -648,10 +690,34 @@ const initialize = () => {
       expOn: true      // Unstuck algorithm enabled by default
     });
 
+    // Path collection submit handler
+    const submitWalkPath = async (steps) => {
+      try {
+        const payload = {
+          timestamp: new Date().toISOString(),
+          steps: steps
+        };
+        
+        // Send to backend (fail silently if unavailable)
+        await fetch('/api/submit-walk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {
+          console.log('🤪 Walk path submission failed (server unavailable)');
+        });
+      } catch (error) {
+        console.log('🤪 Walk path submission error:', error.message);
+      }
+    };
+
     // Create UI first to get its onStatusUpdate callback
     const ui = createControlPanel(engine, {
       version: VERSION,
-      autoStart: true  // Auto-start on load
+      autoStart: true,  // Auto-start on load
+      onPathCollectionToggle: (enabled) => {
+        engine.setPathCollection(enabled);
+      }
     });
 
     // Set up action handlers with UI callback
@@ -667,7 +733,8 @@ const initialize = () => {
         const target = findStreetViewTarget();
         simulateLongKeyPress(key, duration, callback, target);
       },
-      statusUpdate: ui.onStatusUpdate  // Connect UI status updates
+      statusUpdate: ui.onStatusUpdate,
+      walkStop: submitWalkPath  // Submit path data when walk stops
     });
 
     // Set up interaction listeners (pause on user drag)

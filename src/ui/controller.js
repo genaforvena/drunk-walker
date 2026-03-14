@@ -4,8 +4,9 @@
 
 export function createControlPanel(engine, options = {}) {
   const {
-    version = '3.2-EXP',
-    autoStart = true
+    version = '3.4-EXP',
+    autoStart = true,
+    onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
 
   let container = null;
@@ -14,8 +15,8 @@ export function createControlPanel(engine, options = {}) {
   let stepsEl = null;
   let paceValEl = null;
   let paceSlider = null;
-  let turnValEl = null;
-  let turnSlider = null;
+  let collectCheckbox = null;
+  let isPathCollectionEnabled = false;
 
   // Create UI elements
   const createUI = () => {
@@ -57,27 +58,29 @@ export function createControlPanel(engine, options = {}) {
     };
     container.appendChild(paceSlider);
 
-    // Turn duration control
-    const turnLabel = document.createElement('div');
-    turnLabel.style.fontSize = '10px';
-    turnLabel.style.marginTop = '8px';
-    turnLabel.innerHTML = 'TURN: <span id="dw-turn-val">60</span>°';
-    container.appendChild(turnLabel);
-    turnValEl = turnLabel.querySelector('#dw-turn-val');
-
-    turnSlider = document.createElement('input');
-    turnSlider.type = 'range';
-    turnSlider.min = '150';
-    turnSlider.max = '1200';
-    turnSlider.step = '50';
-    turnSlider.value = engine.getConfig().turnDuration;
-    turnSlider.style.width = '100%';
-    turnSlider.oninput = () => {
-      const newDuration = parseInt(turnSlider.value);
-      if (turnValEl) turnValEl.innerText = Math.round(newDuration / 10);
-      engine.setTurnDuration(newDuration);
+    // Path collection toggle (opt-in)
+    const collectDiv = document.createElement('div');
+    collectDiv.style.fontSize = '10px';
+    collectDiv.style.marginTop = '8px';
+    collectDiv.style.display = 'flex';
+    collectDiv.style.alignItems = 'center';
+    collectDiv.style.gap = '5px';
+    collectCheckbox = document.createElement('input');
+    collectCheckbox.type = 'checkbox';
+    collectCheckbox.id = 'dw-collect-path';
+    collectCheckbox.onchange = () => {
+      isPathCollectionEnabled = collectCheckbox.checked;
+      if (onPathCollectionToggle) {
+        onPathCollectionToggle(collectCheckbox.checked);
+      }
     };
-    container.appendChild(turnSlider);
+    const collectLabel = document.createElement('label');
+    collectLabel.htmlFor = 'dw-collect-path';
+    collectLabel.innerText = 'Collect Walk Path';
+    collectLabel.style.cursor = 'pointer';
+    collectDiv.appendChild(collectCheckbox);
+    collectDiv.appendChild(collectLabel);
+    container.appendChild(collectDiv);
 
     // Start/Stop button
     btn = document.createElement('button');
@@ -147,5 +150,8 @@ export function createControlPanel(engine, options = {}) {
     }
   };
 
-  return { init, destroy, onStatusUpdate };
+  // Path collection state getter
+  const getPathCollectionEnabled = () => collectCheckbox ? collectCheckbox.checked : false;
+
+  return { init, destroy, onStatusUpdate, getPathCollectionEnabled };
 }
