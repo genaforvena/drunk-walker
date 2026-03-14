@@ -1,10 +1,14 @@
-// Drunk Walker v3.2-EXP - Bundled Build
-// Generated automatically by build.js
-// Paste this entire code into browser console on Google Street View
-// NOTE: If you see "Allow pasting?" warning, type: allow pasting
+// Drunk Walker v3.2-EXP - CONSOLE VERSION
+// This version is optimized for pasting into browser console
+// 1. Type: allow pasting
+// 2. Paste this code
+// 3. Press Enter
 
-(function(){
-  if (window.DRUNK_WALKER_ACTIVE) return;
+void function initDrunkWalker(){
+  if (window.DRUNK_WALKER_ACTIVE) {
+    console.log('🤪 Drunk Walker already running. Refresh page to restart.');
+    return;
+  }
   window.DRUNK_WALKER_ACTIVE = true;
 
   // === CORE ENGINE ===
@@ -584,4 +588,4 @@ if (window.DRUNK_WALKER_ACTIVE) {
   }
 }
 
-})();
+}();
