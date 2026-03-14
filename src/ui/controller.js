@@ -16,7 +16,7 @@ export function createControlPanel(engine, options = {}) {
   let paceValEl = null;
   let paceSlider = null;
   let collectCheckbox = null;
-  let isPathCollectionEnabled = false;
+  let copyPathBtn = null;
 
   // Create UI elements
   const createUI = () => {
@@ -67,20 +67,42 @@ export function createControlPanel(engine, options = {}) {
     collectDiv.style.gap = '5px';
     collectCheckbox = document.createElement('input');
     collectCheckbox.type = 'checkbox';
-    collectCheckbox.id = 'dw-collect-path';
+    collectCheckbox.id = 'dw-record-path';
     collectCheckbox.onchange = () => {
-      isPathCollectionEnabled = collectCheckbox.checked;
       if (onPathCollectionToggle) {
         onPathCollectionToggle(collectCheckbox.checked);
       }
     };
     const collectLabel = document.createElement('label');
-    collectLabel.htmlFor = 'dw-collect-path';
-    collectLabel.innerText = 'Collect Walk Path';
+    collectLabel.htmlFor = 'dw-record-path';
+    collectLabel.innerText = 'Record Path';
     collectLabel.style.cursor = 'pointer';
     collectDiv.appendChild(collectCheckbox);
     collectDiv.appendChild(collectLabel);
     container.appendChild(collectDiv);
+
+    // Copy path JSON button
+    copyPathBtn = document.createElement('button');
+    copyPathBtn.innerText = '📋 Copy Path JSON';
+    copyPathBtn.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#0066cc;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
+    copyPathBtn.onclick = () => {
+      const walkPath = engine.getWalkPath();
+      if (walkPath.length === 0) {
+        alert('No path recorded. Enable "Record Path" and start walking!');
+        return;
+      }
+      const jsonStr = JSON.stringify(walkPath, null, 2);
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        copyPathBtn.innerText = '✓ Copied!';
+        setTimeout(() => {
+          copyPathBtn.innerText = '📋 Copy Path JSON';
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+      });
+    };
+    container.appendChild(copyPathBtn);
 
     // Start/Stop button
     btn = document.createElement('button');

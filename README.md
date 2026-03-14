@@ -26,25 +26,34 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 ## 🌟 Key Features (v3.4-EXP)
 
 - **🔄 Auto-Unstuck Algorithm**: When stuck, automatically turns left 60° and moves forward to recover navigation (always on).
-- **📍 Optional Path Collection**: Opt-in to contribute your walk data to the global dashboard (completely optional, privacy-focused).
+- **📍 Path Recording (Opt-In)**: Record your walk path locally and copy as JSON with one click.
 - **👀 Smart Observation**: Automatically pauses clicking whenever you manually drag the mouse to look around, then resumes when you release.
 - **🎯 Optimized Forward-Targeting:** Default clicks at 70% height—the "sweet spot" for Street View movement.
 - **⌨️ Keyboard Mode (Default):** Simulates Arrow Up key press for smoother, more reliable navigation.
-- **📊 Control Panel:** Minimalist UI with **START/STOP** toggle, **Pace Slider**, path collection toggle, and live step counter.
+- **📊 Control Panel:** Minimalist UI with **START/STOP** toggle, **Pace Slider**, **Record Path** checkbox, **Copy Path JSON** button, and live step counter.
 - **🎚️ Adjustable Pace:** Speed control from 0.5 to 5.0 seconds per step.
 - **💾 Session-Aware:** Recalculates screen dimensions every time you hit START.
 - **🌐 Cross-Browser:** Works on Chrome, Firefox, Safari, and Edge.
 
 ---
 
-## 📍 Path Collection (Opt-In)
+## 📍 Path Recording (Opt-In)
 
-**Completely optional.** Enable the "Collect Walk Path" checkbox in the control panel to contribute your walk data to the global dashboard.
+**Completely optional.** Check the "Record Path" checkbox in the control panel to record your walk path.
 
-**What is collected:**
+**What is recorded:**
 - URL after each step
 - Fixed rotation angle (60°)
-- Timestamp when you stop walking
+- Stored locally in browser memory
+
+**Copy Path JSON:** Click the "📋 Copy Path JSON" button to copy your recorded path to clipboard as JSON:
+
+```json
+[
+  {"url": "https://www.google.com/maps/...", "rotation": 60},
+  {"url": "https://www.google.com/maps/...", "rotation": 60}
+]
+```
 
 **What is NOT collected:**
 - No IP addresses
@@ -52,7 +61,7 @@ For the fastest experience on any browser (Desktop or Mobile), use the **Develop
 - No browser fingerprints
 - No location data beyond Street View URLs
 
-**Privacy:** Data is stored anonymously and used only for the global walk dashboard.
+**Privacy:** Path recording is local-only unless you manually copy and share the JSON.
 
 ---
 
