@@ -1,7 +1,7 @@
 (function(){
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
-  console.log("🤪 DRUNK WALKER v3.0-EXP Loaded.");
+  console.log("🤪 DRUNK WALKER v3.1-EXP Loaded.");
 
   let status = 'IDLE';
   let steps = 0;
@@ -23,7 +23,7 @@
   container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
   
   const title = document.createElement('div');
-  title.innerHTML = '🤪 DRUNK WALKER v3.0-EXP<hr style="border-color:#0f0">';
+  title.innerHTML = '🤪 DRUNK WALKER v3.1-EXP<hr style="border-color:#0f0">';
   container.appendChild(title);
 
   const stats = document.createElement('div');

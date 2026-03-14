@@ -95,7 +95,7 @@ const createDrunkWalkerLogic = () => {
   };
 };
 
-describe('Drunk Walker Logic v3.0-EXP', () => {
+describe('Drunk Walker Logic v3.1-EXP', () => {
   beforeEach(() => { vi.useFakeTimers(); });
   afterEach(() => { vi.restoreAllMocks(); });
 
