@@ -1,5 +1,7 @@
 # 🤪 Drunk Walker
 
+![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
+
 **[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)**
 
 ## What Is It?
@@ -128,9 +130,11 @@ This happens automatically—no configuration needed.
 
 ## Documentation
 
-- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Technical details of auto-recovery
-- **[Spec.md](Spec.md)** — Full specification
-- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** — Architecture guide
+### User Docs
+- **[DEVELOPER.md](DEVELOPER.md)** — Developer guide (build, test, API reference)
+- **[Spec.md](Spec.md)** — Technical specification
+- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Auto-recovery details
+- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** — Architecture & history
 
 ---
 
