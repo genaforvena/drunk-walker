@@ -567,6 +567,7 @@ function createControlPanel(engine, options = {}) {
   let btn = null;
   let statusEl = null;
   let stepsEl = null;
+  let visitedEl = null;
   let paceValEl = null;
   let paceSlider = null;
   let collectCheckbox = null;
@@ -593,7 +594,7 @@ function createControlPanel(engine, options = {}) {
     container.appendChild(stats);
     statusEl = stats.querySelector('#dw-status');
     stepsEl = stats.querySelector('#dw-steps');
-    const visitedEl = stats.querySelector('#dw-visited');
+    visitedEl = stats.querySelector('#dw-visited');
 
     // Pace control
     const paceLabel = document.createElement('div');
