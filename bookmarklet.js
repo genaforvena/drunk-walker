@@ -188,17 +188,18 @@ function createEngine(config = {}) {
     urlBeforeUnstuck = window.location.href;
     unstuckState = 'TURNING';
 
-    // Step 1: Turn left with bounded randomization (~45° to ~75°)
-    // Always turning left ensures consistent behavior in circular paths
-    // Random variation prevents getting stuck in perfect loops
+    // Step 1: Turn left with bounded randomization (~30° to ~90°)
+    // ALWAYS turns left - never right, never stuck
+    // Random bounded variation prevents getting stuck in perfect loops
+    // Even in worst case: will complete full 360° and return to start
     const baseTurnDuration = cfg.turnDuration;  // 600ms = ~60°
-    const randomVariation = (Math.random() - 0.5) * 300;  // ±150ms = ±15°
-    const turnDuration = Math.max(450, Math.min(750, baseTurnDuration + randomVariation));  // Clamp to 450-750ms
+    const randomVariation = (Math.random() - 0.5) * 600;  // ±300ms = ±30°
+    const turnDuration = Math.max(300, Math.min(900, baseTurnDuration + randomVariation));  // Clamp to 300-900ms (30°-90°)
     const turnAngle = Math.round(turnDuration / 10);  // Convert ms to degrees (~10ms = 1°)
 
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', turnDuration, () => {
-        // Track the turn angle - ALWAYS TURN LEFT
+        // Track the turn angle - ALWAYS TURN LEFT (never right)
         cumulativeTurnAngle = (cumulativeTurnAngle + turnAngle) % 360;
 
         // After turn, move (backward or forward based on mode)
@@ -216,9 +217,10 @@ function createEngine(config = {}) {
             stuckCount = 0;
             console.log(`🤪 DRUNK WALKER: Unstuck successfully (turned left ~${turnAngle}°)!`);
           } else {
-            // Still stuck, increment stuck count
+            // Still stuck - will turn left again on next attempt
+            // After ~4-12 attempts will complete full 360° and be back where started
             stuckCount++;
-            console.log('🤪 DRUNK WALKER: Still stuck after unstuck attempt');
+            console.log(`🤪 DRUNK WALKER: Still stuck after ${turnAngle}° left turn (cumulative: ${cumulativeTurnAngle}°)`);
           }
 
           unstuckState = 'IDLE';
@@ -237,7 +239,7 @@ function createEngine(config = {}) {
   };
 
   // Self-avoiding walk: prefer unvisited directions using turn angles
-  // ALWAYS TURNS LEFT to maintain consistent behavior
+  // ALWAYS TURNS LEFT with random bounded variation
   const executeSelfAvoidingStep = () => {
     if (!cfg.selfAvoiding || !onKeyPress) return false;
 
@@ -246,12 +248,14 @@ function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const isCurrentVisited = visitedUrls.has(currentLocation);
 
-    // If we're at a visited node, turn left to explore new direction
+    // If we're at a visited node, turn left with random bounded angle
     if (isCurrentVisited && visitedUrls.size > 0) {
-      // ALWAYS TURN LEFT - consistent behavior
+      // ALWAYS TURN LEFT - random bounded angle (~20° to ~50°)
       const turnKey = 'ArrowLeft';
-      const turnDuration = cfg.turnDuration / 2;  // ~30° quick turn
-      const turnAngleChange = Math.round(turnDuration / 10);  // ~30°
+      const randomVariation = (Math.random() - 0.5) * 300;  // ±150ms = ±15°
+      const baseDuration = cfg.turnDuration / 2;  // ~300ms = ~30°
+      const turnDuration = Math.max(200, Math.min(500, baseDuration + randomVariation));  // 200-500ms (20°-50°)
+      const turnAngleChange = Math.round(turnDuration / 10);
 
       // Update cumulative turn angle (always adding for left turns)
       cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
