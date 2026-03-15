@@ -216,7 +216,7 @@ export function createSelfAvoidingNavigation(cfg, callbacks) {
 
           if (newUrl !== urlBeforeTurn) {
             visitedUrls.add(newLocation);
-            console.log(`✅ Self-avoiding step successful - moved to: ${newLocation}`);
+            console.log(`✅ Self-avoiding step successful - moved to: ${newLocation} (stuck reset to 0)`);
             // Clear tried turns for new location
             triedTurns.delete(newLocation);
           } else {
@@ -224,6 +224,10 @@ export function createSelfAvoidingNavigation(cfg, callbacks) {
           }
 
           state = 'IDLE';
+          // Reset stuck count on success (handled by engine via callback)
+          if (onStatusUpdate) {
+            onStatusUpdate('WALKING', 0, 0);  // Reset stuck on successful move
+          }
         }, cfg.pace);
       });
     }
@@ -347,17 +351,23 @@ export function createUnstuckNavigation(cfg, callbacks) {
           state = 'VERIFYING';
           const newUrl = typeof window !== 'undefined' ? window.location.href : urlBeforeUnstuck;
 
+          // stuckCount returned here: 0 if moved, stuckCount+1 if still stuck
+          let newStuckCount = 0;
           if (newUrl !== urlBeforeUnstuck) {
-            // Successfully moved to new location
-            console.log(`✅ Unstuck SUCCESS - moved to new location`);
+            // Successfully moved to new location - FRESH START!
+            newStuckCount = 0;
+            console.log(`✅ Unstuck SUCCESS - moved to new location (stuck reset to 0)`);
           } else {
-            // Still at same location after turn+move
-            console.log(`⚠️ Still at same location after ${turnAngle}° left turn`);
+            // Still at same location - increment stuck
+            newStuckCount = stuckCount + 1;
+            console.log(`⚠️ Still at same location after ${turnAngle}° left turn (stuck=${newStuckCount})`);
           }
 
           state = 'IDLE';
-          // Note: stuckCount is managed by engine, not here
-          // Engine resets stuckCount when turn is initiated
+          // Return stuckCount to engine for reset
+          if (onStatusUpdate) {
+            onStatusUpdate('WALKING', 0, newStuckCount);
+          }
         }, cfg.pace);
       });
     }

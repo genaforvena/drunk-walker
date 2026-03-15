@@ -179,8 +179,11 @@ export function createEngine(config = {}) {
       onKeyPress,
       onMouseClick,
       onStatusUpdate: (statusText, _, newStuckCount) => {
-        // Update stuck count from navigation, then call external callback
-        if (newStuckCount !== undefined) stuckCount = newStuckCount;
+        // Update stuck count from navigation callback
+        // Navigation returns new stuckCount after verification
+        if (newStuckCount !== undefined) {
+          stuckCount = newStuckCount;
+        }
         if (onStatusUpdate) onStatusUpdate(statusText, steps, stuckCount);
       },
       onLongKeyPress,
@@ -278,12 +281,7 @@ export function createEngine(config = {}) {
     // Handle navigation result
     if (navResult.busy) {
       // Navigation is handling the action (turning, moving, verifying)
-      // Reset stuck count - turn+move is corrective action
-      // If still stuck after turn, will need N more ticks to trigger again
-      if (navResult.strategy === 'unstuck' || navResult.strategy === 'self-avoiding') {
-        stuckCount = 0;
-        lastUrl = '';  // Will be set on next URL change
-      }
+      // stuckCount will be reset by navigation callback after verification
       steps++;
       recordStep();
       return;

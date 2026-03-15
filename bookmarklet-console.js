@@ -247,7 +247,7 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
 
           if (newUrl !== urlBeforeTurn) {
             visitedUrls.add(newLocation);
-            console.log(`✅ Self-avoiding step successful - moved to: ${newLocation}`);
+            console.log(`✅ Self-avoiding step successful - moved to: ${newLocation} (stuck reset to 0)`);
             // Clear tried turns for new location
             triedTurns.delete(newLocation);
           } else {
@@ -255,6 +255,10 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
           }
 
           state = 'IDLE';
+          // Reset stuck count on success (handled by engine via callback)
+          if (onStatusUpdate) {
+            onStatusUpdate('WALKING', 0, 0);  // Reset stuck on successful move
+          }
         }, cfg.pace);
       });
     }
@@ -378,17 +382,23 @@ function createUnstuckNavigation(cfg, callbacks) {
           state = 'VERIFYING';
           const newUrl = typeof window !== 'undefined' ? window.location.href : urlBeforeUnstuck;
 
+          // stuckCount returned here: 0 if moved, stuckCount+1 if still stuck
+          let newStuckCount = 0;
           if (newUrl !== urlBeforeUnstuck) {
-            // Successfully moved to new location
-            console.log(`✅ Unstuck SUCCESS - moved to new location`);
+            // Successfully moved to new location - FRESH START!
+            newStuckCount = 0;
+            console.log(`✅ Unstuck SUCCESS - moved to new location (stuck reset to 0)`);
           } else {
-            // Still at same location after turn+move
-            console.log(`⚠️ Still at same location after ${turnAngle}° left turn`);
+            // Still at same location - increment stuck
+            newStuckCount = stuckCount + 1;
+            console.log(`⚠️ Still at same location after ${turnAngle}° left turn (stuck=${newStuckCount})`);
           }
 
           state = 'IDLE';
-          // Note: stuckCount is managed by engine, not here
-          // Engine resets stuckCount when turn is initiated
+          // Return stuckCount to engine for reset
+          if (onStatusUpdate) {
+            onStatusUpdate('WALKING', 0, newStuckCount);
+          }
         }, cfg.pace);
       });
     }
@@ -750,8 +760,11 @@ function createEngine(config = {}) {
       onKeyPress,
       onMouseClick,
       onStatusUpdate: (statusText, _, newStuckCount) => {
-        // Update stuck count from navigation, then call external callback
-        if (newStuckCount !== undefined) stuckCount = newStuckCount;
+        // Update stuck count from navigation callback
+        // Navigation returns new stuckCount after verification
+        if (newStuckCount !== undefined) {
+          stuckCount = newStuckCount;
+        }
         if (onStatusUpdate) onStatusUpdate(statusText, steps, stuckCount);
       },
       onLongKeyPress,
@@ -849,12 +862,7 @@ function createEngine(config = {}) {
     // Handle navigation result
     if (navResult.busy) {
       // Navigation is handling the action (turning, moving, verifying)
-      // Reset stuck count - turn+move is corrective action
-      // If still stuck after turn, will need N more ticks to trigger again
-      if (navResult.strategy === 'unstuck' || navResult.strategy === 'self-avoiding') {
-        stuckCount = 0;
-        lastUrl = '';  // Will be set on next URL change
-      }
+      // stuckCount will be reset by navigation callback after verification
       steps++;
       recordStep();
       return;
