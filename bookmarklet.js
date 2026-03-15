@@ -1,4 +1,4 @@
-// Drunk Walker v3.67.0-EXP - Bundled Build
+// Drunk Walker v3.67.1-EXP - Bundled Build
 // Generated automatically by build.js
 // Paste this entire code into browser console on Google Street View
 // NOTE: If you see "Allow pasting?" warning, type: allow pasting
@@ -13,7 +13,7 @@
  * Independent navigation logic - works without UI
  */
 
-const VERSION = '3.67.0-EXP';
+const VERSION = '3.67.1-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -554,7 +554,7 @@ function setupInteractionListeners(callbacks = {}) {
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '3.67.0-EXP',
+    version = '3.67.1-EXP',
     autoStart = true,
     onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
