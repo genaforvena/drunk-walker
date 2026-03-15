@@ -1,4 +1,4 @@
-// Drunk Walker v3.66.6-EXP - Bundled Build
+// Drunk Walker v3.67.0-EXP - Bundled Build
 // Generated automatically by build.js
 // Paste this entire code into browser console on Google Street View
 // NOTE: If you see "Allow pasting?" warning, type: allow pasting
@@ -13,7 +13,7 @@
  * Independent navigation logic - works without UI
  */
 
-const VERSION = '3.66.6-EXP';
+const VERSION = '3.67.0-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -24,7 +24,8 @@ const defaultConfig = {
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
-  collectPath: true  // Path recording ENABLED by default
+  collectPath: true,  // Path recording ENABLED by default
+  selfAvoiding: true  // Self-avoiding random walk (prefer unvisited nodes)
 };
 
 function createEngine(config = {}) {
@@ -47,6 +48,9 @@ function createEngine(config = {}) {
   // Path collection (opt-in)
   let walkPath = [];
   let isPathCollectionEnabled = false;
+
+  // Visited nodes memory for self-avoiding walk
+  let visitedUrls = new Set();
 
   // State getters
   const getStatus = () => status;
@@ -80,12 +84,20 @@ function createEngine(config = {}) {
   const clearWalkPath = () => { walkPath = []; };
   const recordStep = () => {
     if (isPathCollectionEnabled) {
+      const currentUrl = window.location.href;
       walkPath.push({
-        url: window.location.href,
+        url: currentUrl,
         rotation: 60  // Fixed rotation angle
       });
+      // Track visited URLs for self-avoiding walk
+      if (cfg.selfAvoiding) {
+        visitedUrls.add(currentUrl);
+      }
     }
   };
+  const isUrlVisited = (url) => visitedUrls.has(url);
+  const clearVisitedUrls = () => { visitedUrls.clear(); };
+  const getVisitedCount = () => visitedUrls.size;
 
   // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
@@ -125,23 +137,24 @@ function createEngine(config = {}) {
   // Unstuck algorithm state machine
   const executeUnstuckSequence = () => {
     if (unstuckState !== 'IDLE') return;
-    
+
     // Start unstuck sequence: TURN -> MOVE -> VERIFY
     urlBeforeUnstuck = window.location.href;
     unstuckState = 'TURNING';
-    
-    // Step 1: Turn left (hold ArrowLeft for ~30°)
+
+    // Step 1: Turn left (hold ArrowLeft for ~60°)
+    // Always turning left ensures consistent behavior in circular paths
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', cfg.turnDuration, () => {
         // After turn, move forward
         unstuckState = 'MOVING';
         if (onKeyPress) onKeyPress('ArrowUp');
-        
+
         // Step 3: Verify after a short delay
         setTimeout(() => {
           unstuckState = 'VERIFYING';
           const newUrl = window.location.href;
-          
+
           if (newUrl !== urlBeforeUnstuck) {
             // Successfully unstuck!
             stuckCount = 0;
@@ -151,7 +164,7 @@ function createEngine(config = {}) {
             stuckCount++;
             console.log('🤪 DRUNK WALKER: Still stuck after unstuck attempt');
           }
-          
+
           unstuckState = 'IDLE';
           if (onStatusUpdate) {
             onStatusUpdate(getStatusText(), steps, stuckCount);
@@ -165,6 +178,31 @@ function createEngine(config = {}) {
     if (!cfg.expOn || stuckCount === 0) return 'WALKING';
     if (stuckCount >= cfg.panicThreshold) return `PANIC! (STUCK ${stuckCount})`;
     return `STUCK (${stuckCount})`;
+  };
+
+  // Self-avoiding walk: prefer unvisited directions
+  const executeSelfAvoidingStep = () => {
+    if (!cfg.selfAvoiding || !onKeyPress) return false;
+
+    // Try to sense if current view has been visited
+    const currentUrl = window.location.href;
+    const isCurrentVisited = visitedUrls.has(currentUrl);
+
+    // If we're at a visited node, try turning to find unvisited direction
+    if (isCurrentVisited && visitedUrls.size > 0) {
+      // Randomly decide to turn left or right to explore
+      const turnRight = Math.random() < 0.5;
+      const turnKey = turnRight ? 'ArrowRight' : 'ArrowLeft';
+
+      // Quick turn to check new direction
+      if (onLongKeyPress) {
+        onLongKeyPress(turnKey, cfg.turnDuration / 2, () => {
+          // After turn, will move forward on next tick
+        });
+        return true;
+      }
+    }
+    return false;
   };
 
   const calculateClickTarget = () => {
@@ -233,6 +271,11 @@ function createEngine(config = {}) {
     // Execute action based on mode
     if (cfg.kbOn) {
       // Keyboard mode (DEFAULT)
+      // Self-avoiding walk: try to turn away from visited nodes before moving
+      if (cfg.selfAvoiding && executeSelfAvoidingStep()) {
+        // Turned to explore, will move forward on next tick
+        return;
+      }
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       // Click mode
@@ -241,7 +284,7 @@ function createEngine(config = {}) {
     }
 
     steps++;
-    
+
     // Record step for path collection (after movement)
     recordStep();
   };
@@ -305,6 +348,12 @@ function createEngine(config = {}) {
     setSteps,
     getWalkPath,
     clearWalkPath,
+    setSelfAvoiding: (enabled) => { cfg.selfAvoiding = enabled; },
+
+    // Visited nodes
+    getVisitedCount,
+    clearVisitedUrls,
+    isUrlVisited,
 
     // Interaction
     setUserMouseDown,
@@ -505,7 +554,7 @@ function setupInteractionListeners(callbacks = {}) {
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '3.66.6-EXP',
+    version = '3.67.0-EXP',
     autoStart = true,
     onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
@@ -536,10 +585,11 @@ function createControlPanel(engine, options = {}) {
     // Stats
     const stats = document.createElement('div');
     stats.style.margin = '10px 0';
-    stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>STEPS: <span id="dw-steps">0</span>';
+    stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>STEPS: <span id="dw-steps">0</span><br>VISITED: <span id="dw-visited">0</span>';
     container.appendChild(stats);
     statusEl = stats.querySelector('#dw-status');
     stepsEl = stats.querySelector('#dw-steps');
+    const visitedEl = stats.querySelector('#dw-visited');
 
     // Pace control
     const paceLabel = document.createElement('div');
@@ -585,6 +635,28 @@ function createControlPanel(engine, options = {}) {
     collectDiv.appendChild(collectCheckbox);
     collectDiv.appendChild(collectLabel);
     container.appendChild(collectDiv);
+
+    // Self-avoiding walk toggle (opt-in)
+    const selfAvoidingDiv = document.createElement('div');
+    selfAvoidingDiv.style.fontSize = '10px';
+    selfAvoidingDiv.style.marginTop = '4px';
+    selfAvoidingDiv.style.display = 'flex';
+    selfAvoidingDiv.style.alignItems = 'center';
+    selfAvoidingDiv.style.gap = '5px';
+    const selfAvoidingCheckbox = document.createElement('input');
+    selfAvoidingCheckbox.type = 'checkbox';
+    selfAvoidingCheckbox.id = 'dw-self-avoiding';
+    selfAvoidingCheckbox.checked = true;  // Enabled by default
+    selfAvoidingCheckbox.onchange = () => {
+      engine.setSelfAvoiding(selfAvoidingCheckbox.checked);
+    };
+    const selfAvoidingLabel = document.createElement('label');
+    selfAvoidingLabel.htmlFor = 'dw-self-avoiding';
+    selfAvoidingLabel.innerText = 'Self-Avoiding Walk';
+    selfAvoidingLabel.style.cursor = 'pointer';
+    selfAvoidingDiv.appendChild(selfAvoidingCheckbox);
+    selfAvoidingDiv.appendChild(selfAvoidingLabel);
+    container.appendChild(selfAvoidingDiv);
 
     // Copy path JSON button
     copyPathBtn = document.createElement('button');
@@ -659,6 +731,7 @@ function createControlPanel(engine, options = {}) {
   const onStatusUpdate = (statusText, stepCount, stuckCount) => {
     if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
+    if (visitedEl) visitedEl.innerText = engine.getVisitedCount();
     updateButton();
   };
 

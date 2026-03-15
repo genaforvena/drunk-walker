@@ -1,21 +1,23 @@
-# Drunk Walker Specification (v3.4-EXP)
+# Drunk Walker Specification (v3.67.0-EXP)
 
 ## Executive Summary
 
-**Drunk Walker** is a browser automation engine for Google Street View. It presses the **Arrow Up** key repeatedly to move forward, with automatic recovery when stuck. Path recording is available as an opt-in feature.
+**Drunk Walker** is a browser automation engine for Google Street View. It presses the **Arrow Up** key repeatedly to move forward, with automatic recovery when stuck. Path recording and self-avoiding walk are available as opt-in features.
 
 ---
 
 ## 1. Overview
 
 ### 1.1 Concept
-The engine simulates keyboard input (Arrow Up) at regular intervals to navigate Street View. When the URL remains unchanged for 3 consecutive steps, an auto-unstuck algorithm turns left 60° and attempts to continue.
+The engine simulates keyboard input (Arrow Up) at regular intervals to navigate Street View. When the URL remains unchanged for 3 consecutive steps, an auto-unstuck algorithm turns left 60° and attempts to continue. A self-avoiding walk mode prefers unvisited nodes for better coverage efficiency.
 
 ### 1.2 Core Philosophy
 - **Keyboard-first** — Simulates Arrow Up key press (not mouse clicks)
-- **Auto-recovery** — Unstuck algorithm runs automatically when stuck
-- **Opt-in recording** — Path recording is disabled by default, local-only
+- **Auto-recovery** — Unstuck algorithm runs automatically when stuck (always turns left)
+- **Self-avoiding** — Weak pressure toward unvisited nodes improves coverage
+- **Opt-in recording** — Path recording is enabled by default, local-only
 - **Zero install** — Runs entirely in browser console
+- **Parallel sessions** — Multiple sessions can be merged for faster coverage
 
 ---
 
@@ -23,7 +25,8 @@ The engine simulates keyboard input (Arrow Up) at regular intervals to navigate 
 
 | Version | Key Features |
 |---------|--------------|
-| v3.4-EXP | Path recording with JSON export, fixed 60° turn angle |
+| v3.67.0-EXP | Self-avoiding random walk, visited nodes memory, path merge utility |
+| v3.66.6-EXP | Path recording with JSON export, fixed 60° turn angle |
 | v3.3-EXP | Auto-Unstuck Algorithm (turn left 60°, move forward, verify) |
 | v3.2-EXP | Keyboard mode default, Smart Observation, Persistent control panel |
 | v3.0 | Strict autonomy, forward-default targeting |
@@ -39,37 +42,68 @@ The engine simulates keyboard input (Arrow Up) at regular intervals to navigate 
 | START/STOP | Button | Toggle walking on/off |
 | STATUS | Text | Shows WALKING, STUCK, or IDLE |
 | STEPS | Counter | Total steps taken |
+| VISITED | Counter | Unique nodes visited (new in v3.67.0) |
 | PACE | Slider | 0.5 - 5.0 seconds between steps |
-| Record Path | Checkbox | Enable path recording (off by default) |
+| Record Path | Checkbox | Enable path recording (on by default) |
+| Self-Avoiding Walk | Checkbox | Prefer unvisited nodes (on by default) |
 | Copy Path JSON | Button | Export recorded path as JSON |
 
-### 3.2 Core Algorithm (v3.4)
+### 3.2 Core Algorithm (v3.67.0)
 
 **Normal Walking:**
 1. Wait for pace interval (default 2000ms)
-2. Simulate ArrowUp key press
-3. Record step (if path recording enabled)
-4. Increment step counter
+2. If self-avoiding mode enabled and at visited node, turn toward unvisited direction
+3. Simulate ArrowUp key press
+4. Record step (if path recording enabled)
+5. Increment step counter
 
 **Unstuck Sequence (automatic when stuck ≥ 3 steps):**
-1. Hold ArrowLeft for 600ms (~60° turn)
+1. Hold ArrowLeft for 600ms (~60° turn left)
 2. Press ArrowUp to move forward
 3. Wait one pace interval
 4. Check if URL changed:
    - **Success**: Reset stuck count, resume walking
    - **Failure**: Increment stuck count, retry next cycle
 
+**Self-Avoiding Behavior:**
+- Tracks all visited URLs in a Set
+- When at a previously visited location, performs quick turn (~30°) to explore new direction
+- Prefers unvisited nodes when multiple forward options exist
+- Does NOT guarantee perfect coverage (still a random walk with weak bias)
+
 ### 3.3 Path Recording
 
 **When enabled (checkbox checked):**
 - Record `{ url: window.location.href, rotation: 60 }` after each step
 - Store in memory array `walkPath[]`
+- Track visited URLs in `visitedUrls` Set for self-avoiding behavior
 - On "Copy Path JSON": export as formatted JSON to clipboard
 
-**When disabled (default):**
+**When disabled:**
 - No data recorded
 - No data sent anywhere
 - walkPath array remains empty
+- Self-avoiding behavior disabled
+
+### 3.4 Multi-Session Merge
+
+**Purpose:** Combine path data from multiple parallel sessions for faster area coverage
+
+**Usage (Node.js):**
+```bash
+node merge-paths.js session1.json session2.json session3.json > merged.json
+```
+
+**Usage (Browser Console):**
+```javascript
+// Paste merge-paths.js content, then:
+const merged = mergePaths([path1, path2, path3]);
+```
+
+**Merge Behavior:**
+- Deduplicates by URL (keeps first occurrence)
+- Sorts by URL for organization
+- Reports: input sessions, total steps, unique nodes, deduplicated count
 
 ---
 
@@ -83,7 +117,8 @@ The engine simulates keyboard input (Arrow Up) at regular intervals to navigate 
   steps: number,
   stuckCount: number,
   unstuckState: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING',
-  walkPath: Array<{ url: string, rotation: number }>
+  walkPath: Array<{ url: string, rotation: number }>,
+  visitedUrls: Set<string>  // New in v3.67.0
 }
 ```
 
@@ -96,7 +131,8 @@ const defaultConfig = {
   expOn: true,             // Unstuck enabled (always on)
   panicThreshold: 3,       // Steps before unstuck triggers
   turnDuration: 600,       // ms for 60° left turn
-  collectPath: false       // Path recording (off by default)
+  collectPath: true,       // Path recording (on by default)
+  selfAvoiding: true       // Self-avoiding walk (on by default, new in v3.67.0)
 };
 ```
 
@@ -219,10 +255,12 @@ setTimeout(() => {
 
 ## 11. Conclusion
 
-Drunk Walker v3.4-EXP is a minimalist automation tool that:
+Drunk Walker v3.67.0-EXP is a minimalist automation tool that:
 1. Moves forward automatically (Arrow Up)
 2. Recovers from stuck positions (60° left turn)
-3. Records path optionally (local JSON export)
-4. Respects user control (smart pause)
+3. Prefers unvisited nodes (self-avoiding random walk)
+4. Records path optionally (local JSON export)
+5. Supports multi-session merge for parallel coverage
+6. Respects user control (smart pause)
 
 All features work without installation, dependencies, or data collection.

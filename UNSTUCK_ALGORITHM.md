@@ -1,8 +1,10 @@
-# Unstuck Algorithm v3.3-EXP
+# Unstuck Algorithm v3.67.0-EXP
 
 ## Overview
 
 When the walker detects it's stuck (URL hasn't changed for `panicThreshold` consecutive steps), it automatically executes an unstuck sequence to recover navigation.
+
+**Design Principle:** Always turns left (~60°). This ensures consistent, predictable behavior—even if the walker ends up in a circular path, it's always turning in the same direction.
 
 ## Algorithm Flow
 
@@ -66,7 +68,7 @@ The unstuck algorithm uses a state machine with 4 states:
 | State       | Description                          | Action                            |
 |-------------|--------------------------------------|-----------------------------------|
 | `IDLE`      | Normal walking                       | Press ArrowUp                     |
-| `TURNING`   | Executing turn left                  | Hold ArrowLeft (150-1200ms)       |
+| `TURNING`   | Executing turn left                  | Hold ArrowLeft (600ms, ~60°)      |
 | `MOVING`    | Moving forward after turn            | Press ArrowUp                     |
 | `VERIFYING` | Checking if unstuck succeeded        | Compare URL before/after sequence |
 
@@ -76,11 +78,11 @@ The unstuck algorithm uses a state machine with 4 states:
 const config = {
   pace: 2000,           // Time between steps (ms)
   panicThreshold: 3,    // Stuck count before unstuck triggers
-  turnDuration: 600     // Hold ArrowLeft for ~60° turn (ms) - adjustable via slider
+  turnDuration: 600     // Hold ArrowLeft for ~60° turn (ms) - fixed
 };
 ```
 
-**Turn Angle Range:** 150ms-1200ms (approximately 15°-120°)
+**Turn Angle:** Fixed at ~60° (600ms hold time)
 
 ## How It Works
 
@@ -98,10 +100,10 @@ When `stuckCount >= panicThreshold`:
 
 ### 3. Turn Left
 
-The algorithm holds `ArrowLeft` for `turnDuration` (default 600ms):
+The algorithm holds `ArrowLeft` for `turnDuration` (600ms):
 - This rotates the view left by approximately 60 degrees
-- **Adjustable:** Use the TURN slider in the control panel (15°-120° range)
-- Duration calibrated for Google Street View's turn speed
+- **Fixed angle:** Always turns left, ensuring consistent behavior
+- Calibrated for Google Street View's turn speed
 
 ### 4. Move Forward
 
@@ -139,7 +141,7 @@ cp backup/bookmarklet-v3.2-stable.js bookmarklet.js
 
 ## Future Enhancements
 
-- [ ] Multiple turn directions (left, right, 180°)
-- [ ] Adaptive turn duration based on turn angle
+- [ ] Adaptive turn duration based on environment
 - [ ] Back up before turning
 - [ ] Machine learning for optimal unstuck strategy
+- [ ] Self-avoiding walk improvements

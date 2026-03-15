@@ -4,7 +4,7 @@
 
 export function createControlPanel(engine, options = {}) {
   const {
-    version = '3.66.6-EXP',
+    version = '3.67.0-EXP',
     autoStart = true,
     onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
@@ -35,10 +35,11 @@ export function createControlPanel(engine, options = {}) {
     // Stats
     const stats = document.createElement('div');
     stats.style.margin = '10px 0';
-    stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>STEPS: <span id="dw-steps">0</span>';
+    stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>STEPS: <span id="dw-steps">0</span><br>VISITED: <span id="dw-visited">0</span>';
     container.appendChild(stats);
     statusEl = stats.querySelector('#dw-status');
     stepsEl = stats.querySelector('#dw-steps');
+    const visitedEl = stats.querySelector('#dw-visited');
 
     // Pace control
     const paceLabel = document.createElement('div');
@@ -84,6 +85,28 @@ export function createControlPanel(engine, options = {}) {
     collectDiv.appendChild(collectCheckbox);
     collectDiv.appendChild(collectLabel);
     container.appendChild(collectDiv);
+
+    // Self-avoiding walk toggle (opt-in)
+    const selfAvoidingDiv = document.createElement('div');
+    selfAvoidingDiv.style.fontSize = '10px';
+    selfAvoidingDiv.style.marginTop = '4px';
+    selfAvoidingDiv.style.display = 'flex';
+    selfAvoidingDiv.style.alignItems = 'center';
+    selfAvoidingDiv.style.gap = '5px';
+    const selfAvoidingCheckbox = document.createElement('input');
+    selfAvoidingCheckbox.type = 'checkbox';
+    selfAvoidingCheckbox.id = 'dw-self-avoiding';
+    selfAvoidingCheckbox.checked = true;  // Enabled by default
+    selfAvoidingCheckbox.onchange = () => {
+      engine.setSelfAvoiding(selfAvoidingCheckbox.checked);
+    };
+    const selfAvoidingLabel = document.createElement('label');
+    selfAvoidingLabel.htmlFor = 'dw-self-avoiding';
+    selfAvoidingLabel.innerText = 'Self-Avoiding Walk';
+    selfAvoidingLabel.style.cursor = 'pointer';
+    selfAvoidingDiv.appendChild(selfAvoidingCheckbox);
+    selfAvoidingDiv.appendChild(selfAvoidingLabel);
+    container.appendChild(selfAvoidingDiv);
 
     // Copy path JSON button
     copyPathBtn = document.createElement('button');
@@ -158,6 +181,7 @@ export function createControlPanel(engine, options = {}) {
   const onStatusUpdate = (statusText, stepCount, stuckCount) => {
     if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
+    if (visitedEl) visitedEl.innerText = engine.getVisitedCount();
     updateButton();
   };
 

@@ -3,7 +3,7 @@
  * Independent navigation logic - works without UI
  */
 
-export const VERSION = '3.66.6-EXP';
+export const VERSION = '3.67.0-EXP';
 
 export const defaultConfig = {
   pace: 2000,
@@ -14,7 +14,8 @@ export const defaultConfig = {
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
-  collectPath: true  // Path recording ENABLED by default
+  collectPath: true,  // Path recording ENABLED by default
+  selfAvoiding: true  // Self-avoiding random walk (prefer unvisited nodes)
 };
 
 export function createEngine(config = {}) {
@@ -37,6 +38,9 @@ export function createEngine(config = {}) {
   // Path collection (opt-in)
   let walkPath = [];
   let isPathCollectionEnabled = false;
+
+  // Visited nodes memory for self-avoiding walk
+  let visitedUrls = new Set();
 
   // State getters
   const getStatus = () => status;
@@ -70,12 +74,20 @@ export function createEngine(config = {}) {
   const clearWalkPath = () => { walkPath = []; };
   const recordStep = () => {
     if (isPathCollectionEnabled) {
+      const currentUrl = window.location.href;
       walkPath.push({
-        url: window.location.href,
+        url: currentUrl,
         rotation: 60  // Fixed rotation angle
       });
+      // Track visited URLs for self-avoiding walk
+      if (cfg.selfAvoiding) {
+        visitedUrls.add(currentUrl);
+      }
     }
   };
+  const isUrlVisited = (url) => visitedUrls.has(url);
+  const clearVisitedUrls = () => { visitedUrls.clear(); };
+  const getVisitedCount = () => visitedUrls.size;
 
   // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
@@ -115,23 +127,24 @@ export function createEngine(config = {}) {
   // Unstuck algorithm state machine
   const executeUnstuckSequence = () => {
     if (unstuckState !== 'IDLE') return;
-    
+
     // Start unstuck sequence: TURN -> MOVE -> VERIFY
     urlBeforeUnstuck = window.location.href;
     unstuckState = 'TURNING';
-    
-    // Step 1: Turn left (hold ArrowLeft for ~30°)
+
+    // Step 1: Turn left (hold ArrowLeft for ~60°)
+    // Always turning left ensures consistent behavior in circular paths
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', cfg.turnDuration, () => {
         // After turn, move forward
         unstuckState = 'MOVING';
         if (onKeyPress) onKeyPress('ArrowUp');
-        
+
         // Step 3: Verify after a short delay
         setTimeout(() => {
           unstuckState = 'VERIFYING';
           const newUrl = window.location.href;
-          
+
           if (newUrl !== urlBeforeUnstuck) {
             // Successfully unstuck!
             stuckCount = 0;
@@ -141,7 +154,7 @@ export function createEngine(config = {}) {
             stuckCount++;
             console.log('🤪 DRUNK WALKER: Still stuck after unstuck attempt');
           }
-          
+
           unstuckState = 'IDLE';
           if (onStatusUpdate) {
             onStatusUpdate(getStatusText(), steps, stuckCount);
@@ -155,6 +168,31 @@ export function createEngine(config = {}) {
     if (!cfg.expOn || stuckCount === 0) return 'WALKING';
     if (stuckCount >= cfg.panicThreshold) return `PANIC! (STUCK ${stuckCount})`;
     return `STUCK (${stuckCount})`;
+  };
+
+  // Self-avoiding walk: prefer unvisited directions
+  const executeSelfAvoidingStep = () => {
+    if (!cfg.selfAvoiding || !onKeyPress) return false;
+
+    // Try to sense if current view has been visited
+    const currentUrl = window.location.href;
+    const isCurrentVisited = visitedUrls.has(currentUrl);
+
+    // If we're at a visited node, try turning to find unvisited direction
+    if (isCurrentVisited && visitedUrls.size > 0) {
+      // Randomly decide to turn left or right to explore
+      const turnRight = Math.random() < 0.5;
+      const turnKey = turnRight ? 'ArrowRight' : 'ArrowLeft';
+
+      // Quick turn to check new direction
+      if (onLongKeyPress) {
+        onLongKeyPress(turnKey, cfg.turnDuration / 2, () => {
+          // After turn, will move forward on next tick
+        });
+        return true;
+      }
+    }
+    return false;
   };
 
   const calculateClickTarget = () => {
@@ -223,6 +261,11 @@ export function createEngine(config = {}) {
     // Execute action based on mode
     if (cfg.kbOn) {
       // Keyboard mode (DEFAULT)
+      // Self-avoiding walk: try to turn away from visited nodes before moving
+      if (cfg.selfAvoiding && executeSelfAvoidingStep()) {
+        // Turned to explore, will move forward on next tick
+        return;
+      }
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       // Click mode
@@ -231,7 +274,7 @@ export function createEngine(config = {}) {
     }
 
     steps++;
-    
+
     // Record step for path collection (after movement)
     recordStep();
   };
@@ -295,6 +338,12 @@ export function createEngine(config = {}) {
     setSteps,
     getWalkPath,
     clearWalkPath,
+    setSelfAvoiding: (enabled) => { cfg.selfAvoiding = enabled; },
+
+    // Visited nodes
+    getVisitedCount,
+    clearVisitedUrls,
+    isUrlVisited,
 
     // Interaction
     setUserMouseDown,
