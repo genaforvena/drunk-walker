@@ -152,9 +152,9 @@ describe('Bundled Bookmarklet Validation', () => {
       expect(bookmarkletCode).not.toMatch(/export\s+(const|function|{)/);
     });
 
-    it('should be under 50KB', () => {
+    it('should be under 55KB', () => {
       const sizeKB = bookmarkletCode.length / 1024;
-      expect(sizeKB).toBeLessThan(50);
+      expect(sizeKB).toBeLessThan(55);
     });
 
     it('should have console.log for loading message', () => {

@@ -174,8 +174,11 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
     // First visit (count = 1) = just arrived, don't turn
     // Second+ visit (count > 1) = returned/looping, turn to explore
     if (currentCount < 1 || visitedUrls.size === 0) {
+      console.log(`🚶 Step: Moving forward at new location (${currentLocation})`);
       return { action: 'none' };
     }
+
+    console.log(`🔄 Self-avoiding: REVISIT detected (count=${currentCount + 1}) at ${currentLocation} - turning left`);
 
     // ALWAYS TURN LEFT - random bounded angle (~20° to ~50°)
     const turnKey = 'ArrowLeft';
@@ -193,8 +196,10 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
 
     if (onLongKeyPress) {
       onLongKeyPress(turnKey, turnDuration, () => {
+        console.log(`⬅️ Turning left ~${turnAngleChange}° (cumulative: ${cumulativeTurnAngle}°)`);
         // After turn completes, immediately step forward
         if (onKeyPress) onKeyPress('ArrowUp');
+        console.log(`⬆️ Moving forward after turn`);
 
         // Verify after delay
         setTimeout(() => {
@@ -204,9 +209,9 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
 
           if (newUrl !== urlBeforeTurn) {
             visitedUrls.add(newLocation);
-            console.log(`🤪 DRUNK WALKER: Self-avoiding step successful (turned left ~${turnAngleChange}°)`);
+            console.log(`✅ Self-avoiding step successful - moved to new location: ${newLocation}`);
           } else {
-            console.log(`🤪 DRUNK WALKER: Still at same location after ${turnAngleChange}° turn`);
+            console.log(`⚠️ Still at same location after ${turnAngleChange}° turn`);
           }
 
           state = 'IDLE';
@@ -305,6 +310,8 @@ function createUnstuckNavigation(cfg, callbacks) {
     if (state !== 'IDLE') return { action: 'none' };
     if (!cfg.expOn || stuckCount < panicThreshold) return { action: 'none' };
 
+    console.log(`🚨 UNSTUCK TRIGGERED: Stuck count=${stuckCount} (threshold=${panicThreshold})`);
+
     // Start unstuck sequence: TURN -> MOVE -> VERIFY
     urlBeforeUnstuck = window.location.href;
     state = 'TURNING';
@@ -320,10 +327,12 @@ function createUnstuckNavigation(cfg, callbacks) {
       onLongKeyPress('ArrowLeft', turnDuration, () => {
         // Track turn angle
         cumulativeTurnAngle = (cumulativeTurnAngle + turnAngle) % 360;
+        console.log(`⬅️ Unstuck: Turning left ~${turnAngle}° (cumulative: ${cumulativeTurnAngle}°)`);
 
         // After turn, move forward
         state = 'MOVING';
         if (onKeyPress) onKeyPress('ArrowUp');
+        console.log(`⬆️ Unstuck: Moving forward after turn`);
 
         // Verify after delay
         setTimeout(() => {
@@ -332,10 +341,10 @@ function createUnstuckNavigation(cfg, callbacks) {
 
           if (newUrl !== urlBeforeUnstuck) {
             // Successfully moved to new location
-            console.log(`🤪 DRUNK WALKER: Unstuck successfully (turned left ~${turnAngle}°)!`);
+            console.log(`✅ Unstuck SUCCESS - moved to new location`);
           } else {
             // Still at same location after turn+move
-            console.log(`🤪 DRUNK WALKER: Still at same location after ${turnAngle}° left turn`);
+            console.log(`⚠️ Still at same location after ${turnAngle}° left turn`);
           }
 
           state = 'IDLE';
@@ -808,10 +817,12 @@ function createEngine(config = {}) {
     // Normal movement
     if (cfg.kbOn) {
       // Keyboard mode: press ArrowUp for forward movement
+      console.log(`⬆️ Step #${steps + 1}: Moving forward (normal walk)`);
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       // Click mode: calculate and click target
       const target = calculateClickTarget();
+      console.log(`🖱️ Step #${steps + 1}: Clicking at (${Math.round(target.x)}, ${Math.round(target.y)})`);
       if (onMouseClick) onMouseClick(target.x, target.y);
     }
 
