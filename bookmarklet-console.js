@@ -146,10 +146,11 @@ void function initDrunkWalker(){
 function createSelfAvoidingNavigation(cfg, callbacks) {
   const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
 
-  // State machine: 'IDLE' | 'TURNING' | 'VERIFYING'
+  // State machine: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING' | 'COOLDOWN'
   let state = 'IDLE';
   let urlBeforeTurn = '';
   let cumulativeTurnAngle = 0;
+  let cooldownTicks = 0;  // Cooldown after successful turn
 
   /**
    * Execute self-avoiding step
@@ -158,6 +159,12 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
    * @returns {Object} Action result: { action: 'turn'|'move'|'none', ... }
    */
   const executeStep = (currentUrl, visitedUrls) => {
+    // In cooldown - allow forward movement without turning
+    if (cooldownTicks > 0) {
+      cooldownTicks--;
+      return { action: 'none', busy: false };
+    }
+    
     if (!cfg.selfAvoiding || !onKeyPress) return { action: 'none' };
     if (state !== 'IDLE') return { action: 'none' }; // Already in progress
 
@@ -179,7 +186,7 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
     // Update cumulative turn angle
     cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
 
-    // Start turn + move sequence: TURN -> MOVE -> VERIFY
+    // Start turn + move sequence: TURN -> MOVE -> VERIFY -> COOLDOWN
     urlBeforeTurn = currentUrl;
     state = 'TURNING';
 
@@ -197,6 +204,8 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
           if (newUrl !== urlBeforeTurn) {
             visitedUrls.add(newLocation);
             console.log(`🤪 DRUNK WALKER: Self-avoiding step successful (turned left ~${turnAngleChange}°)`);
+            // Set cooldown - allow 2 ticks of forward movement before checking again
+            cooldownTicks = 2;
           } else {
             console.log(`🤪 DRUNK WALKER: Still at same location after ${turnAngleChange}° turn`);
           }
@@ -238,6 +247,7 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
     state = 'IDLE';
     urlBeforeTurn = '';
     cumulativeTurnAngle = 0;
+    cooldownTicks = 0;
   };
 
   /**
