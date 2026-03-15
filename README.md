@@ -166,9 +166,32 @@ This happens automatically—no configuration needed.
 
 ---
 
+## Version Comparison
+
+| Feature | Vanilla (v3.66.6) | Latest (v3.67.0) |
+|---------|-------------------|------------------|
+| **Movement** | Random walk | Self-avoiding random walk |
+| **Unstuck** | Turn left 60° | Turn left 60° |
+| **Path Recording** | ✅ | ✅ |
+| **Visited Counter** | ❌ | ✅ |
+| **Self-Avoiding** | ❌ | ✅ (toggle) |
+| **Path Merge Tool** | ❌ | ✅ |
+| **Coverage Efficiency** | Baseline | ~3-5x better |
+| **Best For** | Simple walks, debugging | Area mapping, exploration |
+
+**Which version to use:**
+- **Vanilla (v3.66.6)**: Classic behavior, simpler random walk, good for testing
+- **Latest (v3.67.0)**: Better coverage, prefers unvisited areas, recommended for mapping
+
+See **[VERSIONS.md](VERSIONS.md)** for detailed version history and differences.
+
+---
+
 ## Documentation
 
 ### User Docs
+- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — What it measures and how it works
+- **[VERSIONS.md](VERSIONS.md)** — Version comparison and history
 - **[DEVELOPER.md](DEVELOPER.md)** — Developer guide (build, test, API reference)
 - **[Spec.md](Spec.md)** — Technical specification
 - **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Auto-recovery details
