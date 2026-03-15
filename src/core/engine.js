@@ -14,7 +14,7 @@ export const defaultConfig = {
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
-  collectPath: false  // Path collection disabled by default
+  collectPath: true  // Path recording ENABLED by default
 };
 
 export function createEngine(config = {}) {
@@ -64,6 +64,8 @@ export function createEngine(config = {}) {
       walkPath = [];  // Clear path if disabled
     }
   };
+  const setWalkPath = (path) => { walkPath = path ? [...path] : []; };
+  const setSteps = (count) => { steps = count; };
   const getWalkPath = () => [...walkPath];  // Return copy
   const clearWalkPath = () => { walkPath = []; };
   const recordStep = () => {
@@ -289,6 +291,8 @@ export function createEngine(config = {}) {
     setExperimentalMode,
     setPolygon,
     setPathCollection,
+    setWalkPath,
+    setSteps,
     getWalkPath,
     clearWalkPath,
 

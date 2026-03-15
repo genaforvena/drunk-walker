@@ -42,11 +42,26 @@ const initialize = () => {
     });
 
     // Restore state if coming from screensaver
-    if (savedState?.isWalking) {
-      setTimeout(() => {
-        engine.start();
-        console.log('🤪 Screensaver session restored - walking resumed');
-      }, 1000);
+    if (savedState) {
+      // Restore walk path
+      if (savedState.walkPath && Array.isArray(savedState.walkPath)) {
+        engine.setWalkPath(savedState.walkPath);
+        console.log('🤪 Restored', savedState.walkPath.length, 'path points');
+      }
+      
+      // Restore steps count
+      if (savedState.steps) {
+        engine.setSteps(savedState.steps);
+        console.log('🤪 Restored', savedState.steps, 'steps');
+      }
+      
+      // Resume walking if was walking
+      if (savedState.isWalking) {
+        setTimeout(() => {
+          engine.start();
+          console.log('🤪 Screensaver session restored - walking resumed');
+        }, 1000);
+      }
     }
 
     // Listen for screensaver initialization messages

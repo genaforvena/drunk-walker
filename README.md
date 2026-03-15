@@ -56,7 +56,7 @@ When you get stuck (same location for 3 steps):
 |---------|--------------|
 | **START/STOP** | Begin or end the walk |
 | **Pace Slider** | Adjust speed (0.5–5.0 seconds per step) |
-| **Record Path** | Enable path recording (off by default) |
+| **Record Path** | Enable path recording (on by default) |
 | **Copy Path JSON** | Export your walk as JSON |
 | **Step Counter** | Shows total steps taken |
 | **Status** | Shows WALKING, STUCK, or IDLE |
@@ -67,10 +67,8 @@ When you get stuck (same location for 3 steps):
 
 ### Always On
 - **Auto-Unstuck**: Recovers automatically when stuck (60° left turn)
+- **Path Recording**: Records your route automatically (can be disabled)
 - **Smart Pause**: Stops when you drag to look around, resumes when done
-
-### Optional
-- **Path Recording**: Save and export your walk route
 
 ### Configurable
 - **Walking Speed**: Adjust pace from 0.5 to 5.0 seconds

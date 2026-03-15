@@ -71,6 +71,7 @@ export function createControlPanel(engine, options = {}) {
     collectCheckbox = document.createElement('input');
     collectCheckbox.type = 'checkbox';
     collectCheckbox.id = 'dw-record-path';
+    collectCheckbox.checked = true;  // Enabled by default
     collectCheckbox.onchange = () => {
       if (onPathCollectionToggle) {
         onPathCollectionToggle(collectCheckbox.checked);
@@ -206,25 +207,32 @@ export function createControlPanel(engine, options = {}) {
       return;
     }
 
-    // Save current state to localStorage
+    // Check for existing saved session
+    const existingSession = localStorage.getItem('drunkWalkerScreensaver');
+    
+    // Save current state to localStorage (includes walk path)
     const state = {
       isWalking: engine.isNavigating(),
       pace: engine.getConfig().pace,
       steps: engine.getSteps(),
       url: window.location.href,
+      walkPath: engine.getWalkPath(),  // Save recorded path
       timestamp: Date.now()
     };
     localStorage.setItem('drunkWalkerScreensaver', JSON.stringify(state));
 
-    // Open new window with Street View
-    const svUrl = 'https://www.google.com/maps?output=embed';
+    // Determine which URL to open
+    const targetUrl = existingSession ? 
+      JSON.parse(existingSession).url :  // Restore last visited URL
+      'https://www.google.com/maps?output=embed';  // Default to maps
+
     const width = Math.min(1200, window.screen.width * 0.8);
     const height = Math.min(900, window.screen.height * 0.8);
     const left = (window.screen.width - width) / 2;
     const top = (window.screen.height - height) / 2;
 
     screensaverWindow = window.open(
-      svUrl,
+      targetUrl,
       'DrunkWalkerScreensaver',
       `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`
     );
@@ -239,6 +247,7 @@ export function createControlPanel(engine, options = {}) {
             type: 'DRUNK_WALKER_INIT',
             state: state
           }, '*');
+          console.log('🤪 Screensaver session sent:', state.steps, 'steps,', state.walkPath?.length || 0, 'path points');
         } catch (e) {
           console.log('Note: Cross-origin restrictions may limit screensaver functionality');
         }

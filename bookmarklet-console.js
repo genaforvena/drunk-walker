@@ -28,7 +28,7 @@ const defaultConfig = {
   targetX: 0.5,    // 50% of screen width
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
-  collectPath: false  // Path collection disabled by default
+  collectPath: true  // Path recording ENABLED by default
 };
 
 function createEngine(config = {}) {
@@ -78,6 +78,8 @@ function createEngine(config = {}) {
       walkPath = [];  // Clear path if disabled
     }
   };
+  const setWalkPath = (path) => { walkPath = path ? [...path] : []; };
+  const setSteps = (count) => { steps = count; };
   const getWalkPath = () => [...walkPath];  // Return copy
   const clearWalkPath = () => { walkPath = []; };
   const recordStep = () => {
@@ -303,6 +305,8 @@ function createEngine(config = {}) {
     setExperimentalMode,
     setPolygon,
     setPathCollection,
+    setWalkPath,
+    setSteps,
     getWalkPath,
     clearWalkPath,
 
@@ -572,6 +576,7 @@ function createControlPanel(engine, options = {}) {
     collectCheckbox = document.createElement('input');
     collectCheckbox.type = 'checkbox';
     collectCheckbox.id = 'dw-record-path';
+    collectCheckbox.checked = true;  // Enabled by default
     collectCheckbox.onchange = () => {
       if (onPathCollectionToggle) {
         onPathCollectionToggle(collectCheckbox.checked);
@@ -707,25 +712,32 @@ function createControlPanel(engine, options = {}) {
       return;
     }
 
-    // Save current state to localStorage
+    // Check for existing saved session
+    const existingSession = localStorage.getItem('drunkWalkerScreensaver');
+    
+    // Save current state to localStorage (includes walk path)
     const state = {
       isWalking: engine.isNavigating(),
       pace: engine.getConfig().pace,
       steps: engine.getSteps(),
       url: window.location.href,
+      walkPath: engine.getWalkPath(),  // Save recorded path
       timestamp: Date.now()
     };
     localStorage.setItem('drunkWalkerScreensaver', JSON.stringify(state));
 
-    // Open new window with Street View
-    const svUrl = 'https://www.google.com/maps?output=embed';
+    // Determine which URL to open
+    const targetUrl = existingSession ? 
+      JSON.parse(existingSession).url :  // Restore last visited URL
+      'https://www.google.com/maps?output=embed';  // Default to maps
+
     const width = Math.min(1200, window.screen.width * 0.8);
     const height = Math.min(900, window.screen.height * 0.8);
     const left = (window.screen.width - width) / 2;
     const top = (window.screen.height - height) / 2;
 
     screensaverWindow = window.open(
-      svUrl,
+      targetUrl,
       'DrunkWalkerScreensaver',
       `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`
     );
@@ -740,6 +752,7 @@ function createControlPanel(engine, options = {}) {
             type: 'DRUNK_WALKER_INIT',
             state: state
           }, '*');
+          console.log('🤪 Screensaver session sent:', state.steps, 'steps,', state.walkPath?.length || 0, 'path points');
         } catch (e) {
           console.log('Note: Cross-origin restrictions may limit screensaver functionality');
         }
@@ -878,11 +891,26 @@ const initialize = () => {
     });
 
     // Restore state if coming from screensaver
-    if (savedState?.isWalking) {
-      setTimeout(() => {
-        engine.start();
-        console.log('🤪 Screensaver session restored - walking resumed');
-      }, 1000);
+    if (savedState) {
+      // Restore walk path
+      if (savedState.walkPath && Array.isArray(savedState.walkPath)) {
+        engine.setWalkPath(savedState.walkPath);
+        console.log('🤪 Restored', savedState.walkPath.length, 'path points');
+      }
+      
+      // Restore steps count
+      if (savedState.steps) {
+        engine.setSteps(savedState.steps);
+        console.log('🤪 Restored', savedState.steps, 'steps');
+      }
+      
+      // Resume walking if was walking
+      if (savedState.isWalking) {
+        setTimeout(() => {
+          engine.start();
+          console.log('🤪 Screensaver session restored - walking resumed');
+        }, 1000);
+      }
     }
 
     // Listen for screensaver initialization messages
