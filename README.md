@@ -1,12 +1,23 @@
 # 🤪 Drunk Walker
 
 ![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
+![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)
+![License](https://img.shields.io/github/license/genaforvena/drunk-walker)
 
 **[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)**
+
+> **Automated Google Street View navigation for urban research, mapping, and data collection**
 
 ## What Is It?
 
 Drunk Walker is an automation engine for Google Street View that walks for you. It presses the **Arrow Up** key repeatedly to move forward through streets, creating an endless, directionless journey.
+
+**Use cases:**
+- 🗺️ **Urban Research** - Generate walkability data and navigability maps
+- 📊 **Data Collection** - Export Street View paths as JSON for analysis
+- 🤖 **Automation Testing** - Test Street View coverage and connectivity
+- 🎯 **Area Mapping** - Map neighborhoods with self-avoiding exploration
+- 🔬 **Training Data** - Generate spatial datasets for ML models
 
 No destination. No control. Just walking.
 
@@ -199,9 +210,38 @@ See **[VERSIONS.md](VERSIONS.md)** for detailed version history and differences.
 
 ---
 
+## Related Projects
+
+- **[Google Maps Platform](https://developers.google.com/maps)** - Official Google Maps APIs
+- **[OpenStreetView](https://www.openstreetview.org/)** - Open source street-level imagery
+- **[Mapillary](https://www.mapillary.com/)** - Crowdsourced street-level imagery
+
+---
+
+## Contributing
+
+Contributions welcome! See **[DEVELOPER.md](DEVELOPER.md)** for build and test instructions.
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests (`npm test`)
+5. Commit and push
+6. Open a Pull Request
+
+---
+
+## License
+
+MIT License - See [LICENSE](LICENSE) file for details.
+
+---
+
 ## ⚠️ Note
 
 This is a technical experiment. Use responsibly.
+
+**Not affiliated with Google or Google Maps.** Google Street View is a trademark of Google Inc.
 
 ---
 
@@ -213,6 +253,12 @@ Versions are automatically incremented on each push to `main`:
 - **Releases**: GitHub releases auto-created with each version bump
 
 See **[VERSIONS.md](VERSIONS.md)** for version history and differences.
+
+---
+
+## Keywords
+
+`google-street-view` `automation` `urban-research` `walkability` `mapping` `street-view` `data-collection` `browser-automation` `spatial-data` `navigation` `random-walk` `self-avoiding-walk`
 
 ---
 

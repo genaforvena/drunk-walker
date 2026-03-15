@@ -1,0 +1,20 @@
+name: Question
+description: Ask a general question
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? Please check the documentation first:
+        
+        - [HOW_IT_WORKS.md](../HOW_IT_WORKS.md) - How it works
+        - [DEVELOPER.md](../DEVELOPER.md) - Developer guide
+        - [VERSIONS.md](../VERSIONS.md) - Version differences
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Please provide as much context as possible
+      placeholder: "How do I...?"
+    validations:
+      required: true

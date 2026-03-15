@@ -1,11 +1,35 @@
 {
   "name": "drunk-walker",
   "version": "3.67.1-exp",
-  "description": "Automated chaotic Street View navigation",
+  "description": "Automated Google Street View navigation for urban research and data collection",
+  "author": "Drunk Walker Contributors",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genaforvena/drunk-walker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/genaforvena/drunk-walker/issues"
+  },
+  "homepage": "https://genaforvena.github.io/drunk-walker/",
+  "keywords": [
+    "google-street-view",
+    "automation",
+    "urban-research",
+    "walkability",
+    "mapping",
+    "street-view",
+    "data-collection",
+    "browser-automation",
+    "spatial-data",
+    "navigation",
+    "random-walk",
+    "self-avoiding-walk"
+  ],
   "scripts": {
     "build": "node build.js",
-    "test": "vitest run",
+    "test": "vitest run --exclude=src/integration.test.js",
     "test:watch": "vitest"
   },
   "devDependencies": {
