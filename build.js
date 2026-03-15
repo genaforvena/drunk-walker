@@ -30,7 +30,7 @@ const main = fs.readFileSync('src/main.js', 'utf8');
 // Regular build (IIFE)
 let bundled = `
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.1-EXP - Bundled Build
+// Drunk Walker v3.67.2-EXP - Bundled Build
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -58,6 +58,7 @@ let bundled = `
   // TO CHANGE NAVIGATION: Edit src/core/navigation.js
   ${navigation
     .replace(/export \{[^}]+\};/g, '')
+    .replace(/export default \{[^}]+\};?/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
   }
@@ -97,7 +98,7 @@ let bundled = `
 // Console-friendly build (no outer IIFE, uses void operator)
 let consoleFriendly = `
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.1-EXP - CONSOLE VERSION
+// Drunk Walker v3.67.2-EXP - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -129,6 +130,7 @@ void function initDrunkWalker(){
   // TO CHANGE NAVIGATION: Edit src/core/navigation.js
   ${navigation
     .replace(/export \{[^}]+\};/g, '')
+    .replace(/export default \{[^}]+\};?/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
   }

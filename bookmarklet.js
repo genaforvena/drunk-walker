@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.1-EXP - Bundled Build
+// Drunk Walker v3.67.2-EXP - Bundled Build
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -504,11 +504,7 @@ function createNavigationController(cfg, callbacks) {
 }
 
 // Default export for convenience
-export default {
-  createSelfAvoidingNavigation,
-  createUnstuckNavigation,
-  createNavigationController
-};
+
 
 
   // === CORE ENGINE ===
@@ -528,7 +524,7 @@ export default {
 
 
 
-const VERSION = '3.67.1-EXP';
+const VERSION = '3.67.2-EXP';
 
 const defaultConfig = {
   pace: 2000,
