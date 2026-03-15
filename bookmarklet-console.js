@@ -146,11 +146,13 @@ void function initDrunkWalker(){
 function createSelfAvoidingNavigation(cfg, callbacks) {
   const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
 
-  // State machine: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING' | 'COOLDOWN'
+  // State machine: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING'
   let state = 'IDLE';
   let urlBeforeTurn = '';
   let cumulativeTurnAngle = 0;
-  let cooldownTicks = 0;  // Cooldown after successful turn
+  
+  // Track visit counts per location - only turn if revisiting (count > 1)
+  const visitCounts = new Map();  // location -> count
 
   /**
    * Execute self-avoiding step
@@ -159,20 +161,19 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
    * @returns {Object} Action result: { action: 'turn'|'move'|'none', ... }
    */
   const executeStep = (currentUrl, visitedUrls) => {
-    // In cooldown - allow forward movement without turning
-    if (cooldownTicks > 0) {
-      cooldownTicks--;
-      return { action: 'none', busy: false };
-    }
-    
     if (!cfg.selfAvoiding || !onKeyPress) return { action: 'none' };
     if (state !== 'IDLE') return { action: 'none' }; // Already in progress
 
     const currentLocation = extractLocation(currentUrl);
-    const isCurrentVisited = visitedUrls.has(currentLocation);
-
-    // Only turn if at visited location
-    if (!isCurrentVisited || visitedUrls.size === 0) {
+    
+    // Track visit count for this location
+    const currentCount = visitCounts.get(currentLocation) || 0;
+    visitCounts.set(currentLocation, currentCount + 1);
+    
+    // Only turn if we've visited this location MORE than once (revisiting)
+    // First visit (count = 1) = just arrived, don't turn
+    // Second+ visit (count > 1) = returned/looping, turn to explore
+    if (currentCount < 1 || visitedUrls.size === 0) {
       return { action: 'none' };
     }
 
@@ -186,7 +187,7 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
     // Update cumulative turn angle
     cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
 
-    // Start turn + move sequence: TURN -> MOVE -> VERIFY -> COOLDOWN
+    // Start turn + move sequence: TURN -> MOVE -> VERIFY
     urlBeforeTurn = currentUrl;
     state = 'TURNING';
 
@@ -204,8 +205,6 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
           if (newUrl !== urlBeforeTurn) {
             visitedUrls.add(newLocation);
             console.log(`🤪 DRUNK WALKER: Self-avoiding step successful (turned left ~${turnAngleChange}°)`);
-            // Set cooldown - allow 2 ticks of forward movement before checking again
-            cooldownTicks = 2;
           } else {
             console.log(`🤪 DRUNK WALKER: Still at same location after ${turnAngleChange}° turn`);
           }
@@ -247,7 +246,7 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
     state = 'IDLE';
     urlBeforeTurn = '';
     cumulativeTurnAngle = 0;
-    cooldownTicks = 0;
+    visitCounts.clear();
   };
 
   /**
