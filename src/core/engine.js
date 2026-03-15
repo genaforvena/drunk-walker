@@ -41,6 +41,9 @@ export function createEngine(config = {}) {
 
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Set();
+  
+  // Cumulative turn angle tracking
+  let cumulativeTurnAngle = 0;  // Total degrees turned (for path recording)
 
   // State getters
   const getStatus = () => status;
@@ -103,7 +106,7 @@ export function createEngine(config = {}) {
       walkPath.push({
         url: currentUrl,
         location: location,  // Unique location identifier (lat,lng)
-        rotation: 60  // Fixed rotation angle
+        rotation: cumulativeTurnAngle  // Actual cumulative turn angle
       });
       // Track visited locations for self-avoiding walk
       if (cfg.selfAvoiding) {
@@ -114,6 +117,8 @@ export function createEngine(config = {}) {
   const isUrlVisited = (location) => visitedUrls.has(location);
   const clearVisitedUrls = () => { visitedUrls.clear(); };
   const getVisitedCount = () => visitedUrls.size;
+  const getCumulativeTurnAngle = () => cumulativeTurnAngle;
+  const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
 
   // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
@@ -164,9 +169,13 @@ export function createEngine(config = {}) {
     const baseTurnDuration = cfg.turnDuration;  // 600ms = ~60°
     const randomVariation = (Math.random() - 0.5) * 300;  // ±150ms = ±15°
     const turnDuration = Math.max(450, Math.min(750, baseTurnDuration + randomVariation));  // Clamp to 450-750ms
-    
+    const turnAngle = Math.round(turnDuration / 10);  // Convert ms to degrees (~10ms = 1°)
+
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', turnDuration, () => {
+        // Track the turn angle
+        cumulativeTurnAngle = (cumulativeTurnAngle + turnAngle) % 360;
+        
         // After turn, move forward
         unstuckState = 'MOVING';
         if (onKeyPress) onKeyPress('ArrowUp');
@@ -179,7 +188,6 @@ export function createEngine(config = {}) {
           if (newUrl !== urlBeforeUnstuck) {
             // Successfully unstuck!
             stuckCount = 0;
-            const turnAngle = Math.round(turnDuration / 10);
             console.log(`🤪 DRUNK WALKER: Unstuck successfully (turned left ~${turnAngle}°)!`);
           } else {
             // Still stuck, increment stuck count
@@ -202,23 +210,51 @@ export function createEngine(config = {}) {
     return `STUCK (${stuckCount})`;
   };
 
-  // Self-avoiding walk: prefer unvisited directions
+  // Self-avoiding walk: prefer unvisited directions using turn angles
   const executeSelfAvoidingStep = () => {
     if (!cfg.selfAvoiding || !onKeyPress) return false;
 
-    // Try to sense if current view has been visited
+    // Try to sense if current location has been visited
     const currentUrl = window.location.href;
-    const isCurrentVisited = visitedUrls.has(currentUrl);
+    const currentLocation = extractLocation(currentUrl);
+    const isCurrentVisited = visitedUrls.has(currentLocation);
 
     // If we're at a visited node, try turning to find unvisited direction
     if (isCurrentVisited && visitedUrls.size > 0) {
-      // Randomly decide to turn left or right to explore
-      const turnRight = Math.random() < 0.5;
-      const turnKey = turnRight ? 'ArrowRight' : 'ArrowLeft';
+      // Use turn angle to decide direction - prefer turning away from current orientation
+      // If we've turned a lot (>180°), prefer turning back toward original direction
+      const normalizedTurn = cumulativeTurnAngle % 360;
+      
+      // Bias turn direction based on cumulative turn
+      // This creates a spiral pattern that covers more ground
+      let turnLeft;
+      if (normalizedTurn > 180) {
+        // Turned more than half circle - turn right to complete the loop
+        turnLeft = false;
+      } else {
+        // Turned less than half - continue turning left
+        turnLeft = true;
+      }
+      
+      // Add some randomness (20% chance to go against the bias)
+      if (Math.random() < 0.2) {
+        turnLeft = !turnLeft;
+      }
+      
+      const turnKey = turnLeft ? 'ArrowLeft' : 'ArrowRight';
+      const turnDuration = cfg.turnDuration / 2;  // ~30° quick turn
+      const turnAngleChange = Math.round(turnDuration / 10);  // ~30°
+      
+      // Update cumulative turn angle
+      if (turnLeft) {
+        cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
+      } else {
+        cumulativeTurnAngle = (cumulativeTurnAngle - turnAngleChange + 360) % 360;
+      }
 
       // Quick turn to check new direction
       if (onLongKeyPress) {
-        onLongKeyPress(turnKey, cfg.turnDuration / 2, () => {
+        onLongKeyPress(turnKey, turnDuration, () => {
           // After turn, will move forward on next tick
         });
         return true;
@@ -350,6 +386,7 @@ export function createEngine(config = {}) {
     stuckCount = 0;
     lastUrl = '';
     status = 'IDLE';
+    cumulativeTurnAngle = 0;  // Reset turn angle on reset
   };
 
   return {
@@ -376,6 +413,10 @@ export function createEngine(config = {}) {
     getVisitedCount,
     clearVisitedUrls,
     isUrlVisited,
+    
+    // Turn angle tracking
+    getCumulativeTurnAngle,
+    resetCumulativeTurnAngle,
 
     // Interaction
     setUserMouseDown,
