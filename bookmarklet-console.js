@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.4-EXP - CONSOLE VERSION
+// Drunk Walker v3.67.5-EXP - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -569,7 +569,7 @@ function createNavigationController(cfg, callbacks) {
 
 
 
-const VERSION = '3.67.4-EXP';
+const VERSION = '3.67.5-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -1140,7 +1140,7 @@ function setupInteractionListeners(callbacks = {}) {
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '3.67.1-EXP',
+    version = '3.67.5-EXP',
     autoStart = true,
     onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
@@ -1155,6 +1155,21 @@ function createControlPanel(engine, options = {}) {
   let collectCheckbox = null;
   let copyPathBtn = null;
   let updateBtn = null;
+  let downloadLogsBtn = null;
+  
+  // Session logs storage
+  const sessionLogs = [];
+  const originalConsoleLog = console.log;
+  
+  // Intercept console.log to capture logs
+  console.log = function(...args) {
+    const timestamp = new Date().toISOString();
+    const message = args.map(arg => 
+      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+    ).join(' ');
+    sessionLogs.push(`[${timestamp}] ${message}`);
+    originalConsoleLog.apply(console, args);
+  };
 
   // Create UI elements
   const createUI = () => {
@@ -1298,6 +1313,39 @@ function createControlPanel(engine, options = {}) {
     exportDiv.appendChild(copyPathBtn);
     exportDiv.appendChild(downloadPathBtn);
     container.appendChild(exportDiv);
+
+    // Download logs button
+    const logsDiv = document.createElement('div');
+    logsDiv.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
+    
+    downloadLogsBtn = document.createElement('button');
+    downloadLogsBtn.innerText = '📄 Download Logs';
+    downloadLogsBtn.style.cssText = 'width:100%;padding:6px;background:#ff6600;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
+    downloadLogsBtn.onclick = () => {
+      if (sessionLogs.length === 0) {
+        alert('No logs recorded yet. Start walking to generate logs!');
+        return;
+      }
+      
+      const logContent = sessionLogs.join('\n');
+      const blob = new Blob([logContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `walk-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      downloadLogsBtn.innerText = '✓ Downloaded!';
+      setTimeout(() => {
+        downloadLogsBtn.innerText = '📄 Download Logs';
+      }, 2000);
+    };
+    
+    logsDiv.appendChild(downloadLogsBtn);
+    container.appendChild(logsDiv);
 
     // Restore Walk from JSON button
     const restoreBtn = document.createElement('button');
