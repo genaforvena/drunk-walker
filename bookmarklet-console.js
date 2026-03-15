@@ -172,10 +172,15 @@ function createEngine(config = {}) {
     urlBeforeUnstuck = window.location.href;
     unstuckState = 'TURNING';
 
-    // Step 1: Turn left (hold ArrowLeft for ~60°)
+    // Step 1: Turn left with bounded randomization (~45° to ~75°)
     // Always turning left ensures consistent behavior in circular paths
+    // Random variation prevents getting stuck in perfect loops
+    const baseTurnDuration = cfg.turnDuration;  // 600ms = ~60°
+    const randomVariation = (Math.random() - 0.5) * 300;  // ±150ms = ±15°
+    const turnDuration = Math.max(450, Math.min(750, baseTurnDuration + randomVariation));  // Clamp to 450-750ms
+    
     if (onLongKeyPress) {
-      onLongKeyPress('ArrowLeft', cfg.turnDuration, () => {
+      onLongKeyPress('ArrowLeft', turnDuration, () => {
         // After turn, move forward
         unstuckState = 'MOVING';
         if (onKeyPress) onKeyPress('ArrowUp');
@@ -188,7 +193,8 @@ function createEngine(config = {}) {
           if (newUrl !== urlBeforeUnstuck) {
             // Successfully unstuck!
             stuckCount = 0;
-            console.log('🤪 DRUNK WALKER: Unstuck successfully!');
+            const turnAngle = Math.round(turnDuration / 10);
+            console.log(`🤪 DRUNK WALKER: Unstuck successfully (turned left ~${turnAngle}°)!`);
           } else {
             // Still stuck, increment stuck count
             stuckCount++;
