@@ -185,15 +185,6 @@ export function createControlPanel(engine, options = {}) {
     }
   };
 
-  // Cleanup
-  const destroy = () => {
-    engine.stop();
-    if (container) {
-      container.remove();
-      container = null;
-    }
-  };
-
   // Path collection state getter
   const getPathCollectionEnabled = () => collectCheckbox ? collectCheckbox.checked : false;
 
