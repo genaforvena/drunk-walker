@@ -30,19 +30,100 @@ void function initDrunkWalker(){
   // Pluggable movement algorithms (self-avoiding, unstuck, etc.)
   // TO CHANGE NAVIGATION: Edit src/core/navigation.js
   /**
- * Navigation Strategies - Pluggable movement algorithms
+ * Navigation Strategies - Pluggable Movement Algorithms
  * 
- * This module contains all navigation logic that can be swapped or customized.
- * Each strategy is a factory function that returns navigation handlers.
+ * ============================================================================
+ * ARCHITECTURE
+ * ============================================================================
  * 
- * TO CREATE A NEW NAVIGATION STRATEGY:
- * 1. Copy an existing strategy function (e.g., createSelfAvoidingNavigation)
- * 2. Implement the required interface:
- *    - tick(): Main navigation logic, returns { action: 'turn'|'move'|'none', ... }
- *    - reset(): Reset strategy state
- *    - getState(): Return current strategy state for debugging
- * 3. Export your new strategy
- * 4. In engine.js, swap the strategy: navigation = createYourStrategy(cfg, callbacks)
+ * This module contains ALL navigation/movement logic as swappable strategies.
+ * The engine (engine.js) delegates movement decisions to this module.
+ * 
+ * TO CHANGE NAVIGATION BEHAVIOR:
+ * 1. Edit this file (src/core/navigation.js)
+ * 2. Or create a new strategy function and swap it in createNavigationController()
+ * 
+ * ============================================================================
+ * STRATEGIES
+ * ============================================================================
+ * 
+ * 1. createSelfAvoidingNavigation()
+ *    - Prefers unvisited locations
+ *    - Turns left 20°-50° at visited nodes
+ *    - Immediately steps forward after turning
+ *    - Verifies URL changed before allowing next action
+ * 
+ * 2. createUnstuckNavigation()
+ *    - Recovery from stuck state (≥3 ticks at same URL)
+ *    - Turns left 30°-90° with random bounded variation
+ *    - Immediately steps forward after turning
+ *    - Guaranteed to never get stuck (360° coverage)
+ * 
+ * 3. createNavigationController()
+ *    - Combines both strategies
+ *    - Priority: Unstuck > Self-Avoiding > Normal movement
+ *    - State machine prevents continuous rotation
+ * 
+ * ============================================================================
+ * STATE MACHINE
+ * ============================================================================
+ * 
+ * Both strategies use the same state machine:
+ * 
+ *   IDLE ──▶ TURNING ──▶ MOVING ──▶ VERIFYING ──▶ IDLE
+ *            (turn)     (step)     (check URL)
+ * 
+ * While busy (not IDLE), navigation.tick() returns { busy: true },
+ * preventing new decisions until the current sequence completes.
+ * 
+ * ============================================================================
+ * INTERFACE
+ * ============================================================================
+ * 
+ * Each strategy returns an object with:
+ * - executeStep/executeUnstuck(): Main action, returns { action, busy, ... }
+ * - isBusy(): Check if sequence in progress
+ * - getCumulativeTurnAngle(): Total degrees turned
+ * - resetCumulativeTurnAngle(): Reset angle tracking
+ * - reset(): Reset all state
+ * - getState(): Debug info
+ * 
+ * createNavigationController() provides:
+ * - tick(context): Main entry point, returns { action, busy, strategy }
+ * - getCumulativeTurnAngle(), resetCumulativeTurnAngle(), reset, getState()
+ * 
+ * ============================================================================
+ * EXAMPLE: Creating a Custom Strategy
+ * ============================================================================
+ * 
+ * function createMyCustomNavigation(cfg, callbacks) {
+ *   let state = 'IDLE';
+ *   
+ *   const executeStep = (currentUrl, visitedUrls) => {
+ *     if (state !== 'IDLE') return { action: 'none', busy: false };
+ *     
+ *     // Your custom logic here
+ *     if (shouldTurn()) {
+ *       state = 'TURNING';
+ *       callbacks.onLongKeyPress('ArrowLeft', 500, () => {
+ *         callbacks.onKeyPress('ArrowUp');
+ *         setTimeout(() => { state = 'IDLE'; }, cfg.pace);
+ *       });
+ *       return { action: 'turn', busy: true };
+ *     }
+ *     
+ *     return { action: 'move', busy: false };
+ *   };
+ *   
+ *   return {
+ *     executeStep,
+ *     isBusy: () => state !== 'IDLE',
+ *     getCumulativeTurnAngle: () => 0,
+ *     resetCumulativeTurnAngle: () => {},
+ *     reset: () => { state = 'IDLE'; },
+ *     getState: () => ({ state })
+ *   };
+ * }
  */
 
 // ═══════════════════════════════════════════════════════════════════════════════

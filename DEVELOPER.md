@@ -24,8 +24,11 @@ npm test -- --exclude="src/integration.test.js" && npm run build
 drunk-walker/
 ├── src/
 │   ├── core/
-│   │   ├── engine.js        # Navigation logic, state machine, unstuck, self-avoiding walk
-│   │   └── engine.test.js   # Engine tests
+│   │   ├── engine.js        # State management, tick timing, path recording
+│   │   ├── navigation.js    # Navigation strategies (self-avoiding, unstuck)
+│   │   ├── engine.test.js   # Engine tests
+│   │   ├── navigation.test.js # Navigation strategy tests
+│   │   └── turn-and-move.test.js # Turn/move integration tests
 │   ├── input/
 │   │   ├── handlers.js      # Keyboard/mouse event simulation
 │   │   └── handlers.test.js # Input handler tests
@@ -39,7 +42,7 @@ drunk-walker/
 │   ├── package.json         # Server dependencies
 │   └── walks.db             # SQLite database (created on first run)
 ├── merge-paths.js           # Path merge utility (CLI + browser)
-├── bookmarklet.js           # Built bundle (latest v3.67.0)
+├── bookmarklet.js           # Built bundle (latest v3.67.1)
 ├── bookmarklet-console.js   # Built bundle (console-friendly)
 ├── index.html               # Dual-version copy page
 ├── dashboard.html           # Walk dashboard (requires server)
@@ -56,11 +59,57 @@ drunk-walker/
 
 | Module | Responsibility |
 |--------|----------------|
-| **Engine** (`src/core/engine.js`) | Core navigation loop, state management, unstuck algorithm, self-avoiding walk, path recording |
-| **Handlers** (`src/input/handlers.js`) | Simulate keyboard (ArrowUp/ArrowLeft/ArrowRight) and mouse events |
-| **UI Controller** (`src/ui/controller.js`) | Control panel DOM manipulation, user interactions, version display |
-| **Main** (`src/main.js`) | Initialize engine, connect modules, expose global API, manage startup sequence |
+| **Engine** (`src/core/engine.js`) | State management, tick timing, path recording, configuration |
+| **Navigation** (`src/core/navigation.js`) | Movement algorithms: self-avoiding walk, unstuck recovery |
+| **Handlers** (`src/input/handlers.js`) | Simulate keyboard (ArrowUp/ArrowLeft) and mouse events |
+| **UI Controller** (`src/ui/controller.js`) | Control panel DOM manipulation, user interactions |
+| **Main** (`src/main.js`) | Initialize engine, connect modules, expose global API |
 | **Merge Paths** (`merge-paths.js`) | Combine multiple session exports, deduplicate by URL |
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        MAIN ENTRY                           │
+│  (initialization, module wiring, global API)                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      CORE ENGINE                            │
+│  - State management (IDLE/WALKING)                          │
+│  - Tick loop (setInterval)                                  │
+│  - Path recording                                           │
+│  - Stuck detection                                          │
+│  - Configuration                                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   NAVIGATION MODULE                         │
+│  ┌─────────────────────┐  ┌─────────────────────┐          │
+│  │ Self-Avoiding       │  │ Unstuck             │          │
+│  │ - Turn at visited   │  │ - Recovery when     │          │
+│  │ - 20°-50° left      │  │   stuck (≥3 ticks)  │          │
+│  │ - Immediate step    │  │ - 30°-90° left      │          │
+│  └─────────────────────┘  └─────────────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    INPUT HANDLERS                           │
+│  - Keyboard events (ArrowUp, ArrowLeft)                     │
+│  - Mouse events (click mode)                                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   UI CONTROLLER                             │
+│  - Control panel DOM                                        │
+│  - Status display                                           │
+│  - User interactions                                        │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### Data Flow
 
@@ -91,8 +140,7 @@ drunk-walker/
   status: 'IDLE' | 'WALKING',
   steps: number,
   stuckCount: number,
-  unstuckState: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING',
-  visitedUrls: Set<string>  // New in v3.67.0
+  visitedUrls: Set<string>  // For self-avoiding walk
 }
 ```
 
@@ -100,20 +148,46 @@ drunk-walker/
 
 1. Check if user is interacting (pause if true)
 2. Update stuck detection (compare URLs)
-3. If stuck ≥ 3 steps: execute unstuck sequence (turn left 60°)
-4. If self-avoiding enabled and at visited node: turn ~30° to explore
-5. Otherwise: press ArrowUp
-6. Record step (if path recording enabled)
-7. Add URL to visitedUrls Set (if self-avoiding enabled)
-8. Increment step counter
+3. **Call navigation.tick()** - delegates to navigation module
+4. Navigation module decides: turn (self-avoiding/unstuck) or move forward
+5. Record step (if path recording enabled)
+6. Add URL to visitedUrls Set (if self-avoiding enabled)
+7. Increment step counter
+
+### Navigation Module (src/core/navigation.js)
+
+The navigation module contains all movement algorithms as pluggable strategies:
+
+**Strategies:**
+- `createSelfAvoidingNavigation()` - Prefers unvisited nodes
+- `createUnstuckNavigation()` - Recovery from stuck state
+- `createNavigationController()` - Combines both strategies
+
+**Navigation Decision Flow:**
+```javascript
+tick(context) {
+  // Priority: Unstuck > Self-Avoiding > Normal movement
+  if (stuckCount >= panicThreshold) {
+    return unstuck.executeUnstuck();  // Turn 30°-90° left
+  }
+  if (atVisitedNode && selfAvoiding) {
+    return selfAvoiding.executeStep();  // Turn 20°-50° left
+  }
+  return { action: 'move' };  // Normal forward movement
+}
+```
+
+**To Change Navigation Behavior:**
+Edit `src/core/navigation.js` - engine.js delegates all movement decisions there.
 
 ### Unstuck Algorithm
 
 ```javascript
+// Navigation module: createUnstuckNavigation()
 // Triggered when stuckCount >= 3
-TURNING:   Hold ArrowLeft for 600ms (~60° turn left)
-MOVING:    Press ArrowUp
-VERIFYING: Check if URL changed
+TURNING:   Hold ArrowLeft for random duration (300-900ms = 30°-90°)
+MOVING:    Press ArrowUp immediately after turn
+VERIFYING: Check if URL changed after pace interval
            ├─ Success: stuckCount = 0, resume walking
            └─ Failure: stuckCount++, retry next cycle
 ```
@@ -123,17 +197,23 @@ VERIFYING: Check if URL changed
 ### Self-Avoiding Walk (v3.67.0+)
 
 ```javascript
-// Weak bias toward unvisited nodes
+// Navigation module: createSelfAvoidingNavigation()
 executeSelfAvoidingStep() {
-  if (visitedUrls.has(currentUrl)) {
-    // At visited node: quick turn to explore
-    turnLeftOrRight(30°);
+  if (visitedUrls.has(currentLocation)) {
+    // At visited node: turn left 20°-50°
+    turnLeft(random 200-500ms);
+    press ArrowUp();  // Immediate step
   }
-  // Continue forward
 }
 ```
 
 **Effect:** ~3-5x better coverage efficiency than pure random walk.
+
+**Key Features:**
+- Turns left 20°-50° at visited locations
+- Immediately steps forward after turning
+- Verifies URL changed before allowing next action
+- Prevents continuous rotation (state machine ensures completion)
 
 ### Path Recording
 
@@ -182,13 +262,16 @@ npm run build
 
 | Test File | Coverage | Status |
 |-----------|----------|--------|
-| `src/core/engine.test.js` | Engine initialization, state, navigation, unstuck, self-avoiding | ✅ 22 tests |
+| `src/core/engine.test.js` | Engine initialization, state, navigation | ✅ 22 tests |
+| `src/core/turn-and-move.test.js` | Turn/move integration, angle tracking | ✅ 8 tests |
+| `src/core/path-recording.test.js` | Path recording, restore walks | ✅ 12 tests |
 | `src/input/handlers.test.js` | Keyboard/mouse event simulation | ✅ 18 tests |
 | `src/bundle.test.js` | Bundle validation (size, structure, features) | ✅ 32 tests |
+| `src/validate-bundle.test.js` | Bundle feature verification | ✅ 10 tests |
 | `index.test.js` | Integration (index.html, clipboard, dual-version) | ✅ 11 tests |
 | `src/integration.test.js` | Full integration | ⚠️ Needs update (embedded old code) |
 
-**Total:** 83 tests (excluding integration.test.js)
+**Total:** 113 tests (excluding integration.test.js)
 
 ### Run Tests
 
@@ -256,13 +339,13 @@ const engine = createEngine(config);
 engine.getStatus()              // 'IDLE' | 'WALKING'
 engine.getSteps()               // number
 engine.getStuckCount()          // number
-engine.getVisitedCount()        // number (v3.67.0+)
+engine.getVisitedCount()        // number (unique locations)
 engine.isNavigating()           // boolean
 
 // Configuration
 engine.setPace(ms)              // Set step interval
 engine.setPathCollection(enabled)  // Enable/disable path recording
-engine.setSelfAvoiding(enabled)    // Enable/disable self-avoiding walk (v3.67.0+)
+engine.setSelfAvoiding(enabled)    // Enable/disable self-avoiding walk
 
 // Actions
 engine.start()
@@ -270,9 +353,36 @@ engine.stop()
 engine.reset()
 
 // Path recording
-engine.getWalkPath()            // Array of {url, rotation}
+engine.getWalkPath()            // Array of {url, location, rotation}
 engine.clearWalkPath()          // Clear recorded path
 engine.setWalkPath(path)        // Import path from array
+engine.restoreVisitedFromPath(path)  // Restore visited set from path
+
+// Navigation (debugging)
+engine.getNavigation()          // Get navigation controller instance
+engine.getNavigationState()     // Get navigation state for debugging
+```
+
+### Navigation API
+
+```javascript
+// Navigation strategies (src/core/navigation.js)
+const navigation = createNavigationController(cfg, callbacks);
+
+// Main tick - returns navigation decision
+const result = navigation.tick({
+  currentUrl,
+  visitedUrls,
+  stuckCount,
+  isKeyboardMode
+});
+// Result: { action: 'turn'|'move'|'none', busy: boolean, strategy: string }
+
+// State
+navigation.getCumulativeTurnAngle()  // Total degrees turned
+navigation.resetCumulativeTurnAngle()
+navigation.reset()                   // Reset all state
+navigation.getState()                // Debug info
 ```
 
 ### UI Controller API
@@ -392,7 +502,8 @@ Server provides:
 
 | Version | Name | Changes |
 |---------|------|---------|
-| v3.67.0-EXP | **Latest** | Self-avoiding walk, visited counter, path merge utility |
+| v3.67.1-EXP | **Latest** | Navigation module refactoring, URL verification fix |
+| v3.67.0-EXP | **Navigation** | Self-avoiding walk, visited counter, path merge utility |
 | v3.66.6-EXP | **Vanilla** | Path recording with JSON export, fixed 60° turn (tagged stable reference) |
 | v3.4-EXP | | Path recording with JSON export, fixed 60° turn |
 | v3.3-EXP | | Auto-unstuck algorithm |

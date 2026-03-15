@@ -32,12 +32,40 @@ Drunk Walker automates Google Street View by simulating keyboard input:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  1. Simulate Arrow Up key press                             │
-│  2. Street View attempts to move forward                    │
-│  3. If successful: URL changes, record step                 │
-│  4. If stuck (same URL × 3): Execute unstuck sequence       │
-│  5. Repeat from step 1                                      │
+│  1. Engine tick (every 2000ms by default)                   │
+│  2. Navigation module decides: turn or move forward         │
+│  3. Simulate key press (ArrowUp or ArrowLeft)               │
+│  4. If successful: URL changes, record step                 │
+│  5. If stuck (same URL × 3): Execute unstuck sequence       │
+│  6. Repeat from step 1                                      │
 └─────────────────────────────────────────────────────────────┘
+```
+
+### Architecture
+
+```
+┌─────────────────┐
+│  Engine         │  State management, timing, path recording
+│  (engine.js)    │
+└────────┬────────┘
+         │ delegates to
+         ▼
+┌─────────────────┐
+│  Navigation     │  Movement algorithms (PLUGGABLE)
+│  (navigation.js)│  - Self-avoiding walk
+│                 │  - Unstuck recovery
+└────────┬────────┘
+         │ commands
+         ▼
+┌─────────────────┐
+│  Input Handlers │  Keyboard/mouse event simulation
+│  (handlers.js)  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Street View    │  Google Maps responds to key events
+└─────────────────┘
 ```
 
 ### Technical Flow
@@ -135,23 +163,31 @@ function updateStuckDetection() {
 
 ## Unstuck Sequence
 
-When stuck count reaches threshold:
+When stuck count reaches threshold (3 consecutive ticks at same URL):
 
 ```
-Step 1: TURN LEFT 60°
-  - Hold ArrowLeft for 600ms
-  - Rotates view ~60 degrees counterclockwise
+Step 1: TURN LEFT 30°-90°
+  - Hold ArrowLeft for random duration (300-900ms)
+  - Random bounded variation prevents perfect loops
 
 Step 2: MOVE FORWARD
-  - Press ArrowUp once
+  - Press ArrowUp immediately after turn
   - Attempts to move in new direction
 
-Step 3: VERIFY
-  - Wait one pace interval (2000ms)
+Step 3: VERIFY (after pace interval)
   - Check if URL changed
   - Success: Reset stuckCount, resume walking
-  - Failure: stuckCount++, retry next cycle
+  - Failure: stuckCount++, retry next cycle (turn left again)
 ```
+
+### State Machine
+
+```
+IDLE ──▶ TURNING ──▶ MOVING ──▶ VERIFYING ──▶ IDLE
+         (turn)     (step)     (check URL)
+```
+
+**Navigation is "busy" during sequence** - prevents new decisions until verification complete.
 
 ### Why Always Left?
 
@@ -161,6 +197,7 @@ Step 3: VERIFY
 - Easier to debug and understand
 - Eventually covers all directions through repeated application
 - Even in circles, always turning same direction
+- Guaranteed escape: will complete 360° if needed
 
 ---
 
@@ -170,25 +207,33 @@ Step 3: VERIFY
 
 A **self-avoiding random walk** prefers unvisited nodes while maintaining randomness. It's a weak bias, not perfect avoidance.
 
-### Implementation
+### Implementation (src/core/navigation.js)
 
 ```javascript
-let visitedUrls = new Set();
+// Navigation module: createSelfAvoidingNavigation()
+executeSelfAvoidingStep(currentUrl, visitedUrls) {
+  const currentLocation = extractLocation(currentUrl);
+  const isCurrentVisited = visitedUrls.has(currentLocation);
 
-function executeSelfAvoidingStep() {
-  const currentUrl = window.location.href;
-  const isCurrentVisited = visitedUrls.has(currentUrl);
-  
   if (isCurrentVisited && visitedUrls.size > 0) {
-    // At visited node: turn to explore
-    const turnRight = Math.random() < 0.5;
-    const turnKey = turnRight ? 'ArrowRight' : 'ArrowLeft';
+    // At visited node: turn left 20°-50°
+    const turnDuration = random(200, 500);  // 20°-50°
+    onLongKeyPress('ArrowLeft', turnDuration, () => {
+      onKeyPress('ArrowUp');  // Immediate step forward
+    });
     
-    // Quick turn (~30°)
-    onLongKeyPress(turnKey, cfg.turnDuration / 2, () => {});
-    return true;
+    // Verify after delay
+    setTimeout(() => {
+      const newUrl = window.location.href;
+      if (newUrl !== urlBeforeTurn) {
+        visitedUrls.add(extractLocation(newUrl));
+      }
+      // State: IDLE (ready for next decision)
+    }, cfg.pace);
+    
+    return { action: 'turn', busy: true };
   }
-  return false;  // No turn needed
+  return { action: 'none', busy: false };
 }
 ```
 
@@ -197,8 +242,20 @@ function executeSelfAvoidingStep() {
 | Situation | Action |
 |-----------|--------|
 | At new node | Move forward normally |
-| At visited node | Quick turn (~30°), then move |
-| Multiple unstuck attempts | Keep turning left 60° each time |
+| At visited node | Turn left 20°-50°, then step forward |
+| Still at same location | Will turn left again on next tick |
+| Multiple unstuck attempts | Keep turning left 30°-90° each time |
+
+### State Machine
+
+The self-avoiding walk uses a state machine to prevent continuous rotation:
+
+```
+IDLE ──▶ TURNING ──▶ MOVING ──▶ VERIFYING ──▶ IDLE
+         (turn)     (step)     (check URL)
+```
+
+**Key:** Navigation is "busy" during TURNING→MOVING→VERIFYING, preventing new decisions until complete.
 
 ### Coverage Improvement
 
