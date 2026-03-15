@@ -957,38 +957,36 @@ const initialize = () => {
         engine.setWalkPath(savedState.walkPath);
         console.log('🤪 Restored', savedState.walkPath.length, 'path points');
       }
-      
+
       // Restore steps count
       if (savedState.steps) {
         engine.setSteps(savedState.steps);
         console.log('🤪 Restored', savedState.steps, 'steps');
       }
-      
-      // Resume walking if was walking
-      if (savedState.isWalking) {
-        setTimeout(() => {
-          engine.start();
-          console.log('🤪 Screensaver session restored - walking resumed');
-        }, 1000);
-      }
     }
+
+    // Set up interaction listeners (pause on user drag)
+    const { cleanup: cleanupListeners } = setupInteractionListeners({
+      onUserMouseDown: (down) => engine.setUserMouseDown(down),
+      onUserMouseUp: (down) => engine.setUserMouseDown(down)
+    });
 
     // Listen for screensaver initialization messages
     window.addEventListener('message', (event) => {
       if (event.data?.type === 'DRUNK_WALKER_INIT') {
         console.log('🤪 Screensaver window initialized');
-        // The screensaver window will run its own instance
       }
     });
 
     // Path collection submit handler
-    const submitWalkPath = async (steps) => {
+    const submitWalkPath = async (walkPath) => {
       try {
         const payload = {
           timestamp: new Date().toISOString(),
-          steps: steps
+          steps: walkPath.length,
+          walkPath: walkPath
         };
-        
+
         // Send to backend (fail silently if unavailable)
         await fetch('/api/submit-walk', {
           method: 'POST',
@@ -1002,16 +1000,16 @@ const initialize = () => {
       }
     };
 
-    // Create UI first to get its onStatusUpdate callback
+    // Create UI - this will autoStart after action handlers are set
     const ui = createControlPanel(engine, {
       version: VERSION,
-      autoStart: true,  // Auto-start on load
+      autoStart: false,  // We'll start manually after handlers are set
       onPathCollectionToggle: (enabled) => {
         engine.setPathCollection(enabled);
       }
     });
 
-    // Set up action handlers with UI callback
+    // Set up ALL action handlers BEFORE starting
     engine.setActionHandlers({
       keyPress: (key) => {
         const target = findStreetViewTarget();
@@ -1025,17 +1023,19 @@ const initialize = () => {
         simulateLongKeyPress(key, duration, callback, target);
       },
       statusUpdate: ui.onStatusUpdate,
-      walkStop: submitWalkPath  // Submit path data when walk stops
+      walkStop: submitWalkPath
     });
 
-    // Set up interaction listeners (pause on user drag)
-    const { cleanup: cleanupListeners } = setupInteractionListeners({
-      onUserMouseDown: (down) => engine.setUserMouseDown(down),
-      onUserMouseUp: (down) => engine.setUserMouseDown(down)
-    });
-
-    // Initialize everything
+    // Initialize UI
     ui.init();
+
+    // Now start walking (after everything is set up)
+    engine.start();
+
+    // Resume screensaver session if needed (already started above)
+    if (savedState?.isWalking) {
+      console.log('🤪 Screensaver session restored');
+    }
 
     // Expose for debugging/console access
     window.DRUNK_WALKER = {

@@ -99,7 +99,7 @@ describe('Bundled Bookmarklet Validation', () => {
     });
 
     it('should have auto-start option', () => {
-      expect(bookmarkletCode).toContain('autoStart: true');
+      expect(bookmarkletCode).toContain('autoStart:');
     });
 
     it('should create control panel UI', () => {
@@ -131,10 +131,10 @@ describe('Bundled Bookmarklet Validation', () => {
       expect(bookmarkletCode).toContain('onUserMouseDown:');
     });
 
-    it('should initialize UI with auto-start', () => {
+    it('should initialize UI and start walking', () => {
       expect(bookmarkletCode).toContain('createControlPanel(engine, {');
-      expect(bookmarkletCode).toContain('autoStart: true');
       expect(bookmarkletCode).toContain('ui.init()');
+      expect(bookmarkletCode).toContain('engine.start()');
     });
 
     it('should expose DRUNK_WALKER API', () => {

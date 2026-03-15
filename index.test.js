@@ -6,11 +6,11 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   const indexContent = fs.readFileSync('index.html', 'utf8');
   const bookmarkletContent = fs.readFileSync('bookmarklet.js', 'utf8');
 
-  // Extract the BOOKMARKLET_URL from index.html
-  const urlMatch = indexContent.match(/const BOOKMARKLET_URL = ['"](.+)['"]/);
+  // Extract the LATEST_URL from index.html (for latest version button)
+  const urlMatch = indexContent.match(/const LATEST_URL = ['"](.+)['"]/);
   const bookmarkletUrl = urlMatch ? urlMatch[1] : '';
 
-  it('should have correct GitHub raw URL for bookmarklet', () => {
+  it('should have correct GitHub raw URL for latest version', () => {
     expect(bookmarkletUrl).toBe('https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet.js');
   });
 
@@ -29,7 +29,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   it('should implement the start() function with auto-start logic in bookmarklet.js', () => {
     expect(bookmarkletContent).toContain('ui.init()');
     expect(bookmarkletContent).toContain('btn.innerText = \'🔴 STOP\'');
-    expect(bookmarkletContent).toContain('autoStart: true');
+    expect(bookmarkletContent).toContain('engine.start()');
   });
 
   describe('copyToClipboard functionality', () => {
@@ -116,7 +116,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should have loading message for script fetch', () => {
-    expect(indexContent).toContain('Loading script from repository');
+    expect(indexContent).toContain('Loading scripts from repository');
   });
 
   it('should have disabled copy button initially', () => {
