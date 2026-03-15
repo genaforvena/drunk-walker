@@ -25,7 +25,8 @@ const defaultConfig = {
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: true  // Self-avoiding random walk (prefer unvisited nodes)
+  selfAvoiding: true,  // Self-avoiding random walk (prefer unvisited nodes)
+  backward: false  // Move backward (ArrowDown) instead of forward (ArrowUp)
 };
 
 function createEngine(config = {}) {
@@ -116,7 +117,8 @@ function createEngine(config = {}) {
       walkPath.push({
         url: currentUrl,
         location: location,  // Unique location identifier (lat,lng)
-        rotation: cumulativeTurnAngle  // Actual cumulative turn angle
+        rotation: cumulativeTurnAngle,  // Actual cumulative turn angle
+        direction: cfg.backward ? 'backward' : 'forward'  // Movement direction
       });
       // Track visited locations for self-avoiding walk
       if (cfg.selfAvoiding) {
@@ -196,12 +198,13 @@ function createEngine(config = {}) {
 
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', turnDuration, () => {
-        // Track the turn angle
+        // Track the turn angle - ALWAYS TURN LEFT
         cumulativeTurnAngle = (cumulativeTurnAngle + turnAngle) % 360;
-        
-        // After turn, move forward
+
+        // After turn, move (backward or forward based on mode)
         unstuckState = 'MOVING';
-        if (onKeyPress) onKeyPress('ArrowUp');
+        const moveKey = cfg.backward ? 'ArrowDown' : 'ArrowUp';
+        if (onKeyPress) onKeyPress(moveKey);
 
         // Step 3: Verify after a short delay
         setTimeout(() => {
@@ -234,6 +237,7 @@ function createEngine(config = {}) {
   };
 
   // Self-avoiding walk: prefer unvisited directions using turn angles
+  // ALWAYS TURNS LEFT to maintain consistent behavior
   const executeSelfAvoidingStep = () => {
     if (!cfg.selfAvoiding || !onKeyPress) return false;
 
@@ -242,43 +246,20 @@ function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const isCurrentVisited = visitedUrls.has(currentLocation);
 
-    // If we're at a visited node, try turning to find unvisited direction
+    // If we're at a visited node, turn left to explore new direction
     if (isCurrentVisited && visitedUrls.size > 0) {
-      // Use turn angle to decide direction - prefer turning away from current orientation
-      // If we've turned a lot (>180°), prefer turning back toward original direction
-      const normalizedTurn = cumulativeTurnAngle % 360;
-      
-      // Bias turn direction based on cumulative turn
-      // This creates a spiral pattern that covers more ground
-      let turnLeft;
-      if (normalizedTurn > 180) {
-        // Turned more than half circle - turn right to complete the loop
-        turnLeft = false;
-      } else {
-        // Turned less than half - continue turning left
-        turnLeft = true;
-      }
-      
-      // Add some randomness (20% chance to go against the bias)
-      if (Math.random() < 0.2) {
-        turnLeft = !turnLeft;
-      }
-      
-      const turnKey = turnLeft ? 'ArrowLeft' : 'ArrowRight';
+      // ALWAYS TURN LEFT - consistent behavior
+      const turnKey = 'ArrowLeft';
       const turnDuration = cfg.turnDuration / 2;  // ~30° quick turn
       const turnAngleChange = Math.round(turnDuration / 10);  // ~30°
-      
-      // Update cumulative turn angle
-      if (turnLeft) {
-        cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
-      } else {
-        cumulativeTurnAngle = (cumulativeTurnAngle - turnAngleChange + 360) % 360;
-      }
+
+      // Update cumulative turn angle (always adding for left turns)
+      cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
 
       // Quick turn to check new direction
       if (onLongKeyPress) {
         onLongKeyPress(turnKey, turnDuration, () => {
-          // After turn, will move forward on next tick
+          // After turn, will move on next tick
         });
         return true;
       }
@@ -357,7 +338,9 @@ function createEngine(config = {}) {
         // Turned to explore, will move forward on next tick
         return;
       }
-      if (onKeyPress) onKeyPress('ArrowUp');
+      // Use ArrowDown for backward, ArrowUp for forward
+      const moveKey = cfg.backward ? 'ArrowDown' : 'ArrowUp';
+      if (onKeyPress) onKeyPress(moveKey);
     } else {
       // Click mode
       const target = calculateClickTarget();
@@ -431,6 +414,7 @@ function createEngine(config = {}) {
     getWalkPath,
     clearWalkPath,
     setSelfAvoiding: (enabled) => { cfg.selfAvoiding = enabled; },
+    setBackward: (enabled) => { cfg.backward = enabled; },
 
     // Visited nodes
     getVisitedCount,
@@ -743,6 +727,28 @@ function createControlPanel(engine, options = {}) {
     selfAvoidingDiv.appendChild(selfAvoidingCheckbox);
     selfAvoidingDiv.appendChild(selfAvoidingLabel);
     container.appendChild(selfAvoidingDiv);
+
+    // Backward mode toggle (opt-in, default off)
+    const backwardDiv = document.createElement('div');
+    backwardDiv.style.fontSize = '10px';
+    backwardDiv.style.marginTop = '4px';
+    backwardDiv.style.display = 'flex';
+    backwardDiv.style.alignItems = 'center';
+    backwardDiv.style.gap = '5px';
+    const backwardCheckbox = document.createElement('input');
+    backwardCheckbox.type = 'checkbox';
+    backwardCheckbox.id = 'dw-backward';
+    backwardCheckbox.checked = false;  // Disabled by default
+    backwardCheckbox.onchange = () => {
+      engine.setBackward(backwardCheckbox.checked);
+    };
+    const backwardLabel = document.createElement('label');
+    backwardLabel.htmlFor = 'dw-backward';
+    backwardLabel.innerText = 'Backward Mode';
+    backwardLabel.style.cursor = 'pointer';
+    backwardDiv.appendChild(backwardCheckbox);
+    backwardDiv.appendChild(backwardLabel);
+    container.appendChild(backwardDiv);
 
     // Path export buttons (Copy + Download)
     const exportDiv = document.createElement('div');

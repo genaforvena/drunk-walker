@@ -72,6 +72,7 @@ When you get stuck (same location for 3 steps):
 │ PACE: 2.0s     [━━━━○━━━]   │
 │ ☑ Record Path               │
 │ ☑ Self-Avoiding Walk        │
+│ ☐ Backward Mode             │
 │ [📋 Copy] [💾 Download]     │
 │ [📂 Restore Walk]           │
 │ [🔴 STOP]                   │
@@ -84,6 +85,7 @@ When you get stuck (same location for 3 steps):
 | **Pace Slider** | Adjust speed (0.5–5.0 seconds per step) |
 | **Record Path** | Enable path recording (on by default) |
 | **Self-Avoiding Walk** | Prefer unvisited nodes (on by default) |
+| **Backward Mode** | Move backward (ArrowDown) instead of forward (off by default) |
 | **📋 Copy** | Copy path JSON to clipboard |
 | **💾 Download** | Download path as JSON file |
 | **📂 Restore Walk** | Load and resume a saved walk from JSON file |
@@ -126,14 +128,25 @@ When you get stuck (same location for 3 steps):
 
 When enabled, Drunk Walker records:
 - Street View URL after each step
-- Rotation angle (fixed at 60°)
-- Visited nodes tracked for self-avoiding walk
+- Location coordinates (lat,lng)
+- Cumulative turn angle (actual degrees turned)
+- Movement direction (forward/backward)
 
 **Exported JSON format:**
 ```json
 [
-  {"url": "https://www.google.com/maps/...", "rotation": 60},
-  {"url": "https://www.google.com/maps/...", "rotation": 60}
+  {
+    "url": "https://www.google.com/maps/...",
+    "location": "37.7749,-122.4194",
+    "rotation": 127,
+    "direction": "forward"
+  },
+  {
+    "url": "https://www.google.com/maps/...",
+    "location": "37.7750,-122.4195",
+    "rotation": 127,
+    "direction": "backward"
+  }
 ]
 ```
 
