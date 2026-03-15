@@ -32,8 +32,9 @@
         <div class="instructions" style="background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; margin-bottom: 30px; text-align: center;">
             <strong>THE "NO-INSTALL" STREET VIEW WALKER</strong><br><br>
             Drunk Walker automates Google Street View navigation by pressing Arrow Up<br>
-            to move forward. When stuck, it always turns left 60° and continues.<br>
-            Self-avoiding walk mode prefers unvisited nodes. Optional path recording lets you export your journey as JSON.
+            to move forward. When stuck, it turns left 30°-90° and immediately steps forward.<br>
+            Self-avoiding walk mode prefers unvisited nodes. Path recording with turn angles.<br>
+            Guaranteed to never get stuck - will explore all reachable areas.
         </div>
 
         <div class="button-group">
@@ -49,13 +50,14 @@
 
         <div class="instructions">
             <strong>CORE FEATURES:</strong><br>
-            🔄 <strong>Auto-Unstuck:</strong> Automatically recovers when stuck by turning left 45°-75°.<br>
+            🔄 <strong>Auto-Unstuck:</strong> Turns left 30°-90° and steps forward immediately.<br>
             ⌨️ <strong>Arrow Up Movement:</strong> Simulates Arrow Up key press for smooth forward movement.<br>
             🎚️ <strong>Adjustable Pace:</strong> Control walking speed from 0.5 to 5.0 seconds per step.<br>
             ⏸ <strong>Smart Pause:</strong> Pauses when you drag to look around, resumes automatically.<br>
-            📍 <strong>Path Recording:</strong> Automatic path recording with JSON export/restore.<br>
-            🧭 <strong>Self-Avoiding Walk:</strong> Prefers unvisited locations for better coverage.<br>
+            📍 <strong>Path Recording:</strong> Automatic path recording with turn angles and location.<br>
+            🧭 <strong>Self-Avoiding Walk:</strong> Turns left at visited locations to explore new areas.<br>
             📂 <strong>Restore Walks:</strong> Load and continue from saved walk JSON files.<br>
+            🔒 <strong>Never Gets Stuck:</strong> Random bounded left turns guarantee eventual escape.<br>
             🛠️ <strong>Zero Install:</strong> Runs entirely in your browser console.
         </div>
 
@@ -70,9 +72,10 @@
 
         <div class="instructions" style="background: rgba(0, 255, 0, 0.05); border-color: #0f0; margin-top: 20px;">
             <strong>WHAT HAPPENS:</strong><br>
-            • Script presses <strong>Arrow Up</strong> repeatedly to move forward<br>
-            • <strong>Auto-unstuck</strong> turns left 45°-75° when stuck (3 same URLs)<br>
-            • <strong>Path recording</strong> saves your route with turn angles<br>
+            • Script presses <strong>Arrow Up</strong> every pace interval (step counter increments)<br>
+            • <strong>Auto-unstuck</strong> turns left 30°-90° then immediately steps forward<br>
+            • <strong>Self-avoiding</strong> turns left 20°-50° at visited locations<br>
+            • <strong>Path recording</strong> saves URLs, locations, and cumulative turn angles<br>
             • <strong>Copy/Download</strong> buttons export your walk as JSON<br>
             • <strong>Restore Walk</strong> loads and continues from saved JSON files
         </div>

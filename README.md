@@ -37,9 +37,10 @@ No destination. No control. Just walking.
 
 ### 3. Smart Recovery
 When you get stuck (same location for 3 steps):
-- Automatically turns left 60°
-- Tries to move forward
-- If successful, resumes normal walking
+- Automatically turns left 30°-90° (random bounded)
+- Immediately steps forward after turning
+- If still stuck, turns left again on next attempt
+- Guaranteed to never get stuck - will complete full 360° if needed
 
 ### 4. Record Your Path
 - Path recording enabled by default
@@ -48,7 +49,8 @@ When you get stuck (same location for 3 steps):
 - Click **📂 Restore Walk** to load a previously saved walk
 
 ### 5. Self-Avoiding Walk
-- Automatically prefers unvisited directions when multiple forward options exist
+- Automatically turns left 20°-50° at visited locations
+- Immediately steps forward after turning
 - Dramatically improves coverage efficiency
 - Toggle on/off with **Self-Avoiding Walk** checkbox
 
@@ -172,9 +174,21 @@ The merge utility:
 
 Drunk Walker detects when you're stuck (same URL for 3 consecutive steps) and automatically:
 
-1. **Turns Left 60°** — Holds ArrowLeft key for 600ms
-2. **Moves Forward** — Presses ArrowUp
-3. **Checks Result** — If URL changed, continues walking; if still stuck, increments counter and tries again on next cycle
+1. **Turns Left 30°-90°** — Random bounded angle (never right, never stuck)
+2. **Immediately Steps Forward** — Presses ArrowUp right after turn completes
+3. **Checks Result** — If URL changed, continues walking; if still stuck, turns left again
+
+**Key Guarantees:**
+- **Always turns left** — Consistent, predictable behavior
+- **Random bounded variation** — Prevents perfect circular loops
+- **Never gets stuck** — Will complete full 360° if needed to find exit
+- **Immediate step after turn** — No wasted time
+
+**Console Output:**
+```
+🤪 DRUNK WALKER: Unstuck successfully (turned left ~67°)!
+🤪 DRUNK WALKER: Still stuck after 52° left turn (cumulative: 198°)
+```
 
 This happens automatically—no configuration needed.
 
