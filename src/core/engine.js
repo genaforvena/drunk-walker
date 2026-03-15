@@ -248,10 +248,11 @@ export function createEngine(config = {}) {
       // Update cumulative turn angle (always adding for left turns)
       cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
 
-      // Quick turn to check new direction
+      // Quick turn to check new direction, then immediately step forward
       if (onLongKeyPress) {
         onLongKeyPress(turnKey, turnDuration, () => {
-          // After turn, will move on next tick
+          // After turn completes, immediately press ArrowUp to step forward
+          if (onKeyPress) onKeyPress('ArrowUp');
         });
         return true;
       }
@@ -327,8 +328,11 @@ export function createEngine(config = {}) {
       // Keyboard mode (DEFAULT)
       // Self-avoiding walk: try to turn away from visited nodes before moving
       if (cfg.selfAvoiding && executeSelfAvoidingStep()) {
-        // Turned to explore, will move forward on next tick
+        // Turned and will step forward in the turn callback
         // Still count as a step - time passed
+        steps++;
+        recordStep();
+        return;  // Don't press ArrowUp again - it's done in the callback
       }
       // Always press ArrowUp for forward movement
       if (onKeyPress) onKeyPress('ArrowUp');
