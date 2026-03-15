@@ -242,8 +242,12 @@ function createEngine(config = {}) {
 
   // Self-avoiding walk: prefer unvisited directions using turn angles
   // ALWAYS TURNS LEFT with random bounded variation
+  let selfAvoidingState = 'IDLE';  // 'IDLE' | 'TURNING' | 'VERIFYING'
+  let urlBeforeTurn = '';
+
   const executeSelfAvoidingStep = () => {
     if (!cfg.selfAvoiding || !onKeyPress) return false;
+    if (selfAvoidingState !== 'IDLE') return false;  // Already in progress
 
     // Try to sense if current location has been visited
     const currentUrl = window.location.href;
@@ -262,11 +266,36 @@ function createEngine(config = {}) {
       // Update cumulative turn angle (always adding for left turns)
       cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
 
+      // Start turn + move sequence: TURN -> MOVE -> VERIFY
+      urlBeforeTurn = currentUrl;
+      selfAvoidingState = 'TURNING';
+
       // Quick turn to check new direction, then immediately step forward
       if (onLongKeyPress) {
         onLongKeyPress(turnKey, turnDuration, () => {
           // After turn completes, immediately press ArrowUp to step forward
           if (onKeyPress) onKeyPress('ArrowUp');
+
+          // Verify after a short delay (same pace as regular steps)
+          setTimeout(() => {
+            selfAvoidingState = 'VERIFYING';
+            const newUrl = window.location.href;
+            const newLocation = extractLocation(newUrl);
+
+            if (newUrl !== urlBeforeTurn) {
+              // Successfully moved to new location
+              visitedUrls.add(newLocation);
+              console.log(`🤪 DRUNK WALKER: Self-avoiding step successful (turned left ~${turnAngleChange}°)`);
+            } else {
+              // Still at same location - will turn left again on next attempt
+              console.log(`🤪 DRUNK WALKER: Still at same location after ${turnAngleChange}° turn`);
+            }
+
+            selfAvoidingState = 'IDLE';
+            if (onStatusUpdate) {
+              onStatusUpdate(getStatusText(), steps, stuckCount);
+            }
+          }, cfg.pace);
         });
         return true;
       }
@@ -322,8 +351,8 @@ function createEngine(config = {}) {
 
   // Main navigation tick
   const tick = () => {
-    // Skip if user is interacting
-    if (isUserMouseDown || isDrawing || unstuckState !== 'IDLE') return;
+    // Skip if user is interacting or self-avoiding sequence is in progress
+    if (isUserMouseDown || isDrawing || unstuckState !== 'IDLE' || selfAvoidingState !== 'IDLE') return;
 
     updateStuckDetection();
 
@@ -406,6 +435,8 @@ function createEngine(config = {}) {
     lastUrl = '';
     status = 'IDLE';
     cumulativeTurnAngle = 0;  // Reset turn angle on reset
+    selfAvoidingState = 'IDLE';  // Reset self-avoiding state machine
+    urlBeforeTurn = '';
   };
 
   return {
