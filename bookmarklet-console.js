@@ -540,7 +540,7 @@ const defaultConfig = {
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: true  // Self-avoiding random walk (prefer unvisited nodes)
+  selfAvoiding: false  // Self-avoiding random walk DISABLED by default (opt-in)
 };
 
 function createEngine(config = {}) {
@@ -1188,7 +1188,7 @@ function createControlPanel(engine, options = {}) {
     const selfAvoidingCheckbox = document.createElement('input');
     selfAvoidingCheckbox.type = 'checkbox';
     selfAvoidingCheckbox.id = 'dw-self-avoiding';
-    selfAvoidingCheckbox.checked = true;  // Enabled by default
+    selfAvoidingCheckbox.checked = false;  // Disabled by default (opt-in)
     selfAvoidingCheckbox.onchange = () => {
       engine.setSelfAvoiding(selfAvoidingCheckbox.checked);
     };

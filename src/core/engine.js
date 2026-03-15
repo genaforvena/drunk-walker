@@ -24,7 +24,7 @@ export const defaultConfig = {
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: true  // Self-avoiding random walk (prefer unvisited nodes)
+  selfAvoiding: false  // Self-avoiding random walk DISABLED by default (opt-in)
 };
 
 export function createEngine(config = {}) {

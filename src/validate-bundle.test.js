@@ -43,7 +43,7 @@ describe('Bundle Validation', () => {
   });
 
   it('should have self-avoiding config option', () => {
-    expect(bundleCode).toContain('selfAvoiding: true');
+    expect(bundleCode).toContain('selfAvoiding:');
   });
   
   it('should have correct version 3.67.4', () => {

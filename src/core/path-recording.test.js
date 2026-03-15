@@ -34,9 +34,9 @@ describe('Path Recording & Visited Counter', () => {
       expect(config.collectPath).toBe(true);
     });
 
-    it('should have self-avoiding walk enabled by default', () => {
+    it('should have self-avoiding walk disabled by default (opt-in)', () => {
       const config = engine.getConfig();
-      expect(config.selfAvoiding).toBe(true);
+      expect(config.selfAvoiding).toBe(false);
     });
   });
 
@@ -127,11 +127,11 @@ describe('Path Recording & Visited Counter', () => {
       // Two URLs with same location but different query params
       const url1 = 'https://www.google.com/maps/@37.7749,-122.4194,3a,75y,90t/data=!3m4!1e1';
       const url2 = 'https://www.google.com/maps/@37.7749,-122.4194,3a,90y,180t/data=!3m4!2e1';
-      
+
       // Both should extract to same location: '37.7749,-122.4194'
       // This is tested indirectly via the engine config
       const config = engine.getConfig();
-      expect(config.selfAvoiding).toBe(true);
+      expect(config.selfAvoiding).toBe(false);  // Disabled by default, opt-in
     });
   });
 
@@ -149,12 +149,12 @@ describe('Path Recording & Visited Counter', () => {
       expect(engine.isUrlVisited).toBeDefined();
     });
 
-    it('should initialize with path recording and self-avoiding enabled', () => {
+    it('should initialize with path recording enabled and self-avoiding disabled', () => {
       const freshEngine = createEngine();
       const config = freshEngine.getConfig();
-      
+
       expect(config.collectPath).toBe(true);
-      expect(config.selfAvoiding).toBe(true);
+      expect(config.selfAvoiding).toBe(false);  // Opt-in, not default
     });
   });
 });
