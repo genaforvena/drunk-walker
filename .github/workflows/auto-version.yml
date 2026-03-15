@@ -1,0 +1,135 @@
+name: Auto Increment Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  increment-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+      
+      - name: Get current version
+        id: current_version
+        run: |
+          VERSION=$(grep '"version"' package.json | head -1 | cut -d'"' -f4)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+      
+      - name: Increment patch version
+        id: new_version
+        run: |
+          CURRENT="${{ steps.current_version.outputs.version }}"
+          # Extract version parts (e.g., 3.67.0-exp -> 3.67.0)
+          BASE_VERSION=$(echo $CURRENT | cut -d'-' -f1)
+          SUFFIX=$(echo $CURRENT | cut -d'-' -f2-)
+          
+          # Split into major.minor.patch
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+          
+          # Increment patch
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}-${SUFFIX}"
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+      
+      - name: Update version in files
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+          NEW_BASE=$(echo $NEW_VERSION | cut -d'-' -f1)
+          SUFFIX=$(echo $NEW_VERSION | cut -d'-' -f2-)
+          
+          # Update package.json
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+          
+          # Update package-lock.json
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package-lock.json
+          
+          # Update src/core/engine.js VERSION
+          sed -i "s/VERSION = '[^']*'/VERSION = '$NEW_VERSION'/" src/core/engine.js
+          
+          # Update src/ui/controller.js version
+          sed -i "s/version = '[^']*'/version = '$NEW_VERSION'/" src/ui/controller.js
+          
+          # Update build.js comments
+          sed -i "s/Drunk Walker v[0-9.]*-EXP/Drunk Walker v$NEW_VERSION/g" build.js
+          
+          # Update index.html title
+          sed -i "s/Drunk Walker v[0-9.]*-EXP/Drunk Walker v$NEW_VERSION/g" index.html
+          
+          # Update README.md version references in control panel example
+          sed -i "s/DRUNK WALKER v[0-9.]*-EXP/DRUNK WALKER v$NEW_VERSION/g" README.md
+          
+          # Update Spec.md
+          sed -i "s/(v[0-9.]*-EXP)/(v$NEW_VERSION)/g" Spec.md
+          sed -i "s/Drunk Walker v[0-9.]*-EXP/Drunk Walker v$NEW_VERSION/g" Spec.md
+          
+          # Update UNSTUCK_ALGORITHM.md
+          sed -i "s/v[0-9.]*-EXP/$NEW_VERSION/g" UNSTUCK_ALGORITHM.md
+          
+          # Update DEVELOPER.md version history
+          sed -i "s/v[0-9.]*-EXP | \*\*Latest\*\*/$NEW_VERSION | **Latest**/g" DEVELOPER.md
+          
+          echo "Updated version to $NEW_VERSION in all files"
+      
+      - name: Rebuild bundle with new version
+        run: |
+          npm install
+          npm run build
+      
+      - name: Commit and push version bump
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+          git add -A
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+            git push
+            echo "✓ Pushed version bump to $NEW_VERSION"
+          else
+            echo "No changes to commit"
+          fi
+      
+      - name: Create Git tag
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+          TAG_NAME="v${NEW_VERSION}"
+          
+          # Check if tag already exists
+          if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            git tag "$TAG_NAME"
+            git push origin "$TAG_NAME"
+            echo "✓ Created and pushed tag $TAG_NAME"
+          else
+            echo "Tag $TAG_NAME already exists"
+          fi
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.new_version.outputs.new_version }}
+          name: Release v${{ steps.new_version.outputs.new_version }}
+          body: |
+            Automated release for version v${{ steps.new_version.outputs.new_version }}
+            
+            ## Changes
+            - Auto-incremented from v${{ steps.current_version.outputs.version }}
+            - See commit history for details
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

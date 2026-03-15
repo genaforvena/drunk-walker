@@ -205,4 +205,15 @@ This is a technical experiment. Use responsibly.
 
 ---
 
+## Versioning
+
+Versions are automatically incremented on each push to `main`:
+- **Format**: `v3.67.X-EXP` (patch version auto-increments)
+- **Tags**: Git tags created for each version (e.g., `v3.67.1-exp`)
+- **Releases**: GitHub releases auto-created with each version bump
+
+See **[VERSIONS.md](VERSIONS.md)** for version history and differences.
+
+---
+
 *Created with ❤️ and confusion.*
