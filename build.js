@@ -30,7 +30,7 @@ const main = fs.readFileSync('src/main.js', 'utf8');
 // Regular build (IIFE)
 let bundled = `
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.3-EXP - Bundled Build
+// Drunk Walker v3.67.4-EXP - Bundled Build
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -98,7 +98,7 @@ let bundled = `
 // Console-friendly build (no outer IIFE, uses void operator)
 let consoleFriendly = `
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.3-EXP - CONSOLE VERSION
+// Drunk Walker v3.67.4-EXP - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
