@@ -695,10 +695,14 @@ function createControlPanel(engine, options = {}) {
     selfAvoidingDiv.appendChild(selfAvoidingLabel);
     container.appendChild(selfAvoidingDiv);
 
+    // Path export buttons (Copy + Download)
+    const exportDiv = document.createElement('div');
+    exportDiv.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
+    
     // Copy path JSON button
     copyPathBtn = document.createElement('button');
-    copyPathBtn.innerText = '📋 Copy Path JSON';
-    copyPathBtn.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#0066cc;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
+    copyPathBtn.innerText = '📋 Copy';
+    copyPathBtn.style.cssText = 'flex:1;padding:6px;background:#0066cc;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
     copyPathBtn.onclick = () => {
       const walkPath = engine.getWalkPath();
       if (walkPath.length === 0) {
@@ -709,14 +713,43 @@ function createControlPanel(engine, options = {}) {
       navigator.clipboard.writeText(jsonStr).then(() => {
         copyPathBtn.innerText = '✓ Copied!';
         setTimeout(() => {
-          copyPathBtn.innerText = '📋 Copy Path JSON';
+          copyPathBtn.innerText = '📋 Copy';
         }, 2000);
       }).catch(err => {
         console.error('Failed to copy:', err);
         alert('Failed to copy to clipboard');
       });
     };
-    container.appendChild(copyPathBtn);
+    
+    // Download path JSON button
+    const downloadPathBtn = document.createElement('button');
+    downloadPathBtn.innerText = '💾 Download';
+    downloadPathBtn.style.cssText = 'flex:1;padding:6px;background:#28a745;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
+    downloadPathBtn.onclick = () => {
+      const walkPath = engine.getWalkPath();
+      if (walkPath.length === 0) {
+        alert('No path recorded. Enable "Record Path" and start walking!');
+        return;
+      }
+      const jsonStr = JSON.stringify(walkPath, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `walk-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      downloadPathBtn.innerText = '✓ Downloaded!';
+      setTimeout(() => {
+        downloadPathBtn.innerText = '💾 Download';
+      }, 2000);
+    };
+    
+    exportDiv.appendChild(copyPathBtn);
+    exportDiv.appendChild(downloadPathBtn);
+    container.appendChild(exportDiv);
 
     // Screen Saver Mode button
     screensaverBtn = document.createElement('button');
