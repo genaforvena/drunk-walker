@@ -320,6 +320,9 @@ export function createEngine(config = {}) {
     // Check if stuck and need to execute unstuck sequence
     if (cfg.expOn && stuckCount >= cfg.panicThreshold) {
       executeUnstuckSequence();
+      // Still count as a step - time passed even when unstuck
+      steps++;
+      recordStep();
       return;
     }
 
