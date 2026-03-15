@@ -34,9 +34,9 @@ describe('Path Recording & Visited Counter', () => {
       expect(config.collectPath).toBe(true);
     });
 
-    it('should have self-avoiding walk disabled by default (opt-in)', () => {
+    it('should have self-avoiding walk enabled by default (opt-out)', () => {
       const config = engine.getConfig();
-      expect(config.selfAvoiding).toBe(false);
+      expect(config.selfAvoiding).toBe(true);
     });
   });
 
@@ -131,7 +131,7 @@ describe('Path Recording & Visited Counter', () => {
       // Both should extract to same location: '37.7749,-122.4194'
       // This is tested indirectly via the engine config
       const config = engine.getConfig();
-      expect(config.selfAvoiding).toBe(false);  // Disabled by default, opt-in
+      expect(config.selfAvoiding).toBe(true);  // Enabled by default, opt-out
     });
   });
 
@@ -149,12 +149,12 @@ describe('Path Recording & Visited Counter', () => {
       expect(engine.isUrlVisited).toBeDefined();
     });
 
-    it('should initialize with path recording enabled and self-avoiding disabled', () => {
+    it('should initialize with path recording and self-avoiding enabled', () => {
       const freshEngine = createEngine();
       const config = freshEngine.getConfig();
 
       expect(config.collectPath).toBe(true);
-      expect(config.selfAvoiding).toBe(false);  // Opt-in, not default
+      expect(config.selfAvoiding).toBe(true);  // Enabled by default, opt-out
     });
   });
 });

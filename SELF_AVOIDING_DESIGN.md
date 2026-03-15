@@ -103,7 +103,11 @@ function shouldTurn() {
 }
 ```
 
-## Implementation Recommendation
+## Implementation Status
+
+**DEFAULT BEHAVIOR (v3.67.6+):** Self-avoiding walk is **ENABLED by default** (opt-out)
+
+Users can disable via control panel checkbox if they prefer simple random walk.
 
 For Drunk Walker's blind traversal (no map, no neighbor discovery), use **Entry State Tracking**:
 

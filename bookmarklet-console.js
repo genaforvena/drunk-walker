@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.5-EXP - CONSOLE VERSION
+// Drunk Walker v3.67.6-EXP - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -588,7 +588,7 @@ function createNavigationController(cfg, callbacks) {
 
 
 
-const VERSION = '3.67.5-EXP';
+const VERSION = '3.67.6-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -600,7 +600,7 @@ const defaultConfig = {
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: false  // Self-avoiding random walk DISABLED by default (opt-in)
+  selfAvoiding: true  // Self-avoiding walk ENABLED by default (opt-out)
 };
 
 function createEngine(config = {}) {
@@ -1265,7 +1265,7 @@ function createControlPanel(engine, options = {}) {
     const selfAvoidingCheckbox = document.createElement('input');
     selfAvoidingCheckbox.type = 'checkbox';
     selfAvoidingCheckbox.id = 'dw-self-avoiding';
-    selfAvoidingCheckbox.checked = false;  // Disabled by default (opt-in)
+    selfAvoidingCheckbox.checked = true;  // Enabled by default (opt-out)
     selfAvoidingCheckbox.onchange = () => {
       engine.setSelfAvoiding(selfAvoidingCheckbox.checked);
     };

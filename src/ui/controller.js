@@ -110,7 +110,7 @@ export function createControlPanel(engine, options = {}) {
     const selfAvoidingCheckbox = document.createElement('input');
     selfAvoidingCheckbox.type = 'checkbox';
     selfAvoidingCheckbox.id = 'dw-self-avoiding';
-    selfAvoidingCheckbox.checked = false;  // Disabled by default (opt-in)
+    selfAvoidingCheckbox.checked = true;  // Enabled by default (opt-out)
     selfAvoidingCheckbox.onchange = () => {
       engine.setSelfAvoiding(selfAvoidingCheckbox.checked);
     };

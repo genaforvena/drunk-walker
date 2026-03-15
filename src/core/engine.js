@@ -12,7 +12,7 @@
 
 import { createNavigationController } from './navigation.js';
 
-export const VERSION = '3.67.5-EXP';
+export const VERSION = '3.67.6-EXP';
 
 export const defaultConfig = {
   pace: 2000,
@@ -24,7 +24,7 @@ export const defaultConfig = {
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: false  // Self-avoiding random walk DISABLED by default (opt-in)
+  selfAvoiding: true  // Self-avoiding walk ENABLED by default (opt-out)
 };
 
 export function createEngine(config = {}) {
