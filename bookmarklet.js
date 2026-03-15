@@ -129,6 +129,19 @@ function createEngine(config = {}) {
   const getVisitedCount = () => visitedUrls.size;
   const getCumulativeTurnAngle = () => cumulativeTurnAngle;
   const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
+  
+  // Restore visited URLs from a path array
+  const restoreVisitedFromPath = (path) => {
+    visitedUrls.clear();
+    path.forEach(step => {
+      if (step.location) {
+        visitedUrls.add(step.location);
+      } else if (step.url) {
+        const loc = extractLocation(step.url);
+        if (loc) visitedUrls.add(loc);
+      }
+    });
+  };
 
   // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
@@ -427,6 +440,7 @@ function createEngine(config = {}) {
     // Turn angle tracking
     getCumulativeTurnAngle,
     resetCumulativeTurnAngle,
+    restoreVisitedFromPath,
 
     // Interaction
     setUserMouseDown,
@@ -641,9 +655,7 @@ function createControlPanel(engine, options = {}) {
   let paceSlider = null;
   let collectCheckbox = null;
   let copyPathBtn = null;
-  let screensaverBtn = null;
   let updateBtn = null;
-  let screensaverWindow = null;
 
   // Create UI elements
   const createUI = () => {
@@ -788,14 +800,56 @@ function createControlPanel(engine, options = {}) {
     exportDiv.appendChild(downloadPathBtn);
     container.appendChild(exportDiv);
 
-    // Screen Saver Mode button
-    screensaverBtn = document.createElement('button');
-    screensaverBtn.innerText = '🖥️ Screen Saver Mode';
-    screensaverBtn.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#663399;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
-    screensaverBtn.onclick = () => {
-      toggleScreensaverMode();
+    // Restore Walk from JSON button
+    const restoreBtn = document.createElement('button');
+    restoreBtn.innerText = '📂 Restore Walk';
+    restoreBtn.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#663399;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
+    restoreBtn.onclick = () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const walkPath = JSON.parse(event.target.result);
+            if (!Array.isArray(walkPath) || walkPath.length === 0) {
+              throw new Error('Invalid walk path format');
+            }
+            
+            // Validate path structure
+            const firstStep = walkPath[0];
+            if (!firstStep.url && !firstStep.location) {
+              throw new Error('Invalid path entries');
+            }
+            
+            // Restore walk path
+            engine.setWalkPath(walkPath);
+
+            // Restore visited URLs from path
+            engine.restoreVisitedFromPath(walkPath);
+
+            // Navigate to last URL in path
+            const lastStep = walkPath[walkPath.length - 1];
+            if (lastStep.url) {
+              window.location.href = lastStep.url;
+            }
+            
+            console.log(`🤪 DRUNK WALKER: Restored walk with ${walkPath.length} steps`);
+            alert(`✓ Walk restored!\n\n${walkPath.length} steps loaded\nNavigating to last position...`);
+          } catch (err) {
+            console.error('Failed to restore walk:', err);
+            alert('❌ Failed to restore walk\n\n' + err.message + '\n\nPlease ensure the file is a valid walk JSON export.');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
     };
-    container.appendChild(screensaverBtn);
+    container.appendChild(restoreBtn);
 
     // Update script button
     updateBtn = document.createElement('button');
@@ -869,66 +923,6 @@ function createControlPanel(engine, options = {}) {
   // Path collection state getter
   const getPathCollectionEnabled = () => collectCheckbox ? collectCheckbox.checked : false;
 
-  // Screen Saver Mode - opens dedicated window with persistent walker
-  const toggleScreensaverMode = () => {
-    if (screensaverWindow && !screensaverWindow.closed) {
-      // Close existing screensaver window
-      screensaverWindow.close();
-      screensaverWindow = null;
-      if (screensaverBtn) screensaverBtn.innerText = '🖥️ Screen Saver Mode';
-      return;
-    }
-
-    // Check for existing saved session
-    const existingSession = localStorage.getItem('drunkWalkerScreensaver');
-    
-    // Save current state to localStorage (includes walk path)
-    const state = {
-      isWalking: engine.isNavigating(),
-      pace: engine.getConfig().pace,
-      steps: engine.getSteps(),
-      url: window.location.href,
-      walkPath: engine.getWalkPath(),  // Save recorded path
-      timestamp: Date.now()
-    };
-    localStorage.setItem('drunkWalkerScreensaver', JSON.stringify(state));
-
-    // Determine which URL to open
-    const targetUrl = existingSession ? 
-      JSON.parse(existingSession).url :  // Restore last visited URL
-      'https://www.google.com/maps?output=embed';  // Default to maps
-
-    const width = Math.min(1200, window.screen.width * 0.8);
-    const height = Math.min(900, window.screen.height * 0.8);
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-
-    screensaverWindow = window.open(
-      targetUrl,
-      'DrunkWalkerScreensaver',
-      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`
-    );
-
-    if (screensaverWindow) {
-      if (screensaverBtn) screensaverBtn.innerText = '❌ Exit Screen Saver';
-      
-      // Inject walker script into new window after it loads
-      setTimeout(() => {
-        try {
-          screensaverWindow.postMessage({
-            type: 'DRUNK_WALKER_INIT',
-            state: state
-          }, '*');
-          console.log('🤪 Screensaver session sent:', state.steps, 'steps,', state.walkPath?.length || 0, 'path points');
-        } catch (e) {
-          console.log('Note: Cross-origin restrictions may limit screensaver functionality');
-        }
-      }, 2000);
-    } else {
-      alert('Popup blocked! Please allow popups for this site to use Screen Saver Mode.');
-    }
-  };
-
   // Update script from GitHub
   const updateScriptFromGitHub = async () => {
     if (!updateBtn) return;
@@ -986,22 +980,8 @@ function createControlPanel(engine, options = {}) {
     }
   };
 
-  // Listen for screensaver window close
-  const checkScreensaverWindow = setInterval(() => {
-    if (screensaverWindow && screensaverWindow.closed) {
-      screensaverWindow = null;
-      if (screensaverBtn) screensaverBtn.innerText = '🖥️ Screen Saver Mode';
-      localStorage.removeItem('drunkWalkerScreensaver');
-    }
-  }, 1000);
-
   // Cleanup
   const destroy = () => {
-    clearInterval(checkScreensaverWindow);
-    if (screensaverWindow && !screensaverWindow.closed) {
-      screensaverWindow.close();
-    }
-    localStorage.removeItem('drunkWalkerScreensaver');
     engine.stop();
     if (container) {
       container.remove();

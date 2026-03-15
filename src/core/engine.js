@@ -119,6 +119,19 @@ export function createEngine(config = {}) {
   const getVisitedCount = () => visitedUrls.size;
   const getCumulativeTurnAngle = () => cumulativeTurnAngle;
   const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
+  
+  // Restore visited URLs from a path array
+  const restoreVisitedFromPath = (path) => {
+    visitedUrls.clear();
+    path.forEach(step => {
+      if (step.location) {
+        visitedUrls.add(step.location);
+      } else if (step.url) {
+        const loc = extractLocation(step.url);
+        if (loc) visitedUrls.add(loc);
+      }
+    });
+  };
 
   // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
@@ -417,6 +430,7 @@ export function createEngine(config = {}) {
     // Turn angle tracking
     getCumulativeTurnAngle,
     resetCumulativeTurnAngle,
+    restoreVisitedFromPath,
 
     // Interaction
     setUserMouseDown,

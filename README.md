@@ -41,12 +41,13 @@ When you get stuck (same location for 3 steps):
 - Tries to move forward
 - If successful, resumes normal walking
 
-### 4. Record Your Path (Optional)
-- Check **Record Path** to save your route
-- Click **Copy Path JSON** to export
-- Get a list of all URLs visited with rotation angles
+### 4. Record Your Path
+- Path recording enabled by default
+- Click **📋 Copy** to copy path JSON to clipboard
+- Click **💾 Download** to save path as JSON file
+- Click **📂 Restore Walk** to load a previously saved walk
 
-### 5. Self-Avoiding Walk (New in v3.67.0)
+### 5. Self-Avoiding Walk
 - Automatically prefers unvisited directions when multiple forward options exist
 - Dramatically improves coverage efficiency
 - Toggle on/off with **Self-Avoiding Walk** checkbox
@@ -63,7 +64,7 @@ When you get stuck (same location for 3 steps):
 
 ```
 ┌─────────────────────────────┐
-│ 🤪 DRUNK WALKER v3.67.0-EXP│
+│ 🤪 DRUNK WALKER v3.67.1-EXP│
 ├─────────────────────────────┤
 │ STATUS: WALKING             │
 │ STEPS: 42                   │
@@ -71,7 +72,8 @@ When you get stuck (same location for 3 steps):
 │ PACE: 2.0s     [━━━━○━━━]   │
 │ ☑ Record Path               │
 │ ☑ Self-Avoiding Walk        │
-│ [📋 Copy Path JSON]         │
+│ [📋 Copy] [💾 Download]     │
+│ [📂 Restore Walk]           │
 │ [🔴 STOP]                   │
 └─────────────────────────────┘
 ```
@@ -82,8 +84,9 @@ When you get stuck (same location for 3 steps):
 | **Pace Slider** | Adjust speed (0.5–5.0 seconds per step) |
 | **Record Path** | Enable path recording (on by default) |
 | **Self-Avoiding Walk** | Prefer unvisited nodes (on by default) |
-| **Copy Path JSON** | Export your walk as JSON |
-| **Step Counter** | Shows total steps taken |
+| **📋 Copy** | Copy path JSON to clipboard |
+| **💾 Download** | Download path as JSON file |
+| **📂 Restore Walk** | Load and resume a saved walk from JSON file |
 | **Visited Counter** | Shows unique locations visited |
 | **Status** | Shows WALKING, STUCK, or IDLE |
 

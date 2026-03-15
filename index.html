@@ -49,11 +49,13 @@
 
         <div class="instructions">
             <strong>CORE FEATURES:</strong><br>
-            🔄 <strong>Auto-Unstuck:</strong> Automatically recovers when stuck by turning left 60°.<br>
+            🔄 <strong>Auto-Unstuck:</strong> Automatically recovers when stuck by turning left 45°-75°.<br>
             ⌨️ <strong>Arrow Up Movement:</strong> Simulates Arrow Up key press for smooth forward movement.<br>
             🎚️ <strong>Adjustable Pace:</strong> Control walking speed from 0.5 to 5.0 seconds per step.<br>
             ⏸ <strong>Smart Pause:</strong> Pauses when you drag to look around, resumes automatically.<br>
-            📍 <strong>Record Path:</strong> Optional path recording with JSON export.<br>
+            📍 <strong>Path Recording:</strong> Automatic path recording with JSON export/restore.<br>
+            🧭 <strong>Self-Avoiding Walk:</strong> Prefers unvisited locations for better coverage.<br>
+            📂 <strong>Restore Walks:</strong> Load and continue from saved walk JSON files.<br>
             🛠️ <strong>Zero Install:</strong> Runs entirely in your browser console.
         </div>
 
@@ -69,9 +71,10 @@
         <div class="instructions" style="background: rgba(0, 255, 0, 0.05); border-color: #0f0; margin-top: 20px;">
             <strong>WHAT HAPPENS:</strong><br>
             • Script presses <strong>Arrow Up</strong> repeatedly to move forward<br>
-            • <strong>Auto-unstuck</strong> turns left 60° when stuck (3 same URLs)<br>
-            • <strong>Record Path</strong> checkbox saves your route for export<br>
-            • <strong>Copy Path JSON</strong> button exports your walk as JSON
+            • <strong>Auto-unstuck</strong> turns left 45°-75° when stuck (3 same URLs)<br>
+            • <strong>Path recording</strong> saves your route with turn angles<br>
+            • <strong>Copy/Download</strong> buttons export your walk as JSON<br>
+            • <strong>Restore Walk</strong> loads and continues from saved JSON files
         </div>
 
         <div class="footer">
