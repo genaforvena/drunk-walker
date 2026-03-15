@@ -17,6 +17,9 @@ export function createControlPanel(engine, options = {}) {
   let paceSlider = null;
   let collectCheckbox = null;
   let copyPathBtn = null;
+  let screensaverBtn = null;
+  let updateBtn = null;
+  let screensaverWindow = null;
 
   // Create UI elements
   const createUI = () => {
@@ -104,6 +107,24 @@ export function createControlPanel(engine, options = {}) {
     };
     container.appendChild(copyPathBtn);
 
+    // Screen Saver Mode button
+    screensaverBtn = document.createElement('button');
+    screensaverBtn.innerText = '🖥️ Screen Saver Mode';
+    screensaverBtn.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#663399;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
+    screensaverBtn.onclick = () => {
+      toggleScreensaverMode();
+    };
+    container.appendChild(screensaverBtn);
+
+    // Update script button
+    updateBtn = document.createElement('button');
+    updateBtn.innerText = '🔄 Update Script';
+    updateBtn.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#cc6600;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
+    updateBtn.onclick = () => {
+      updateScriptFromGitHub();
+    };
+    container.appendChild(updateBtn);
+
     // Start/Stop button
     btn = document.createElement('button');
     btn.innerText = '▶ START';
@@ -174,6 +195,138 @@ export function createControlPanel(engine, options = {}) {
 
   // Path collection state getter
   const getPathCollectionEnabled = () => collectCheckbox ? collectCheckbox.checked : false;
+
+  // Screen Saver Mode - opens dedicated window with persistent walker
+  const toggleScreensaverMode = () => {
+    if (screensaverWindow && !screensaverWindow.closed) {
+      // Close existing screensaver window
+      screensaverWindow.close();
+      screensaverWindow = null;
+      if (screensaverBtn) screensaverBtn.innerText = '🖥️ Screen Saver Mode';
+      return;
+    }
+
+    // Save current state to localStorage
+    const state = {
+      isWalking: engine.isNavigating(),
+      pace: engine.getConfig().pace,
+      steps: engine.getSteps(),
+      url: window.location.href,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('drunkWalkerScreensaver', JSON.stringify(state));
+
+    // Open new window with Street View
+    const svUrl = 'https://www.google.com/maps?output=embed';
+    const width = Math.min(1200, window.screen.width * 0.8);
+    const height = Math.min(900, window.screen.height * 0.8);
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+
+    screensaverWindow = window.open(
+      svUrl,
+      'DrunkWalkerScreensaver',
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`
+    );
+
+    if (screensaverWindow) {
+      if (screensaverBtn) screensaverBtn.innerText = '❌ Exit Screen Saver';
+      
+      // Inject walker script into new window after it loads
+      setTimeout(() => {
+        try {
+          screensaverWindow.postMessage({
+            type: 'DRUNK_WALKER_INIT',
+            state: state
+          }, '*');
+        } catch (e) {
+          console.log('Note: Cross-origin restrictions may limit screensaver functionality');
+        }
+      }, 2000);
+    } else {
+      alert('Popup blocked! Please allow popups for this site to use Screen Saver Mode.');
+    }
+  };
+
+  // Update script from GitHub
+  const updateScriptFromGitHub = async () => {
+    if (!updateBtn) return;
+    
+    const originalText = updateBtn.innerText;
+    updateBtn.innerText = '⏳ Updating...';
+    updateBtn.disabled = true;
+
+    try {
+      const response = await fetch('https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet-console.js');
+      if (!response.ok) {
+        throw new Error('Failed to fetch latest version');
+      }
+      
+      const latestCode = await response.text();
+      
+      // Extract version from latest code
+      const versionMatch = latestCode.match(/v([\d.]+-EXP)/);
+      const latestVersion = versionMatch ? versionMatch[1] : 'unknown';
+      
+      // Compare with current version
+      const currentVersion = version.replace('v', '').replace('-EXP', '');
+      
+      if (latestVersion.includes(currentVersion)) {
+        updateBtn.innerText = '✓ Up to date!';
+        setTimeout(() => {
+          updateBtn.innerText = originalText;
+          updateBtn.disabled = false;
+        }, 2000);
+        alert(`You're already on the latest version (v${latestVersion})`);
+        return;
+      }
+
+      // Show update confirmation
+      if (confirm(`New version available: v${latestVersion}\n\nThis will copy the latest script to your clipboard. Paste it into the console to update.`)) {
+        await navigator.clipboard.writeText(latestCode);
+        updateBtn.innerText = '✓ Copied!';
+        setTimeout(() => {
+          updateBtn.innerText = originalText;
+          updateBtn.disabled = false;
+        }, 2000);
+        alert('Latest script copied to clipboard!\n\nPaste it into the console (F12) and press Enter to update.');
+      } else {
+        updateBtn.innerText = originalText;
+        updateBtn.disabled = false;
+      }
+    } catch (error) {
+      console.error('Update failed:', error);
+      updateBtn.innerText = '❌ Failed';
+      setTimeout(() => {
+        updateBtn.innerText = originalText;
+        updateBtn.disabled = false;
+      }, 2000);
+      alert('Failed to fetch update. Please check your internet connection.');
+    }
+  };
+
+  // Listen for screensaver window close
+  const checkScreensaverWindow = setInterval(() => {
+    if (screensaverWindow && screensaverWindow.closed) {
+      screensaverWindow = null;
+      if (screensaverBtn) screensaverBtn.innerText = '🖥️ Screen Saver Mode';
+      localStorage.removeItem('drunkWalkerScreensaver');
+    }
+  }, 1000);
+
+  // Cleanup
+  const destroy = () => {
+    clearInterval(checkScreensaverWindow);
+    if (screensaverWindow && !screensaverWindow.closed) {
+      screensaverWindow.close();
+    }
+    localStorage.removeItem('drunkWalkerScreensaver');
+    engine.stop();
+    if (container) {
+      container.remove();
+      container = null;
+    }
+  };
 
   return { init, destroy, onStatusUpdate, getPathCollectionEnabled };
 }

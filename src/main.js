@@ -22,11 +22,39 @@ console.log(`🤪 DRUNK WALKER v${VERSION} Loaded.`);
 // Wait for DOM to be ready before initializing
 const initialize = () => {
   try {
+    // Check for screensaver mode restoration from localStorage
+    let savedState = null;
+    try {
+      const saved = localStorage.getItem('drunkWalkerScreensaver');
+      if (saved) {
+        savedState = JSON.parse(saved);
+        console.log('🤪 Restoring screensaver session...');
+      }
+    } catch (e) {
+      console.log('🤪 No saved session found');
+    }
+
     // Create engine with default config (keyboard mode ON, unstuck enabled)
     const engine = createEngine({
-      pace: 2000,
+      pace: savedState?.pace || 2000,
       kbOn: true,      // Keyboard mode is DEFAULT
       expOn: true      // Unstuck algorithm enabled by default
+    });
+
+    // Restore state if coming from screensaver
+    if (savedState?.isWalking) {
+      setTimeout(() => {
+        engine.start();
+        console.log('🤪 Screensaver session restored - walking resumed');
+      }, 1000);
+    }
+
+    // Listen for screensaver initialization messages
+    window.addEventListener('message', (event) => {
+      if (event.data?.type === 'DRUNK_WALKER_INIT') {
+        console.log('🤪 Screensaver window initialized');
+        // The screensaver window will run its own instance
+      }
     });
 
     // Path collection submit handler
