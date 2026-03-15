@@ -144,9 +144,43 @@ function shouldTurn(location, heading) {
 
 ## Testing Checklist
 
-- [ ] Straight corridor: Walk forward without turning
-- [ ] T-junction: Explore all 3 branches
-- [ ] Loop: Detect and escape circular paths
-- [ ] Dead end: Turn around efficiently
-- [ ] Grid: Systematic coverage without repetition
-- [ ] Open plaza: Spiral outward pattern
+All tests automated in `src/core/self-avoiding.test.js` ✅
+
+- [x] **Straight corridor**: Walk forward without turning
+  - Test: "should walk forward without turning at new locations"
+  - Verifies: New locations don't trigger turns
+  
+- [x] **T-junction**: Explore all 3 branches
+  - Test: "should explore all branches of T-junction"
+  - Verifies: Different headings = different states
+  
+- [x] **Loop**: Detect and escape circular paths
+  - Test: "should detect loop when returning with same heading"
+  - Verifies: Same location+heading triggers turn
+  
+- [x] **Dead end**: Turn around efficiently
+  - Test: "should handle dead end by turning around"
+  - Verifies: Stuck detection + recovery
+  
+- [x] **Grid**: Systematic coverage without repetition
+  - Test: "should explore grid systematically"
+  - Verifies: Multi-direction exploration
+  
+- [x] **Open plaza**: Spiral outward pattern
+  - Test: "should handle realistic walk scenario"
+  - Verifies: Full integration with heading tracking
+
+### Additional Tests
+
+- [x] **Heading State Tracking**:
+  - "should distinguish same location with different headings"
+  - "should detect revisit with same binned heading"
+  - "should bin similar headings together"
+
+### Run Tests
+
+```bash
+npm test -- src/core/self-avoiding.test.js
+```
+
+Expected output: **9 tests passed** ✅
