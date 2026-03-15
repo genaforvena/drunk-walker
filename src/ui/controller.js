@@ -107,28 +107,6 @@ export function createControlPanel(engine, options = {}) {
     selfAvoidingDiv.appendChild(selfAvoidingLabel);
     container.appendChild(selfAvoidingDiv);
 
-    // Backward mode toggle (opt-in, default off)
-    const backwardDiv = document.createElement('div');
-    backwardDiv.style.fontSize = '10px';
-    backwardDiv.style.marginTop = '4px';
-    backwardDiv.style.display = 'flex';
-    backwardDiv.style.alignItems = 'center';
-    backwardDiv.style.gap = '5px';
-    const backwardCheckbox = document.createElement('input');
-    backwardCheckbox.type = 'checkbox';
-    backwardCheckbox.id = 'dw-backward';
-    backwardCheckbox.checked = false;  // Disabled by default
-    backwardCheckbox.onchange = () => {
-      engine.setBackward(backwardCheckbox.checked);
-    };
-    const backwardLabel = document.createElement('label');
-    backwardLabel.htmlFor = 'dw-backward';
-    backwardLabel.innerText = 'Backward Mode';
-    backwardLabel.style.cursor = 'pointer';
-    backwardDiv.appendChild(backwardCheckbox);
-    backwardDiv.appendChild(backwardLabel);
-    container.appendChild(backwardDiv);
-
     // Path export buttons (Copy + Download)
     const exportDiv = document.createElement('div');
     exportDiv.style.cssText = 'display:flex;gap:5px;margin-top:8px;';

@@ -29,8 +29,7 @@ const defaultConfig = {
   targetY: 0.7,    // 70% of screen height
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: true,  // Self-avoiding random walk (prefer unvisited nodes)
-  backward: false  // Move backward (ArrowDown) instead of forward (ArrowUp)
+  selfAvoiding: true  // Self-avoiding random walk (prefer unvisited nodes)
 };
 
 function createEngine(config = {}) {
@@ -122,7 +121,7 @@ function createEngine(config = {}) {
         url: currentUrl,
         location: location,  // Unique location identifier (lat,lng)
         rotation: cumulativeTurnAngle,  // Actual cumulative turn angle
-        direction: cfg.backward ? 'backward' : 'forward'  // Movement direction
+        direction: 'forward'  // Always forward
       });
       // Track visited locations for self-avoiding walk
       if (cfg.selfAvoiding) {
@@ -206,10 +205,9 @@ function createEngine(config = {}) {
         // Track the turn angle - ALWAYS TURN LEFT (never right)
         cumulativeTurnAngle = (cumulativeTurnAngle + turnAngle) % 360;
 
-        // After turn, move (backward or forward based on mode)
+        // After turn, move forward
         unstuckState = 'MOVING';
-        const moveKey = cfg.backward ? 'ArrowDown' : 'ArrowUp';
-        if (onKeyPress) onKeyPress(moveKey);
+        if (onKeyPress) onKeyPress('ArrowUp');
 
         // Step 3: Verify after a short delay
         setTimeout(() => {
@@ -344,17 +342,17 @@ function createEngine(config = {}) {
       // Self-avoiding walk: try to turn away from visited nodes before moving
       if (cfg.selfAvoiding && executeSelfAvoidingStep()) {
         // Turned to explore, will move forward on next tick
-        return;
+        // Still count as a step - time passed
       }
-      // Use ArrowDown for backward, ArrowUp for forward
-      const moveKey = cfg.backward ? 'ArrowDown' : 'ArrowUp';
-      if (onKeyPress) onKeyPress(moveKey);
+      // Always press ArrowUp for forward movement
+      if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       // Click mode
       const target = calculateClickTarget();
       if (onMouseClick) onMouseClick(target.x, target.y);
     }
 
+    // Increment step counter - every tick = one step (time-based, not movement-based)
     steps++;
 
     // Record step for path collection (after movement)
@@ -422,7 +420,6 @@ function createEngine(config = {}) {
     getWalkPath,
     clearWalkPath,
     setSelfAvoiding: (enabled) => { cfg.selfAvoiding = enabled; },
-    setBackward: (enabled) => { cfg.backward = enabled; },
 
     // Visited nodes
     getVisitedCount,
@@ -735,28 +732,6 @@ function createControlPanel(engine, options = {}) {
     selfAvoidingDiv.appendChild(selfAvoidingCheckbox);
     selfAvoidingDiv.appendChild(selfAvoidingLabel);
     container.appendChild(selfAvoidingDiv);
-
-    // Backward mode toggle (opt-in, default off)
-    const backwardDiv = document.createElement('div');
-    backwardDiv.style.fontSize = '10px';
-    backwardDiv.style.marginTop = '4px';
-    backwardDiv.style.display = 'flex';
-    backwardDiv.style.alignItems = 'center';
-    backwardDiv.style.gap = '5px';
-    const backwardCheckbox = document.createElement('input');
-    backwardCheckbox.type = 'checkbox';
-    backwardCheckbox.id = 'dw-backward';
-    backwardCheckbox.checked = false;  // Disabled by default
-    backwardCheckbox.onchange = () => {
-      engine.setBackward(backwardCheckbox.checked);
-    };
-    const backwardLabel = document.createElement('label');
-    backwardLabel.htmlFor = 'dw-backward';
-    backwardLabel.innerText = 'Backward Mode';
-    backwardLabel.style.cursor = 'pointer';
-    backwardDiv.appendChild(backwardCheckbox);
-    backwardDiv.appendChild(backwardLabel);
-    container.appendChild(backwardDiv);
 
     // Path export buttons (Copy + Download)
     const exportDiv = document.createElement('div');
