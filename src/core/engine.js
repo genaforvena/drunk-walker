@@ -37,7 +37,7 @@ export function createEngine(config = {}) {
 
   // Path collection (opt-in)
   let walkPath = [];
-  let isPathCollectionEnabled = false;
+  let isPathCollectionEnabled = cfg.collectPath;  // Initialize from config (default: true)
 
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Set();
@@ -72,20 +72,46 @@ export function createEngine(config = {}) {
   const setSteps = (count) => { steps = count; };
   const getWalkPath = () => [...walkPath];  // Return copy
   const clearWalkPath = () => { walkPath = []; };
+  
+  // Extract location from Street View URL (ignores query params that change)
+  // Format: https://www.google.com/maps/@lat,lng,zoom... or place_id format
+  const extractLocation = (url) => {
+    try {
+      const urlObj = new URL(url);
+      const hash = urlObj.hash || urlObj.pathname;
+      // Extract @lat,lng pattern from URL hash or pathname
+      const match = hash.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match) {
+        return `${match[1]},${match[2]}`;  // Return "lat,lng" as unique location
+      }
+      // Fallback: use place_id if available
+      const placeMatch = urlObj.searchParams.get('place_id');
+      if (placeMatch) {
+        return `place:${placeMatch}`;
+      }
+      // Last resort: use full pathname
+      return urlObj.pathname + urlObj.hash;
+    } catch (e) {
+      return url;  // Return original if parsing fails
+    }
+  };
+  
   const recordStep = () => {
     if (isPathCollectionEnabled) {
       const currentUrl = window.location.href;
+      const location = extractLocation(currentUrl);
       walkPath.push({
         url: currentUrl,
+        location: location,  // Unique location identifier (lat,lng)
         rotation: 60  // Fixed rotation angle
       });
-      // Track visited URLs for self-avoiding walk
+      // Track visited locations for self-avoiding walk
       if (cfg.selfAvoiding) {
-        visitedUrls.add(currentUrl);
+        visitedUrls.add(location);  // Use location, not full URL
       }
     }
   };
-  const isUrlVisited = (url) => visitedUrls.has(url);
+  const isUrlVisited = (location) => visitedUrls.has(location);
   const clearVisitedUrls = () => { visitedUrls.clear(); };
   const getVisitedCount = () => visitedUrls.size;
 
