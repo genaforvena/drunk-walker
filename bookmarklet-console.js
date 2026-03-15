@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.2-EXP - CONSOLE VERSION
+// Drunk Walker v3.67.3-EXP - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -529,7 +529,7 @@ function createNavigationController(cfg, callbacks) {
 
 
 
-const VERSION = '3.67.2-EXP';
+const VERSION = '3.67.3-EXP';
 
 const defaultConfig = {
   pace: 2000,
