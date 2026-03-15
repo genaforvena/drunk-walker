@@ -292,7 +292,7 @@ export function createEngine(config = {}) {
     // Normal movement
     if (cfg.kbOn) {
       // Keyboard mode: press ArrowUp for forward movement
-      console.log(`⬆️ Step #${steps + 1}: Moving forward (normal walk)`);
+      console.log(`⬆️ Step #${steps + 1}: Moving forward`);
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       // Click mode: calculate and click target

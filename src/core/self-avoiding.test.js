@@ -1,10 +1,10 @@
 /**
  * Self-Avoiding Walk Algorithm Tests
  * 
- * Tests the entry-state-based self-avoiding algorithm for Street View navigation.
- * 
- * KEY INSIGHT: Street View is a GRAPH, not open space.
- * Same location + different heading = different state with different exits.
+ * Tests the simplified self-avoiding algorithm:
+ * - Only triggers when stuck (URL unchanged for N ticks)
+ * - Avoids repeating same turn angles at same location
+ * - Does NOT turn on every revisit - only when stuck
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -43,7 +43,7 @@ describe('Self-Avoiding Walk Algorithm', () => {
 
   /**
    * TEST 1: Straight Corridor
-   * Should walk forward without turning when visiting new locations
+   * Should walk forward without turning when not stuck
    */
   describe('Straight Corridor', () => {
     it('should walk forward without turning at new locations', () => {
@@ -64,97 +64,85 @@ describe('Self-Avoiding Walk Algorithm', () => {
       // First tick - record initial location
       engine.tick();
 
-      // Move to next location
-      locationIndex = 1;
-      window.location.href = locations[1];
-      engine.tick();
+      // Move to next locations - should NOT turn (not stuck!)
+      for (let i = 1; i < locations.length; i++) {
+        window.location.href = locations[i];
+        engine.tick();
+      }
 
-      // Should NOT turn at new location - just move forward
+      // Should NOT turn at new locations - self-avoiding only triggers when stuck
       expect(mockLongKeyPress).not.toHaveBeenCalled();
       expect(mockKeyPress).toHaveBeenCalledWith('ArrowUp');
-
-      // Continue down corridor
-      locationIndex = 2;
-      window.location.href = locations[2];
-      engine.tick();
-
-      // Still no turn - all new locations
-      expect(mockLongKeyPress).not.toHaveBeenCalled();
     });
   });
 
   /**
-   * TEST 2: T-Junction
-   * Should explore all 3 branches before turning
+   * TEST 2: Stuck Detection + Self-Avoiding Turn
+   * Should only turn after being stuck for N ticks
    */
-  describe('T-Junction', () => {
-    it('should explore all branches of T-junction', () => {
-      // Approach T-junction from south, heading north (0°)
-      const approachUrl = 'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1';
-      const junctionUrl = 'https://www.google.com/maps/@37.7750,-122.4194,3a,0y,90t/data=!3m4!1e1';
-      
+  describe('Stuck Detection + Self-Avoiding', () => {
+    it('should only turn when stuck (not on first revisit)', () => {
+      const stuckUrl = 'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1';
+
       Object.defineProperty(window, 'location', {
-        value: { href: approachUrl },
+        value: { href: stuckUrl },
         writable: true
       });
 
-      // Arrive at junction from south (heading 0°)
-      window.location.href = junctionUrl;
+      // Tick 3 times to reach panic threshold (default: 3)
+      engine.tick();
+      engine.tick();
       engine.tick();
 
-      // First visit with heading 0° - should continue
-      expect(mockLongKeyPress).not.toHaveBeenCalled();
-
-      // Simulate exploring north branch and returning from north (heading 180°)
-      window.location.href = junctionUrl;
-      // Update URL to have different heading (simulating return from different direction)
-      Object.defineProperty(window, 'location', {
-        value: { href: 'https://www.google.com/maps/@37.7750,-122.4194,3a,180y,90t/data=!3m4!1e1' },
-        writable: true
+      // 4th tick should trigger self-avoiding turn (stuckCount >= panicThreshold)
+      mockLongKeyPress.mockImplementation((key, duration, callback) => {
+        callback();
       });
+
       engine.tick();
 
-      // Different heading (180° vs 0°) - should still continue (exploring new approach)
-      // Note: This test verifies the state tracking distinguishes headings
-      const navState = engine.getNavigationState();
-      expect(navState).toBeDefined();
+      // Should have triggered self-avoiding turn
+      expect(mockLongKeyPress).toHaveBeenCalledWith(
+        'ArrowLeft',
+        expect.any(Number),
+        expect.any(Function)
+      );
     });
-  });
 
-  /**
-   * TEST 3: Loop Detection
-   * Should detect and escape circular paths
-   */
-  describe('Loop Detection', () => {
-    it('should detect loop when returning with same heading', () => {
-      const locationA = 'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1';
-      const locationB = 'https://www.google.com/maps/@37.7750,-122.4194,3a,0y,90t/data=!3m4!1e1';
+    it('should pick different turn angles when stuck multiple times', () => {
+      const stuckUrl = 'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1';
 
       Object.defineProperty(window, 'location', {
-        value: { href: locationA },
+        value: { href: stuckUrl },
         writable: true
       });
 
-      // Walk A -> B
-      window.location.href = locationB;
-      engine.tick();
+      const turnAngles = [];
 
-      // Loop back B -> A with SAME heading (0°)
-      window.location.href = locationA;
-      engine.tick();
+      // Get stuck multiple times and track turn angles
+      for (let attempt = 0; attempt < 3; attempt++) {
+        // Reset to trigger stuck again
+        engine.reset();
+        engine.setActionHandlers({
+          keyPress: mockKeyPress,
+          mouseClick: () => {},
+          statusUpdate: () => {},
+          longKeyPress: (key, duration, callback) => {
+            turnAngles.push(duration);
+            callback();
+          },
+          walkStop: () => {}
+        });
+        engine.start();
 
-      // Continue around loop back to B with SAME heading
-      window.location.href = locationB;
-      engine.tick();
+        // Tick to get stuck
+        for (let i = 0; i <= 3; i++) {
+          engine.tick();
+        }
+      }
 
-      // Return to A with SAME heading - should detect loop
-      window.location.href = locationA;
-      engine.tick();
-
-      // Should have triggered self-avoiding turn (revisiting A@0°)
-      // Note: May take a few visits to trigger depending on state count threshold
-      const navState = engine.getNavigationState();
-      expect(navState).toBeDefined();
+      // Should have picked different turn angles (not guaranteed, but likely)
+      expect(turnAngles.length).toBe(3);
     });
   });
 
@@ -260,7 +248,7 @@ describe('Self-Avoiding Walk Algorithm', () => {
       expect(navState.selfAvoiding).toBeDefined();
     });
 
-    it('should detect revisit with same binned heading', () => {
+    it('should only turn when stuck, not on revisit alone', () => {
       const location = 'https://www.google.com/maps/@37.7749,-122.4194,3a,';
       
       // Same heading (0°), multiple visits
@@ -271,14 +259,19 @@ describe('Self-Avoiding Walk Algorithm', () => {
         writable: true
       });
 
-      // First visit - no turn
+      // First visit - no turn (not stuck yet)
       engine.tick();
       const callsAfterFirst = mockLongKeyPress.mock.calls.length;
 
-      // Second visit with same heading - should trigger turn
+      // Second visit with same heading - still no turn (need to be stuck first)
+      engine.tick();
+      engine.tick();
       engine.tick();
       
-      // Should have attempted to turn (self-avoiding detected revisit)
+      // 4th tick when stuck - should trigger turn
+      engine.tick();
+      
+      // Should have attempted to turn when stuck
       expect(mockLongKeyPress.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     });
 

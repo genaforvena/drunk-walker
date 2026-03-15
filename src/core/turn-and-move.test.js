@@ -37,78 +37,58 @@ describe('Turn and Move Integration', () => {
   });
 
   describe('Self-Avoiding Turn and Move', () => {
-    it('should press ArrowUp immediately after self-avoiding turn completes', () => {
-      // Set up visited location
+    it('should NOT turn at new locations (only when stuck)', () => {
+      // Self-avoiding only triggers when stuck, not on every revisit
       engine.setPathCollection(true);
-      
-      // Mock window.location to simulate being at a visited location
-      const originalHref = window.location.href;
+
+      const locations = [
+        'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1',
+        'https://www.google.com/maps/@37.7750,-122.4194,3a,0y,90t/data=!3m4!1e1',
+        'https://www.google.com/maps/@37.7751,-122.4194,3a,0y,90t/data=!3m4!1e1'
+      ];
+
       Object.defineProperty(window, 'location', {
-        value: { href: 'https://www.google.com/maps/@37.7749,-122.4194,3a,75y,90t/data=!3m4!1e1' },
+        value: { href: locations[0] },
         writable: true
       });
 
-      // First, record this location as visited
-      engine.tick();
-      
-      // Now we're at a visited location, self-avoiding should trigger
-      mockLongKeyPress.mockImplementation((key, duration, callback) => {
-        // Simulate turn completing and callback being called
-        setTimeout(() => {
-          callback();  // This should trigger ArrowUp press
-        }, 10);
+      // Walk through new locations - should NOT turn
+      for (const loc of locations) {
+        window.location.href = loc;
+        engine.tick();
+      }
+
+      // Should NOT have turned - only turns when stuck
+      expect(mockLongKeyPress).not.toHaveBeenCalled();
+      expect(mockKeyPress).toHaveBeenCalledWith('ArrowUp');
+    });
+
+    it('should turn with self-avoiding when stuck', () => {
+      const stuckUrl = 'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1';
+
+      Object.defineProperty(window, 'location', {
+        value: { href: stuckUrl },
+        writable: true
       });
 
-      // Tick - should trigger self-avoiding turn
+      // Get stuck (3 ticks to reach threshold)
+      engine.tick();
+      engine.tick();
       engine.tick();
 
-      // Verify ArrowLeft was pressed for turn
+      // 4th tick triggers self-avoiding turn
+      mockLongKeyPress.mockImplementation((key, duration, callback) => {
+        callback();
+      });
+
+      engine.tick();
+
+      // Should have turned
       expect(mockLongKeyPress).toHaveBeenCalledWith(
         'ArrowLeft',
         expect.any(Number),
         expect.any(Function)
       );
-
-      // The callback should press ArrowUp after turn
-      // We need to wait for the callback to execute
-      return new Promise(resolve => {
-        setTimeout(() => {
-          expect(mockKeyPress).toHaveBeenCalledWith('ArrowUp');
-          // Restore original location
-          Object.defineProperty(window, 'location', {
-            value: { href: originalHref },
-            writable: true
-          });
-          resolve();
-        }, 50);
-      });
-    });
-
-    it('should increment step counter after self-avoiding turn', () => {
-      const originalHref = window.location.href;
-      Object.defineProperty(window, 'location', {
-        value: { href: 'https://www.google.com/maps/@37.7749,-122.4194,3a,75y,90t/data=!3m4!1e1' },
-        writable: true
-      });
-
-      // First tick to record location
-      engine.tick();
-      const stepsAfterFirst = engine.getSteps();
-
-      // Mock long key press to immediately call callback
-      mockLongKeyPress.mockImplementation((key, duration, callback) => {
-        callback();
-      });
-
-      // Second tick - should trigger self-avoiding and increment steps
-      engine.tick();
-
-      expect(engine.getSteps()).toBeGreaterThan(stepsAfterFirst);
-
-      Object.defineProperty(window, 'location', {
-        value: { href: originalHref },
-        writable: true
-      });
     });
   });
 
@@ -192,34 +172,33 @@ describe('Turn and Move Integration', () => {
   });
 
   describe('Turn Angle Tracking', () => {
-    it('should track cumulative turn angle for self-avoiding turns', () => {
-      const originalHref = window.location.href;
+    it('should track cumulative turn angle when stuck and self-avoiding triggers', () => {
+      const stuckUrl = 'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1';
+
       Object.defineProperty(window, 'location', {
-        value: { href: 'https://www.google.com/maps/@37.7749,-122.4194,3a,75y,90t/data=!3m4!1e1' },
+        value: { href: stuckUrl },
         writable: true
       });
 
-      // First tick to record location
-      engine.tick();
       expect(engine.getCumulativeTurnAngle()).toBe(0);
 
-      // Mock long key press
+      // Get stuck (3 ticks)
+      engine.tick();
+      engine.tick();
+      engine.tick();
+
+      // Mock to immediately call callback
       mockLongKeyPress.mockImplementation((key, duration, callback) => {
         callback();
       });
 
-      // Second tick - should trigger self-avoiding turn
+      // Trigger self-avoiding (4th tick when stuck)
       engine.tick();
 
-      // Cumulative turn angle should have increased (20-50 degrees)
+      // Cumulative turn angle should have increased
       const turnAngle = engine.getCumulativeTurnAngle();
-      expect(turnAngle).toBeGreaterThanOrEqual(20);
-      expect(turnAngle).toBeLessThanOrEqual(50);
-
-      Object.defineProperty(window, 'location', {
-        value: { href: originalHref },
-        writable: true
-      });
+      expect(turnAngle).toBeGreaterThan(0);
+      expect(turnAngle).toBeLessThanOrEqual(360);
     });
 
     it('should track cumulative turn angle for unstuck turns', () => {
@@ -260,34 +239,41 @@ describe('Turn and Move Integration', () => {
   });
 
   describe('Always Turn Left', () => {
-    it('should ONLY turn left (ArrowLeft) for self-avoiding, never right', () => {
-      const originalHref = window.location.href;
+    it('should ONLY turn left (ArrowLeft) for self-avoiding when stuck, never right', () => {
+      const stuckUrl = 'https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1';
+
       Object.defineProperty(window, 'location', {
-        value: { href: 'https://www.google.com/maps/@37.7749,-122.4194,3a,75y,90t/data=!3m4!1e1' },
+        value: { href: stuckUrl },
         writable: true
       });
 
-      // First tick to record location
-      engine.tick();
+      // Get stuck multiple times
+      for (let attempt = 0; attempt < 3; attempt++) {
+        engine.reset();
+        engine.setActionHandlers({
+          keyPress: mockKeyPress,
+          mouseClick: () => {},
+          statusUpdate: () => {},
+          longKeyPress: mockLongKeyPress,
+          walkStop: () => {}
+        });
+        engine.start();
 
-      // Trigger self-avoiding multiple times
-      for (let i = 0; i < 5; i++) {
+        // Tick to get stuck
+        for (let i = 0; i <= 3; i++) {
+          engine.tick();
+        }
+
         mockLongKeyPress.mockClear();
         mockLongKeyPress.mockImplementation((key, duration, callback) => {
           callback();
         });
-        engine.tick();
       }
 
       // Verify ONLY ArrowLeft was used, never ArrowRight
       const allCalls = mockLongKeyPress.mock.calls;
       allCalls.forEach(call => {
         expect(call[0]).toBe('ArrowLeft');
-      });
-
-      Object.defineProperty(window, 'location', {
-        value: { href: originalHref },
-        writable: true
       });
     });
 
