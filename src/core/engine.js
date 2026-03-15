@@ -278,6 +278,12 @@ export function createEngine(config = {}) {
     // Handle navigation result
     if (navResult.busy) {
       // Navigation is handling the action (turning, moving, verifying)
+      // Reset stuck count - turn+move is corrective action
+      // If still stuck after turn, will need N more ticks to trigger again
+      if (navResult.strategy === 'unstuck' || navResult.strategy === 'self-avoiding') {
+        stuckCount = 0;
+        lastUrl = '';  // Will be set on next URL change
+      }
       steps++;
       recordStep();
       return;

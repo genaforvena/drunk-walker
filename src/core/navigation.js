@@ -171,9 +171,7 @@ export function createSelfAvoidingNavigation(cfg, callbacks) {
           }
 
           state = 'IDLE';
-          if (onStatusUpdate) {
-            onStatusUpdate('WALKING', 0, 0); // Steps/stuck managed by engine
-          }
+          // Note: stuckCount is managed by engine, not here
         }, cfg.pace);
       });
     }
@@ -292,24 +290,17 @@ export function createUnstuckNavigation(cfg, callbacks) {
           state = 'VERIFYING';
           const newUrl = typeof window !== 'undefined' ? window.location.href : urlBeforeUnstuck;
 
-          let newStuckCount = stuckCount;
           if (newUrl !== urlBeforeUnstuck) {
-            // Successfully unstuck!
-            newStuckCount = 0;
+            // Successfully moved to new location
             console.log(`🤪 DRUNK WALKER: Unstuck successfully (turned left ~${turnAngle}°)!`);
           } else {
-            // Still stuck - will turn left again on next attempt
-            newStuckCount++;
-            console.log(`🤪 DRUNK WALKER: Still stuck after ${turnAngle}° left turn (cumulative: ${cumulativeTurnAngle}°)`);
+            // Still at same location after turn+move
+            console.log(`🤪 DRUNK WALKER: Still at same location after ${turnAngle}° left turn`);
           }
 
           state = 'IDLE';
-          if (onStatusUpdate) {
-            const statusText = newStuckCount >= panicThreshold
-              ? `PANIC! (STUCK ${newStuckCount})`
-              : `STUCK (${newStuckCount})`;
-            onStatusUpdate(statusText, 0, newStuckCount);
-          }
+          // Note: stuckCount is managed by engine, not here
+          // Engine resets stuckCount when turn is initiated
         }, cfg.pace);
       });
     }

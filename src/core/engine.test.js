@@ -178,7 +178,8 @@ describe('Core Engine', () => {
   describe('Experimental Mode (Stuck Detection)', () => {
     it('should increment stuck count when URL does not change', () => {
       const statusMock = vi.fn();
-      const engine = createEngine({ expOn: true, panicThreshold: 2 });
+      // Use panicThreshold=5 so unstuck doesn't trigger during test
+      const engine = createEngine({ expOn: true, panicThreshold: 5 });
       engine.setActionHandlers({ statusUpdate: statusMock });
       engine.start();
 
@@ -204,10 +205,13 @@ describe('Core Engine', () => {
 
     it('should report PANIC status when stuck count exceeds threshold', () => {
       const statusMock = vi.fn();
-      const engine = createEngine({ expOn: true, panicThreshold: 2 });
+      // Use panicThreshold=5, then tick 5 times to get PANIC without triggering unstuck
+      const engine = createEngine({ expOn: true, panicThreshold: 5 });
       engine.setActionHandlers({ statusUpdate: statusMock });
       engine.start();
 
+      engine.tick();
+      engine.tick();
       engine.tick();
       engine.tick();
       engine.tick();
