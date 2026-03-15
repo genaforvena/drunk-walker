@@ -58,7 +58,7 @@ let bundled = `
   // TO CHANGE NAVIGATION: Edit src/core/navigation.js
   ${navigation
     .replace(/export \{[^}]+\};/g, '')
-    .replace(/export default \{[^}]+\};?/g, '')
+    .replace(/export default \{[\s\S]*?\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
   }
@@ -130,7 +130,7 @@ void function initDrunkWalker(){
   // TO CHANGE NAVIGATION: Edit src/core/navigation.js
   ${navigation
     .replace(/export \{[^}]+\};/g, '')
-    .replace(/export default \{[^}]+\};?/g, '')
+    .replace(/export default \{[\s\S]*?\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
   }
