@@ -119,6 +119,7 @@ export function createSelfAvoidingNavigation(cfg, callbacks) {
   let state = 'IDLE';
   let urlBeforeTurn = '';
   let cumulativeTurnAngle = 0;
+  let lastUrl = '';  // Track URL to detect actual arrivals
   
   // Track (location + heading) states - turn only if revisiting same state
   // Key: "lat,lng@headingBin" (heading binned to 45° = 8 directions)
@@ -164,22 +165,39 @@ export function createSelfAvoidingNavigation(cfg, callbacks) {
     const currentHeading = extractHeading(currentUrl);
     const binnedHeading = binHeading(currentHeading);
     
-    // Create state key: location + approximate heading
-    const stateKey = `${currentLocation}@${binnedHeading}`;
+    // Only track state on actual ARRIVAL (URL changed from last tick)
+    // This prevents incrementing count on every tick at same location
+    const hasMoved = currentUrl !== lastUrl;
     
-    // Track visit count for this (location, heading) state
-    const stateCount = visitedStates.get(stateKey) || 0;
-    visitedStates.set(stateKey, stateCount + 1);
-    
-    // Only turn if we've been at this location with similar heading before
-    // stateCount = 0: First time here with this heading - explore!
-    // stateCount >= 1: Been here with this heading - try different direction
-    if (stateCount < 1 || visitedUrls.size === 0) {
-      console.log(`🚶 Step: Moving forward at ${currentLocation} (heading ${binnedHeading}°, first visit)`);
-      return { action: 'none' };
+    if (hasMoved) {
+      // Just arrived at this location - record the state
+      const stateKey = `${currentLocation}@${binnedHeading}`;
+      const stateCount = visitedStates.get(stateKey) || 0;
+      visitedStates.set(stateKey, stateCount + 1);
+      lastUrl = currentUrl;
+      
+      console.log(`🚶 Step: Moving forward at ${currentLocation} (heading ${binnedHeading}°, count=${stateCount + 1})`);
+      
+      // First visit with this heading - continue exploring
+      if (stateCount < 1 || visitedUrls.size === 0) {
+        return { action: 'none' };
+      }
+      
+      // Revisit with same heading - time to turn
+      console.log(`🔄 Self-avoiding: REVISIT at ${currentLocation} (heading ${binnedHeading}°, count=${stateCount + 1}) - turning left`);
+    } else {
+      // Still at same location - haven't moved yet
+      // Don't increment count, just check if we should turn
+      const stateKey = `${currentLocation}@${binnedHeading}`;
+      const stateCount = visitedStates.get(stateKey) || 0;
+      
+      if (stateCount < 1 || visitedUrls.size === 0) {
+        return { action: 'none' };
+      }
+      
+      // Already decided to turn, waiting for execution
+      console.log(`🔄 Self-avoiding: REVISIT at ${currentLocation} (heading ${binnedHeading}°, count=${stateCount}) - turning left`);
     }
-
-    console.log(`🔄 Self-avoiding: REVISIT at ${currentLocation} (heading ${binnedHeading}°, count=${stateCount + 1}) - turning left`);
 
     // ALWAYS TURN LEFT - random bounded angle (~20° to ~50°)
     const turnKey = 'ArrowLeft';
@@ -253,6 +271,7 @@ export function createSelfAvoidingNavigation(cfg, callbacks) {
     urlBeforeTurn = '';
     cumulativeTurnAngle = 0;
     visitedStates.clear();
+    lastUrl = '';
   };
 
   /**
