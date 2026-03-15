@@ -36,10 +36,12 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('visitedUrls = new Set()');
   });
   
-  it('should have executeSelfAvoidingStep function', () => {
-    expect(bundleCode).toContain('executeSelfAvoidingStep');
+  it('should have navigation strategies (createSelfAvoidingNavigation)', () => {
+    expect(bundleCode).toContain('createSelfAvoidingNavigation');
+    expect(bundleCode).toContain('createUnstuckNavigation');
+    expect(bundleCode).toContain('createNavigationController');
   });
-  
+
   it('should have self-avoiding config option', () => {
     expect(bundleCode).toContain('selfAvoiding: true');
   });

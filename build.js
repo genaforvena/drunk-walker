@@ -20,7 +20,8 @@ import fs from 'fs';
 const outfile = 'bookmarklet.js';
 const consoleFile = 'bookmarklet-console.js';
 
-// Read all source files
+// Read all source files (order matters - navigation must come before engine)
+const navigation = fs.readFileSync('src/core/navigation.js', 'utf8');
 const engine = fs.readFileSync('src/core/engine.js', 'utf8');
 const handlers = fs.readFileSync('src/input/handlers.js', 'utf8');
 const controller = fs.readFileSync('src/ui/controller.js', 'utf8');
@@ -38,10 +39,11 @@ let bundled = `
 //
 // TO MAKE CHANGES:
 //   Edit files in src/ directory, then run: node build.js
-//   - src/core/engine.js    - Core navigation logic
-//   - src/input/handlers.js - Keyboard/mouse events
-//   - src/ui/controller.js  - Control panel UI
-//   - src/main.js           - Entry point
+//   - src/core/navigation.js  - Navigation strategies (self-avoiding, unstuck)
+//   - src/core/engine.js      - Core engine (state, timing, path recording)
+//   - src/input/handlers.js   - Keyboard/mouse events
+//   - src/ui/controller.js    - Control panel UI
+//   - src/main.js             - Entry point
 // ═══════════════════════════════════════════════════════════════════════════════
 // Generated automatically by build.js
 // Paste this entire code into browser console on Google Street View
@@ -51,8 +53,20 @@ let bundled = `
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
 
+  // === NAVIGATION STRATEGIES ===
+  // Pluggable movement algorithms (self-avoiding, unstuck, etc.)
+  // TO CHANGE NAVIGATION: Edit src/core/navigation.js
+  ${navigation
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
   // === CORE ENGINE ===
+  // State management, tick timing, path recording
+  // TO CHANGE ENGINE: Edit src/core/engine.js
   ${engine
+    .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
@@ -92,10 +106,11 @@ let consoleFriendly = `
 //
 // TO MAKE CHANGES:
 //   Edit files in src/ directory, then run: node build.js
-//   - src/core/engine.js    - Core navigation logic
-//   - src/input/handlers.js - Keyboard/mouse events
-//   - src/ui/controller.js  - Control panel UI
-//   - src/main.js           - Entry point
+//   - src/core/navigation.js  - Navigation strategies (self-avoiding, unstuck)
+//   - src/core/engine.js      - Core engine (state, timing, path recording)
+//   - src/input/handlers.js   - Keyboard/mouse events
+//   - src/ui/controller.js    - Control panel UI
+//   - src/main.js             - Entry point
 // ═══════════════════════════════════════════════════════════════════════════════
 // This version is optimized for pasting into browser console
 // 1. Type: allow pasting
@@ -109,8 +124,20 @@ void function initDrunkWalker(){
   }
   window.DRUNK_WALKER_ACTIVE = true;
 
+  // === NAVIGATION STRATEGIES ===
+  // Pluggable movement algorithms (self-avoiding, unstuck, etc.)
+  // TO CHANGE NAVIGATION: Edit src/core/navigation.js
+  ${navigation
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
   // === CORE ENGINE ===
+  // State management, tick timing, path recording
+  // TO CHANGE ENGINE: Edit src/core/engine.js
   ${engine
+    .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
