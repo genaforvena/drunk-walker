@@ -12,8 +12,6 @@
         .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 20px #0f0; }
         .btn-main:active { transform: scale(0.95); }
         .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-vanilla { background: #0066cc; color: #fff; }
-        .btn-vanilla:hover { background: #0088ff; box-shadow: 0 0 20px #0066cc; }
         .btn-latest { background: #cc6600; color: #fff; }
         .btn-latest:hover { background: #ff8800; box-shadow: 0 0 20px #cc6600; }
         .version-label { font-size: 0.7em; opacity: 0.8; margin-top: 5px; }
@@ -38,11 +36,8 @@
         </div>
 
         <div class="button-group">
-            <button class="btn-main btn-latest" id="copyLatestBtn" onclick="copyToClipboard('latest')" disabled>📋 COPY LATEST</button>
+            <button class="btn-main btn-latest" id="copyLatestBtn" onclick="copyToClipboard()" disabled>📋 COPY LATEST</button>
             <div class="version-label">✨ Self-avoiding walk • Smart turn selection • Path merge</div>
-
-            <button class="btn-main btn-vanilla" id="copyVanillaBtn" onclick="copyToClipboard('vanilla')" disabled>📋 COPY BACKUP</button>
-            <div class="version-label">💾 Backup version • Same features • Fallback option</div>
         </div>
         
         <div id="loading" class="loading">⏳ Loading scripts from repository...</div>
@@ -87,84 +82,50 @@
     </div>
 
 <script>
-        // GitHub raw URLs - both point to main branch (same version)
+        // GitHub raw URL - points to main branch
         const LATEST_URL = 'https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet.js';
-        const VANILLA_URL = 'https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet.js';  // Backup = same as latest
 
         let latestScriptCode = null;
-        let vanillaScriptCode = null;
         let latestLoaded = false;
-        let vanillaLoaded = false;
 
-        // Fetch a script from GitHub
-        async function fetchScript(url, version) {
+        // Fetch the script from GitHub
+        async function fetchScript() {
             try {
-                const response = await fetch(url);
+                const response = await fetch(LATEST_URL);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 const code = await response.text();
 
-                if (version === 'latest') {
-                    latestScriptCode = code;
-                    latestLoaded = true;
-                    console.log('✓ Latest Drunk Walker (v3.69.0-EXP) loaded');
-                } else {
-                    vanillaScriptCode = code;
-                    vanillaLoaded = true;
-                    console.log('✓ Backup Drunk Walker (v3.69.0-EXP) loaded');
-                }
+                latestScriptCode = code;
+                latestLoaded = true;
+                console.log('✓ Drunk Walker (v3.69.0-EXP) loaded');
 
-                // Enable buttons when loaded
+                // Enable button and hide loading
                 updateButtonStates();
             } catch (error) {
-                console.error(`Failed to load ${version} script:`, error);
-                if (version === 'latest') {
-                    document.getElementById('copyLatestBtn').disabled = true;
-                    document.getElementById('copyLatestBtn').innerText = '❌ FAILED TO LOAD';
-                } else {
-                    document.getElementById('copyVanillaBtn').disabled = true;
-                    document.getElementById('copyVanillaBtn').innerText = '❌ FAILED TO LOAD';
-                }
+                console.error(`Failed to load script:`, error);
+                document.getElementById('copyLatestBtn').disabled = true;
+                document.getElementById('copyLatestBtn').innerText = '❌ FAILED TO LOAD';
             }
         }
 
-        // Update button states based on load status
+        // Update button state based on load status
         function updateButtonStates() {
             const latestBtn = document.getElementById('copyLatestBtn');
-            const vanillaBtn = document.getElementById('copyVanillaBtn');
 
             if (latestLoaded) {
                 latestBtn.disabled = false;
                 latestBtn.innerText = '📋 COPY LATEST (v3.69.0-EXP)';
-            }
-            if (vanillaLoaded) {
-                vanillaBtn.disabled = false;
-                vanillaBtn.innerText = '📋 COPY BACKUP (v3.69.0-EXP)';
-            }
-            
-            // Hide loading when both are loaded
-            if (latestLoaded && vanillaLoaded) {
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        // Load both scripts on page load
-        async function loadScripts() {
-            // Load both in parallel
-            await Promise.all([
-                fetchScript(LATEST_URL, 'latest'),
-                fetchScript(VANILLA_URL, 'vanilla')
-            ]);
-        }
+        // Load script on page load
+        fetchScript();
 
-        // Load scripts on page load
-        loadScripts();
-
-        function copyToClipboard(version) {
-            const scriptCode = version === 'latest' ? latestScriptCode : vanillaScriptCode;
-            
-            if (!scriptCode) {
+        function copyToClipboard() {
+            if (!latestScriptCode) {
                 alert('Script not loaded yet. Please wait or refresh the page.');
                 return;
             }
@@ -178,12 +139,12 @@
 
             // Main clipboard logic
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(scriptCode).then(showSuccess).catch(err => {
+                navigator.clipboard.writeText(latestScriptCode).then(showSuccess).catch(err => {
                     console.error("Clipboard API failed, using fallback", err);
-                    fallbackCopy(scriptCode, showSuccess);
+                    fallbackCopy(latestScriptCode, showSuccess);
                 });
             } else {
-                fallbackCopy(scriptCode, showSuccess);
+                fallbackCopy(latestScriptCode, showSuccess);
             }
         }
 
