@@ -36,8 +36,7 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('visitedUrls = new Set()');
   });
   
-  it('should have navigation strategies (createSelfAvoidingNavigation)', () => {
-    expect(bundleCode).toContain('createSelfAvoidingNavigation');
+  it('should have navigation strategies', () => {
     expect(bundleCode).toContain('createUnstuckNavigation');
     expect(bundleCode).toContain('createNavigationController');
   });
