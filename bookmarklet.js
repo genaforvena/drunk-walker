@@ -35,28 +35,31 @@
 
 /**
  * Unstuck Algorithm - Recovery from being stuck
- * 
+ *
  * Behavior:
  * - Detects when stuck (URL unchanged for N ticks)
- * - Turns left with random bounded angle (30°-90°)
- * - Maintains memory of previous turns at each location (Self-Avoiding)
+ * - Stores relative turn deltas (always negative/left) per location
+ * - Applies progressively sharper left turns from current arrival facing
  * - Immediately steps forward after turn
  * - Verifies URL changed, increments stuck counter if still stuck
+ *
+ * Key invariants:
+ * - lastTurnDelta is always negative (left turn magnitude)
+ * - Same location revisited gets escalating left turn (more negative each time)
+ * - Turn is always relative to how we arrived (physically coherent)
  */
 function createUnstuckNavigation(cfg, callbacks) {
   const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
 
   let state = 'IDLE';
   let urlBeforeUnstuck = '';
-  
-  // Memory of turns per location (The "Self-Avoiding" part)
-  const locationTurns = new Map();
 
-  const executeUnstuck = (stuckCount, panicThreshold) => {
+  // Memory of relative turn deltas per location (always negative, 0 to -90 degrees)
+  const locationTurnDeltas = new Map();
+
+  const executeUnstuck = (stuckCount, panicThreshold, currentYaw) => {
     if (state !== 'IDLE') return { action: 'none' };
     if (!cfg.expOn || stuckCount < panicThreshold) return { action: 'none' };
-
-    console.log(`🚨 UNSTUCK TRIGGERED: Stuck count=${stuckCount} (threshold=${panicThreshold})`);
 
     const currentUrl = window.location.href;
     const currentLocation = extractLocation(currentUrl);
@@ -64,24 +67,34 @@ function createUnstuckNavigation(cfg, callbacks) {
     urlBeforeUnstuck = currentUrl;
     state = 'TURNING';
 
-    // Turn left with bounded randomization (~30° to ~90°)
-    const baseTurnDuration = cfg.turnDuration;  // 600ms = ~60°
-    const randomVariation = (Math.random() - 0.5) * 600;  // ±300ms = ±30°
-    const turnDuration = Math.max(300, Math.min(900, baseTurnDuration + randomVariation));
-    const turnAngle = Math.round(turnDuration / 10);
+    // Get previous delta for this location (always negative or 0)
+    const prevTurnDelta = locationTurnDeltas.get(currentLocation) || 0;
 
-    // Logic: prev_angle + new_random. If > 360, subtract 360.
-    const prevTurnAngle = locationTurns.get(currentLocation) || 0;
-    let newLocationAngle = prevTurnAngle + turnAngle;
-    if (newLocationAngle >= 360) newLocationAngle -= 360;
-    locationTurns.set(currentLocation, newLocationAngle);
+    // Compute baseDelta: prevDelta + random left increment (-15 to -45 degrees)
+    // If first visit (prevDelta = 0), this gives fresh left turn of -15 to -45
+    // If revisited, this makes turn more leftward than last time
+    const randomLeftIncrement = -15 - Math.random() * 30;  // -15 to -45
+    let baseDelta = prevTurnDelta + randomLeftIncrement;
+
+    // Clamp to -90 degrees maximum (ensure we don't turn more than 90° left)
+    baseDelta = Math.max(-90, baseDelta);
+
+    // Store the delta we're using (always negative)
+    locationTurnDeltas.set(currentLocation, baseDelta);
+
+    // Apply to current arrival facing: newYaw = normalize(currentYaw + baseDelta)
+    const newYaw = normalizeAngle(currentYaw + baseDelta);
+    const turnAngle = Math.abs(baseDelta);  // Duration based on magnitude
+
+    // Convert angle to duration (10ms per degree)
+    const turnDuration = Math.round(turnAngle * 10);
+    const clampedDuration = Math.max(300, Math.min(900, turnDuration));
 
     if (onLongKeyPress) {
-      onLongKeyPress('ArrowLeft', turnDuration, () => {
-        console.log(`⬅️ Unstuck: Turning left ~${turnAngle}° (loc angle: ${newLocationAngle}°)`);
+      onLongKeyPress('ArrowLeft', clampedDuration, () => {
+        console.log(`url=${currentUrl}, currentYaw=${Math.round(newYaw)}`);
         state = 'MOVING';
         if (onKeyPress) onKeyPress('ArrowUp');
-        console.log(`⬆️ Unstuck: Moving forward after turn`);
 
         setTimeout(() => {
           state = 'VERIFYING';
@@ -90,10 +103,8 @@ function createUnstuckNavigation(cfg, callbacks) {
           let newStuckCount = 0;
           if (newUrl !== urlBeforeUnstuck) {
             newStuckCount = 0;
-            console.log(`✅ Unstuck SUCCESS - moved to new location`);
           } else {
             newStuckCount = stuckCount + 1;
-            console.log(`⚠️ Still at same location after ${turnAngle}° left turn (stuck=${newStuckCount})`);
           }
 
           state = 'IDLE';
@@ -106,7 +117,8 @@ function createUnstuckNavigation(cfg, callbacks) {
 
     return {
       action: 'turn',
-      turnAngle
+      turnAngle: baseDelta,  // Return signed delta (negative for left)
+      newYaw
     };
   };
 
@@ -116,10 +128,20 @@ function createUnstuckNavigation(cfg, callbacks) {
     reset: () => {
       state = 'IDLE';
       urlBeforeUnstuck = '';
-      locationTurns.clear();
+      locationTurnDeltas.clear();
     },
-    getState: () => ({ state, locationTurnsCount: locationTurns.size })
+    getState: () => ({ state, locationTurnDeltasCount: locationTurnDeltas.size }),
+    getDeltaForLocation: (loc) => locationTurnDeltas.get(loc) || 0
   };
+}
+
+/**
+ * Normalize angle to 0-360 range
+ */
+function normalizeAngle(angle) {
+  angle = angle % 360;
+  if (angle < 0) angle += 360;
+  return angle;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -133,7 +155,7 @@ function createNavigationController(cfg, callbacks) {
   let globalOrientation = 0;
 
   const tick = (context) => {
-    const { stuckCount } = context || {};
+    const { stuckCount, currentYaw } = context || {};
 
     if (unstuck.isBusy()) {
       return { action: 'none', busy: true };
@@ -143,11 +165,12 @@ function createNavigationController(cfg, callbacks) {
 
     // ONLY trigger rotation when STUCK
     if (cfg.expOn && stuckCount >= cfg.panicThreshold) {
-      const result = unstuck.executeUnstuck(stuckCount, cfg.panicThreshold);
+      const result = unstuck.executeUnstuck(stuckCount, cfg.panicThreshold, currentYaw);
       if (result.action !== 'none') {
+        // Update global orientation with signed delta (negative for left turn)
         globalOrientation += result.turnAngle;
+        if (globalOrientation < 0) globalOrientation += 360;
         if (globalOrientation >= 360) globalOrientation -= 360;
-        console.log(`🧭 Global orientation: ${globalOrientation}°`);
         return { ...result, strategy: 'unstuck', busy: true, cumulativeTurnAngle: globalOrientation };
       }
     }
@@ -225,8 +248,8 @@ function createEngine(config = {}) {
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Set();
 
-  // Cumulative turn angle tracking
-  let cumulativeTurnAngle = 0;  // Total degrees turned (for path recording)
+  // Current facing direction (yaw) - starts at 0° (north)
+  let currentYaw = 0;
 
   // Navigation controller (pluggable movement algorithms)
   // Will be initialized after extractLocation is defined
@@ -302,9 +325,7 @@ function createEngine(config = {}) {
       const location = extractLocation(currentUrl);
       walkPath.push({
         url: currentUrl,
-        location: location,  // Unique location identifier (lat,lng)
-        rotation: cumulativeTurnAngle,  // Actual cumulative turn angle
-        direction: 'forward'  // Always forward
+        currentYaw: Math.round(currentYaw)
       });
       // Track visited locations for self-avoiding walk
       if (cfg.selfAvoiding) {
@@ -315,11 +336,11 @@ function createEngine(config = {}) {
   const isUrlVisited = (location) => visitedUrls.has(location);
   const clearVisitedUrls = () => { visitedUrls.clear(); };
   const getVisitedCount = () => visitedUrls.size;
-  const getCumulativeTurnAngle = () => navigation ? navigation.getCumulativeTurnAngle() : cumulativeTurnAngle;
-  const resetCumulativeTurnAngle = () => {
-    cumulativeTurnAngle = 0;
-    if (navigation) navigation.resetCumulativeTurnAngle();
-  };
+  const getCurrentYaw = () => currentYaw;
+  const resetCurrentYaw = () => { currentYaw = 0; };
+  // Alias for backward compatibility with tests
+  const getCumulativeTurnAngle = getCurrentYaw;
+  const resetCumulativeTurnAngle = resetCurrentYaw;
 
   // Restore visited URLs from a path array
   const restoreVisitedFromPath = (path) => {
@@ -454,12 +475,17 @@ function createEngine(config = {}) {
       currentUrl: window.location.href,
       visitedUrls,
       stuckCount,
-      isKeyboardMode: cfg.kbOn
+      isKeyboardMode: cfg.kbOn,
+      currentYaw
     });
 
     // Handle navigation result
     if (navResult.busy) {
       // Navigation is handling the action (turning, moving, verifying)
+      // Update currentYaw if turn was performed
+      if (navResult.newYaw !== undefined) {
+        currentYaw = navResult.newYaw;
+      }
       // stuckCount will be reset by navigation callback after verification
       steps++;
       recordStep();
@@ -469,12 +495,12 @@ function createEngine(config = {}) {
     // Normal movement
     if (cfg.kbOn) {
       // Keyboard mode: press ArrowUp for forward movement
-      console.log(`⬆️ Step #${steps + 1}: Moving forward`);
+      console.log(`url=${window.location.href}, currentYaw=${Math.round(currentYaw)}`);
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       // Click mode: calculate and click target
       const target = calculateClickTarget();
-      console.log(`🖱️ Step #${steps + 1}: Clicking at (${Math.round(target.x)}, ${Math.round(target.y)})`);
+      console.log(`url=${window.location.href}, currentYaw=${Math.round(currentYaw)}`);
       if (onMouseClick) onMouseClick(target.x, target.y);
     }
 
@@ -523,7 +549,7 @@ function createEngine(config = {}) {
     stuckCount = 0;
     lastUrl = '';
     status = 'IDLE';
-    cumulativeTurnAngle = 0;  // Reset turn angle on reset
+    currentYaw = 0;  // Reset yaw on reset
     if (navigation) navigation.reset();  // Reset navigation state
   };
 
@@ -552,9 +578,11 @@ function createEngine(config = {}) {
     clearVisitedUrls,
     isUrlVisited,
 
-    // Turn angle tracking
-    getCumulativeTurnAngle,
-    resetCumulativeTurnAngle,
+    // Yaw tracking
+    getCurrentYaw,
+    resetCurrentYaw,
+    getCumulativeTurnAngle,  // Alias for backward compatibility
+    resetCumulativeTurnAngle,  // Alias for backward compatibility
     restoreVisitedFromPath,
 
     // Interaction

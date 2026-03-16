@@ -46,8 +46,8 @@ export function createEngine(config = {}) {
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Set();
 
-  // Cumulative turn angle tracking
-  let cumulativeTurnAngle = 0;  // Total degrees turned (for path recording)
+  // Current facing direction (yaw) - starts at 0° (north)
+  let currentYaw = 0;
 
   // Navigation controller (pluggable movement algorithms)
   // Will be initialized after extractLocation is defined
@@ -123,9 +123,7 @@ export function createEngine(config = {}) {
       const location = extractLocation(currentUrl);
       walkPath.push({
         url: currentUrl,
-        location: location,  // Unique location identifier (lat,lng)
-        rotation: cumulativeTurnAngle,  // Actual cumulative turn angle
-        direction: 'forward'  // Always forward
+        currentYaw: Math.round(currentYaw)
       });
       // Track visited locations for self-avoiding walk
       if (cfg.selfAvoiding) {
@@ -136,11 +134,11 @@ export function createEngine(config = {}) {
   const isUrlVisited = (location) => visitedUrls.has(location);
   const clearVisitedUrls = () => { visitedUrls.clear(); };
   const getVisitedCount = () => visitedUrls.size;
-  const getCumulativeTurnAngle = () => navigation ? navigation.getCumulativeTurnAngle() : cumulativeTurnAngle;
-  const resetCumulativeTurnAngle = () => {
-    cumulativeTurnAngle = 0;
-    if (navigation) navigation.resetCumulativeTurnAngle();
-  };
+  const getCurrentYaw = () => currentYaw;
+  const resetCurrentYaw = () => { currentYaw = 0; };
+  // Alias for backward compatibility with tests
+  const getCumulativeTurnAngle = getCurrentYaw;
+  const resetCumulativeTurnAngle = resetCurrentYaw;
 
   // Restore visited URLs from a path array
   const restoreVisitedFromPath = (path) => {
@@ -275,12 +273,17 @@ export function createEngine(config = {}) {
       currentUrl: window.location.href,
       visitedUrls,
       stuckCount,
-      isKeyboardMode: cfg.kbOn
+      isKeyboardMode: cfg.kbOn,
+      currentYaw
     });
 
     // Handle navigation result
     if (navResult.busy) {
       // Navigation is handling the action (turning, moving, verifying)
+      // Update currentYaw if turn was performed
+      if (navResult.newYaw !== undefined) {
+        currentYaw = navResult.newYaw;
+      }
       // stuckCount will be reset by navigation callback after verification
       steps++;
       recordStep();
@@ -290,12 +293,12 @@ export function createEngine(config = {}) {
     // Normal movement
     if (cfg.kbOn) {
       // Keyboard mode: press ArrowUp for forward movement
-      console.log(`⬆️ Step #${steps + 1}: Moving forward`);
+      console.log(`url=${window.location.href}, currentYaw=${Math.round(currentYaw)}`);
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       // Click mode: calculate and click target
       const target = calculateClickTarget();
-      console.log(`🖱️ Step #${steps + 1}: Clicking at (${Math.round(target.x)}, ${Math.round(target.y)})`);
+      console.log(`url=${window.location.href}, currentYaw=${Math.round(currentYaw)}`);
       if (onMouseClick) onMouseClick(target.x, target.y);
     }
 
@@ -344,7 +347,7 @@ export function createEngine(config = {}) {
     stuckCount = 0;
     lastUrl = '';
     status = 'IDLE';
-    cumulativeTurnAngle = 0;  // Reset turn angle on reset
+    currentYaw = 0;  // Reset yaw on reset
     if (navigation) navigation.reset();  // Reset navigation state
   };
 
@@ -373,9 +376,11 @@ export function createEngine(config = {}) {
     clearVisitedUrls,
     isUrlVisited,
 
-    // Turn angle tracking
-    getCumulativeTurnAngle,
-    resetCumulativeTurnAngle,
+    // Yaw tracking
+    getCurrentYaw,
+    resetCurrentYaw,
+    getCumulativeTurnAngle,  // Alias for backward compatibility
+    resetCumulativeTurnAngle,  // Alias for backward compatibility
     restoreVisitedFromPath,
 
     // Interaction
