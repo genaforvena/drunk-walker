@@ -30,97 +30,26 @@
  */
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SELF-AVOIDING NAVIGATION STRATEGY
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function createSelfAvoidingNavigation(cfg, callbacks) {
-  const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
-
-  let state = 'IDLE';
-  let urlBeforeTurn = '';
-  
-  // Track cumulative turn angle for each location (local memory)
-  const locationTurns = new Map();
-
-  const getRandomTurnAngle = () => {
-    const randomVariation = (Math.random() - 0.5) * 300;  // ±150ms = ±15°
-    const baseDuration = cfg.turnDuration / 2;  // ~300ms = ~30°
-    return Math.max(200, Math.min(500, baseDuration + randomVariation));
-  };
-
-  const executeStep = (currentUrl, visitedUrls) => {
-    if (!cfg.selfAvoiding || !onKeyPress) return { action: 'none' };
-    if (state !== 'IDLE') return { action: 'none' };
-
-    const currentLocation = extractLocation(currentUrl);
-    
-    // Logic: prev_angle + new_random. If > 360, subtract 360.
-    const prevTurnAngle = locationTurns.get(currentLocation) || 0;
-    const turnDuration = getRandomTurnAngle();
-    const turnAngleChange = Math.round(turnDuration / 10);
-
-    let newLocationAngle = prevTurnAngle + turnAngleChange;
-    if (newLocationAngle >= 360) newLocationAngle -= 360;
-    locationTurns.set(currentLocation, newLocationAngle);
-
-    urlBeforeTurn = currentUrl;
-    state = 'TURNING';
-
-    if (onLongKeyPress) {
-      onLongKeyPress('ArrowLeft', turnDuration, () => {
-        console.log(`⬅️ Self-avoiding turn ~${turnAngleChange}° (loc angle: ${newLocationAngle}°)`);
-        if (onKeyPress) onKeyPress('ArrowUp');
-        console.log(`⬆️ Moving forward after turn`);
-
-        setTimeout(() => {
-          state = 'VERIFYING';
-          const newUrl = typeof window !== 'undefined' ? window.location.href : urlBeforeTurn;
-          const newLocation = extractLocation(newUrl);
-
-          if (newUrl !== urlBeforeTurn) {
-            visitedUrls.add(newLocation);
-            console.log(`✅ Self-avoiding step successful - moved to: ${newLocation}`);
-          } else {
-            console.log(`⚠️ Still at same location after ${turnAngleChange}° turn`);
-          }
-
-          state = 'IDLE';
-          if (onStatusUpdate) {
-            onStatusUpdate('WALKING', 0, 0);
-          }
-        }, cfg.pace);
-      });
-    }
-
-    return {
-      action: 'turn',
-      turnAngle: turnAngleChange
-    };
-  };
-
-  return {
-    executeStep,
-    isBusy: () => state !== 'IDLE',
-    reset: () => {
-      state = 'IDLE';
-      urlBeforeTurn = '';
-      locationTurns.clear();
-    },
-    getState: () => ({ state, locationTurnsCount: locationTurns.size })
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // UNSTUCK NAVIGATION STRATEGY
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Unstuck Algorithm - Recovery from being stuck
+ * 
+ * Behavior:
+ * - Detects when stuck (URL unchanged for N ticks)
+ * - Turns left with random bounded angle (30°-90°)
+ * - Maintains memory of previous turns at each location (Self-Avoiding)
+ * - Immediately steps forward after turn
+ * - Verifies URL changed, increments stuck counter if still stuck
+ */
 function createUnstuckNavigation(cfg, callbacks) {
   const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
 
   let state = 'IDLE';
   let urlBeforeUnstuck = '';
   
-  // Memory of turns per location
+  // Memory of turns per location (The "Self-Avoiding" part)
   const locationTurns = new Map();
 
   const executeUnstuck = (stuckCount, panicThreshold) => {
@@ -198,22 +127,21 @@ function createUnstuckNavigation(cfg, callbacks) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function createNavigationController(cfg, callbacks) {
-  const selfAvoiding = createSelfAvoidingNavigation(cfg, callbacks);
   const unstuck = createUnstuckNavigation(cfg, callbacks);
 
   // Global orientation (start + all turns made)
   let globalOrientation = 0;
 
   const tick = (context) => {
-    const { currentUrl, visitedUrls, stuckCount, isKeyboardMode } = context || {};
+    const { stuckCount } = context || {};
 
-    if (selfAvoiding.isBusy() || unstuck.isBusy()) {
+    if (unstuck.isBusy()) {
       return { action: 'none', busy: true };
     }
 
     if (!context) return { action: 'none', busy: false };
 
-    // 1. UNSTUCK - URL hasn't changed
+    // ONLY trigger rotation when STUCK
     if (cfg.expOn && stuckCount >= cfg.panicThreshold) {
       const result = unstuck.executeUnstuck(stuckCount, cfg.panicThreshold);
       if (result.action !== 'none') {
@@ -224,18 +152,7 @@ function createNavigationController(cfg, callbacks) {
       }
     }
 
-    // 2. SELF-AVOIDING - At a visited location
-    const currentLocation = callbacks.extractLocation(currentUrl);
-    if (isKeyboardMode && cfg.selfAvoiding && visitedUrls.has(currentLocation)) {
-      const result = selfAvoiding.executeStep(currentUrl, visitedUrls);
-      if (result.action !== 'none') {
-        globalOrientation += result.turnAngle;
-        if (globalOrientation >= 360) globalOrientation -= 360;
-        console.log(`🧭 Global orientation: ${globalOrientation}°`);
-        return { ...result, strategy: 'self-avoiding', busy: true, cumulativeTurnAngle: globalOrientation };
-      }
-    }
-
+    // Normal movement (no special navigation needed)
     return { action: 'move', strategy: 'normal', busy: false };
   };
 
@@ -244,13 +161,11 @@ function createNavigationController(cfg, callbacks) {
     getCumulativeTurnAngle: () => globalOrientation,
     resetCumulativeTurnAngle: () => { globalOrientation = 0; },
     reset: () => {
-      selfAvoiding.reset();
       unstuck.reset();
       globalOrientation = 0;
     },
     getState: () => ({
       globalOrientation,
-      selfAvoiding: selfAvoiding.getState(),
       unstuck: unstuck.getState()
     })
   };
