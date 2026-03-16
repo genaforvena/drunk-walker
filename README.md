@@ -102,7 +102,10 @@ When you get stuck (same location for 3 steps):
 - **Self-Avoiding Walk**: Prefers unvisited nodes for better coverage efficiency
 - **Smart Pause**: Stops when you drag to look around, resumes when done
 
-### New in v3.69.0-EXP
+### New in v3.69.0-EXP+
+- **Relative Turn Deltas**: Stores "how much we turned" not "which way we faced"
+- **Escalating Left Turns**: Each return to same location adds more left turn
+- **Physically Coherent**: Turns applied relative to arrival direction
 - **Minimized UI Mode**: Collapse the panel to save space while walking
 - **Visited Counter**: Track unique locations explored
 - **Path Merge Utility**: Combine multiple session exports
@@ -129,24 +132,23 @@ When you get stuck (same location for 3 steps):
 
 When enabled, Drunk Walker records:
 - Street View URL after each step
-- Location coordinates (lat,lng)
-- Cumulative turn angle (actual degrees turned)
+- Current yaw/facing direction (0-360°)
 
 **Exported JSON format:**
 ```json
 [
   {
     "url": "https://www.google.com/maps/...",
-    "location": "37.7749,-122.4194",
-    "rotation": 127
+    "currentYaw": 330
   },
   {
     "url": "https://www.google.com/maps/...",
-    "location": "37.7750,-122.4195",
-    "rotation": 127
+    "currentYaw": 0
   }
 ]
 ```
+
+**Note:** Location coordinates are extracted from URL when needed. Turn angles are stored as `currentYaw` (facing direction after each step).
 
 **Privacy:** Path data stays in your browser. Nothing is sent anywhere unless you manually copy and share it.
 
@@ -173,23 +175,41 @@ The merge utility:
 
 ## Auto-Unstuck Algorithm
 
-Drunk Walker detects when you're stuck (same URL for 3 consecutive steps) and automatically:
+Drunk Walker detects when you're stuck (same URL for 3 consecutive steps) and automatically executes a recovery sequence using **relative turn deltas**.
 
-1. **Turns Left 30°-90°** — Random bounded angle (never right, never stuck)
-2. **Immediately Steps Forward** — Presses ArrowUp right after turn completes
-3. **Checks Result** — If URL changed, continues walking; if still stuck, turns left again
+### How It Works
 
-**Key Guarantees:**
-- **Always turns left** — Consistent, predictable behavior
-- **Random bounded variation** — Prevents perfect circular loops
-- **Never gets stuck** — Will complete full 360° if needed to find exit
-- **Immediate step after turn** — No wasted time
+1. **Retrieve Previous Delta**: Get the last turn delta stored for this location (default: 0° if first visit)
+2. **Compute New Delta**: `baseDelta = previousDelta + random(-15°, -45°)`
+3. **Apply to Current Facing**: `newYaw = normalize(currentYaw + baseDelta)`
+4. **Turn Left**: Hold ArrowLeft for |baseDelta| × 10ms
+5. **Immediately Step Forward**: Press ArrowUp right after turn
+6. **Store Delta**: Save baseDelta for next visit to this location
 
-**Console Output:**
+### Key Features
+
+- **Relative, Not Absolute**: Stores "I turned -30° here" not "I was facing 70° here"
+- **Escalating Turns**: Each return adds more left turn (-30° → -50° → -75° → -90°)
+- **Physically Coherent**: Turn is applied relative to arrival direction
+- **Always Left**: Never turns right, consistent predictable behavior
+- **Never Gets Stuck**: Will eventually try all 360° if needed
+
+### Example Progression
+
+| Visit | Arrival Facing | Previous Delta | New Delta | Exit Facing |
+|-------|---------------|----------------|-----------|-------------|
+| 1st | 0° (North) | 0° | -30° | 330° |
+| 2nd | 180° (South) | -30° | -50° | 130° |
+| 3rd | 300° (West) | -50° | -75° | 225° |
+
+### Console Output
+
 ```
-🤪 DRUNK WALKER: Unstuck successfully (turned left ~67°)!
-🤪 DRUNK WALKER: Still stuck after 52° left turn (cumulative: 198°)
+url=https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1, currentYaw=0
+url=https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1, currentYaw=330
 ```
+
+**Note:** Only `url` and `currentYaw` are logged. No rotation, direction, or memory fields.
 
 This happens automatically—no configuration needed.
 
@@ -205,10 +225,12 @@ This happens automatically—no configuration needed.
 
 ## Version Comparison
 
-| Feature | Vanilla (v3.66.6) | Latest (v3.69.0-EXP) |
-|---------|-------------------|------------------|
+| Feature | Vanilla (v3.66.6) | Latest (v3.69.0-EXP+) |
+|---------|-------------------|----------------------|
 | **Movement** | Random walk | Self-avoiding random walk |
-| **Unstuck** | Turn left 60° | Turn left 60° |
+| **Unstuck** | Turn left 60° (absolute) | Relative deltas (escalating left) |
+| **Turn Storage** | Absolute angles | Relative turn deltas |
+| **Physical Coherence** | ❌ (ignores arrival) | ✅ (relative to arrival) |
 | **Path Recording** | ✅ | ✅ |
 | **Visited Counter** | ❌ | ✅ |
 | **Self-Avoiding** | ❌ | ✅ (toggle) |
@@ -218,7 +240,7 @@ This happens automatically—no configuration needed.
 
 **Which version to use:**
 - **Vanilla (v3.66.6)**: Classic behavior, simpler random walk, good for testing
-- **Latest (v3.69.0-EXP)**: Better coverage, prefers unvisited areas, recommended for mapping
+- **Latest (v3.69.0-EXP+)**: Better coverage, physically coherent turns, recommended for mapping
 
 See **[VERSIONS.md](VERSIONS.md)** for detailed version history and differences.
 
@@ -228,10 +250,12 @@ See **[VERSIONS.md](VERSIONS.md)** for detailed version history and differences.
 
 ### User Docs
 - **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — What it measures and how it works
+- **[ALGORITHM.md](ALGORITHM.md)** — Complete walking algorithm guide
 - **[VERSIONS.md](VERSIONS.md)** — Version comparison and history
 - **[DEVELOPER.md](DEVELOPER.md)** — Developer guide (build, test, API reference)
 - **[Spec.md](Spec.md)** — Technical specification
 - **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Auto-recovery details
+- **[SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md)** — Self-avoiding walk design
 - **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** — Architecture & history
 
 ---

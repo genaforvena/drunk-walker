@@ -90,8 +90,9 @@ drunk-walker/
 │  ┌─────────────────────┐  ┌─────────────────────┐          │
 │  │ Self-Avoiding       │  │ Unstuck             │          │
 │  │ - Turn at visited   │  │ - Recovery when     │          │
-│  │ - 20°-50° left      │  │   stuck (≥3 ticks)  │          │
-│  │ - Immediate step    │  │ - 30°-90° left      │          │
+│  │ - Relative deltas   │  │   stuck (≥3 ticks)  │          │
+│  │ - -15° to -45° incr │  │ - Relative deltas   │          │
+│  │ - Immediate step    │  │ - Escalating left   │          │
 │  └─────────────────────┘  └─────────────────────┘          │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -140,7 +141,8 @@ drunk-walker/
   status: 'IDLE' | 'WALKING',
   steps: number,
   stuckCount: number,
-  visitedUrls: Set<string>  // For self-avoiding walk
+  visitedUrls: Set<string>,  // For self-avoiding walk
+  currentYaw: number         // Current facing direction (0-360°)
 }
 ```
 
@@ -158,20 +160,52 @@ drunk-walker/
 
 The navigation module contains all movement algorithms as pluggable strategies:
 
+**Key Innovation (v3.69.0-EXP+): Relative Turn Deltas**
+
+Instead of storing absolute angles ("I was facing 70° here"), the algorithm stores relative turn deltas ("I turned -30° left here"). This ensures physically coherent behavior regardless of arrival direction.
+
 **Strategies:**
-- `createSelfAvoidingNavigation()` - Prefers unvisited nodes
-- `createUnstuckNavigation()` - Recovery from stuck state
-- `createNavigationController()` - Combines both strategies
+- `createUnstuckNavigation()` - Recovery from stuck state (relative deltas, escalating left turns)
+- `createNavigationController()` - Combines strategies, manages global orientation
+
+**Delta Storage:**
+```javascript
+// Map<location, delta> where delta is always negative (0 to -90°)
+const locationTurnDeltas = new Map();
+
+// Example:
+// "37.7749,-122.4194" → -30  (turned 30° left here last time)
+// "37.7750,-122.4195" → -55  (turned 55° left here last time)
+```
+
+**Delta Calculation:**
+```javascript
+// Get previous delta (0 if first visit)
+const prevTurnDelta = locationTurnDeltas.get(currentLocation) || 0;
+
+// Add random left increment (-15 to -45 degrees)
+const randomLeftIncrement = -15 - Math.random() * 30;
+
+// Compute new delta (escalating, always negative)
+let baseDelta = prevTurnDelta + randomLeftIncrement;
+
+// Clamp to -90° maximum
+baseDelta = Math.max(-90, baseDelta);
+
+// Apply to current facing
+const newYaw = normalizeAngle(currentYaw + baseDelta);
+
+// Store for next visit
+locationTurnDeltas.set(currentLocation, baseDelta);
+```
 
 **Navigation Decision Flow:**
 ```javascript
 tick(context) {
-  // Priority: Unstuck > Self-Avoiding > Normal movement
+  // Priority: Unstuck > Normal movement
   if (stuckCount >= panicThreshold) {
-    return unstuck.executeUnstuck();  // Turn 30°-90° left
-  }
-  if (atVisitedNode && selfAvoiding) {
-    return selfAvoiding.executeStep();  // Turn 20°-50° left
+    return unstuck.executeUnstuck(stuckCount, threshold, currentYaw);
+    // Returns: { action: 'turn', turnAngle: baseDelta, newYaw }
   }
   return { action: 'move' };  // Normal forward movement
 }
@@ -180,53 +214,67 @@ tick(context) {
 **To Change Navigation Behavior:**
 Edit `src/core/navigation.js` - engine.js delegates all movement decisions there.
 
+**Key Invariants:**
+1. `lastTurnDelta` is always negative (left turn magnitude)
+2. Same location gets escalating turns (more negative each visit)
+3. Turn is relative to arrival (physically coherent)
+4. Maximum -90° clamp (never turns more than 90° left)
+
 ### Unstuck Algorithm
 
 ```javascript
 // Navigation module: createUnstuckNavigation()
-// Triggered when stuckCount >= 3
-TURNING:   Hold ArrowLeft for random duration (300-900ms = 30°-90°)
-MOVING:    Press ArrowUp immediately after turn
-VERIFYING: Check if URL changed after pace interval
-           ├─ Success: stuckCount = 0, resume walking
-           └─ Failure: stuckCount++, retry next cycle
+// Triggered when stuckCount >= panicThreshold (default: 3)
+
+1. Retrieve lastTurnDelta for location (default: 0)
+2. Compute: baseDelta = prevDelta + random(-15°, -45°)
+3. Clamp: baseDelta = max(-90, baseDelta)
+4. Apply: newYaw = normalize(currentYaw + baseDelta)
+5. TURNING: Hold ArrowLeft for |baseDelta| × 10ms
+6. MOVING: Press ArrowUp immediately after turn
+7. VERIFYING: Check if URL changed after pace interval
+   ├─ Success: stuckCount = 0, resume walking
+   └─ Failure: stuckCount++, retry next cycle
 ```
 
-**Design Principle:** Always turn left. Consistent behavior over optimal behavior.
+**Design Principle:** Always turn left. Store relative delta. Escalate on each visit.
 
 ### Self-Avoiding Walk (v3.69.0-EXP+)
 
+Uses the same relative delta mechanism as unstuck:
+
 ```javascript
-// Navigation module: createSelfAvoidingNavigation()
-executeSelfAvoidingStep() {
-  if (visitedUrls.has(currentLocation)) {
-    // At visited node: turn left 20°-50°
-    turnLeft(random 200-500ms);
-    press ArrowUp();  // Immediate step
-  }
-}
+// At visited location:
+1. Retrieve lastTurnDelta for location
+2. Compute: baseDelta = prevDelta + random(-15°, -45°)
+3. Apply: newYaw = normalize(currentYaw + baseDelta)
+4. Turn left (ArrowLeft) for |baseDelta| × 10ms
+5. Press ArrowUp immediately
+6. Store new delta, update currentYaw
 ```
 
 **Effect:** ~3-5x better coverage efficiency than pure random walk.
 
 **Key Features:**
-- Turns left 20°-50° at visited locations
+- Turns left at visited locations with escalating delta
 - Immediately steps forward after turning
-- Verifies URL changed before allowing next action
+- Physically coherent (relative to arrival direction)
 - Prevents continuous rotation (state machine ensures completion)
 
 ### Path Recording
 
 ```javascript
-// Enabled via checkbox in UI (on by default in v3.69.0-EXP)
+// Enabled via checkbox in UI (on by default in v3.69.0-EXP+)
 walkPath = [
-  { url: "https://...", rotation: 60 },
-  { url: "https://...", rotation: 60 }
+  { url: "https://...", currentYaw: 330 },
+  { url: "https://...", currentYaw: 0 }
 ]
 
 // Exported as JSON via clipboard
 // Merge multiple sessions: node merge-paths.js path1.json path2.json > merged.json
 ```
+
+**Note:** Only `url` and `currentYaw` are recorded. Location is extracted from URL when needed.
 
 ---
 
@@ -340,6 +388,7 @@ engine.getStatus()              // 'IDLE' | 'WALKING'
 engine.getSteps()               // number
 engine.getStuckCount()          // number
 engine.getVisitedCount()        // number (unique locations)
+engine.getCurrentYaw()          // number (0-360°, current facing direction)
 engine.isNavigating()           // boolean
 
 // Configuration
@@ -353,10 +402,13 @@ engine.stop()
 engine.reset()
 
 // Path recording
-engine.getWalkPath()            // Array of {url, location, rotation}
+engine.getWalkPath()            // Array of {url, currentYaw}
 engine.clearWalkPath()          // Clear recorded path
 engine.setWalkPath(path)        // Import path from array
 engine.restoreVisitedFromPath(path)  // Restore visited set from path
+
+// Yaw tracking
+engine.resetCurrentYaw()        // Reset current facing to 0°
 
 // Navigation (debugging)
 engine.getNavigation()          // Get navigation controller instance
@@ -374,15 +426,19 @@ const result = navigation.tick({
   currentUrl,
   visitedUrls,
   stuckCount,
-  isKeyboardMode
+  isKeyboardMode,
+  currentYaw                    // Current facing direction (0-360°)
 });
-// Result: { action: 'turn'|'move'|'none', busy: boolean, strategy: string }
+// Result: { action: 'turn'|'move'|'none', busy: boolean, strategy: string, newYaw: number }
 
 // State
-navigation.getCumulativeTurnAngle()  // Total degrees turned
-navigation.resetCumulativeTurnAngle()
+navigation.getCumulativeTurnAngle()  // Total degrees turned (alias for getCurrentYaw)
+navigation.getCurrentYaw()           // Current facing direction (0-360°)
 navigation.reset()                   // Reset all state
 navigation.getState()                // Debug info
+
+// Unstuck access (debugging)
+navigation.unstuck.getDeltaForLocation(loc)  // Get stored delta for location
 ```
 
 ### UI Controller API
@@ -502,8 +558,9 @@ Server provides:
 
 | Version | Name | Changes |
 |---------|------|---------|
-| v3.67.1-EXP | **Latest** | Navigation module refactoring, URL verification fix |
-| v3.67.0-EXP | **Navigation** | Self-avoiding walk, visited counter, path merge utility |
+| v3.69.0-EXP+ | **Relative Deltas** | Relative turn deltas, escalating left turns, physical coherence |
+| v3.67.1-EXP | **Navigation Module** | Navigation module refactoring, URL verification fix |
+| v3.67.0-EXP | **Self-Avoiding** | Self-avoiding walk, visited counter, path merge utility |
 | v3.66.6-EXP | **Vanilla** | Path recording with JSON export, fixed 60° turn (tagged stable reference) |
 | v3.4-EXP | | Path recording with JSON export, fixed 60° turn |
 | v3.3-EXP | | Auto-unstuck algorithm |
@@ -517,8 +574,10 @@ See **[VERSIONS.md](VERSIONS.md)** for detailed version comparison.
 ## Resources
 
 - **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — What it measures and how it works
+- **[ALGORITHM.md](ALGORITHM.md)** — Complete walking algorithm guide
 - **[VERSIONS.md](VERSIONS.md)** — Version comparison and history
 - **[README.md](README.md)** — User documentation
 - **[Spec.md](Spec.md)** — Technical specification
-- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Unstuck details
+- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Unstuck recovery details
+- **[SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md)** — Self-avoiding walk design
 - **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** — Project history
