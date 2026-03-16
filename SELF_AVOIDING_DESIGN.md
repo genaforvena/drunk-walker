@@ -1,190 +1,67 @@
-# Self-Avoiding Walk Algorithm for Google Street View
+# Self-Avoiding Walk Algorithm (v3.69.0-EXP)
 
-## Problem Analysis
+## Concept
 
-### Street View Navigation Characteristics
+The **self-avoiding random walk** in Drunk Walker is designed to maximize exploration efficiency by biasing the walker away from previously visited locations.
 
-1. **Discrete Nodes**: Street View moves between fixed 360° panorama positions, not continuous space
-2. **Graph Structure**: Each location has 1-4+ connected neighbors (forward, left, right, back)
-3. **URL Pattern**: `https://www.google.com/maps/@lat,lng,3a,XXy,Yt/data=...`
-   - `lat,lng`: Location coordinates (unique identifier)
-   - `XXy`: Yaw/heading (0-360°)
-   - `Yt`: Pitch/tilt
-4. **Movement**: Arrow Up moves toward the center of the view (current heading)
+## Edge-Based Memory with Angle Accumulation
 
-### Why Current Self-Avoiding Fails
+Instead of simple visit counting, version 3.69.0-EXP uses **Location + Heading Memory**:
 
-**Current Logic (visit counting):**
-```
-1. Arrive at location A → visitCount[A] = 1
-2. Move forward → arrive at B → visitCount[B] = 1
-3. Move forward → arrive at C → visitCount[C] = 1
-4. Dead end! Turn around
-5. Move forward → arrive at B → visitCount[B] = 2 → TURN!
-6. But turning from B might lead back to A (also visited!)
-```
+### 1. Tracking State
+The engine maintains a `Set` of visited locations (`lat,lng`). 
+The navigation module maintains a `Map` of cumulative turn angles per location.
 
-**Problem:** Simple visit counting doesn't account for:
-- **Direction of travel**: Arriving at B from A ≠ arriving at B from C
-- **Graph topology**: Street View is a graph, not a grid
-- **Heading matters**: Same location, different heading = different exit options
+### 2. Decision Logic
+When the walker arrives at a location:
+1. Check if the location is in `visitedUrls`.
+2. If **Visited**:
+   - Retrieve `prev_turn_angle` for this location.
+   - Generate a `new_random_angle` (20°-50°).
+   - `target_angle = prev_turn_angle + new_random_angle`.
+   - If `target_angle >= 360`, subtract 360.
+   - Execute a left turn (`ArrowLeft`) for the corresponding duration.
+   - Immediately step forward (`ArrowUp`).
+   - Store the new `target_angle` for this location.
+3. If **Unvisited**:
+   - Move forward normally (`ArrowUp`).
+   - Add location to `visitedUrls`.
 
-## Proper Self-Avoiding Algorithm for Street View
+## Global Orientation
 
-### Key Insight
-
-Street View navigation is a **graph traversal problem**, not a spatial one. We should track:
-1. **Visited edges** (transitions between nodes), not just nodes
-2. **Entry direction** (which neighbor we came from)
-3. **Unexplored exits** (neighbors we haven't tried)
-
-### Proposed Algorithm: Edge-Based Self-Avoiding
+The walker maintains a global orientation state that tracks the sum of all turns made since the session started:
 
 ```javascript
-// Track visited EDGES: "fromLocation->toLocation"
-const visitedEdges = new Set();
-
-function shouldTurn(currentLocation, previousLocation) {
-  const edge = `${previousLocation}->${currentLocation}`;
-  
-  // First time traversing this edge
-  if (!visitedEdges.has(edge)) {
-    visitedEdges.add(edge);
-    return false; // Continue forward
-  }
-  
-  // We've traversed this edge before = looping
-  return true; // Turn to find new path
-}
+globalOrientation = (globalOrientation + lastTurnAngle) % 360;
 ```
 
-### Enhanced: Track Entry Heading
-
-```javascript
-// Track (location, entryHeading) pairs
-const visitedStates = new Map(); // "lat,lng@heading" -> count
-
-function shouldTurn(currentLocation, currentHeading) {
-  const state = `${currentLocation}@${roundHeading(currentHeading)}`;
-  const count = visitedStates.get(state) || 0;
-  visitedStates.set(state, count + 1);
-  
-  // Turn if we've been here with SAME heading before
-  return count >= 1;
-}
-```
-
-### Best Approach: Unexplored Frontier
-
-```javascript
-// Track which locations have unexplored exits
-const frontier = new Set(); // Locations with untried exits
-const fullyExplored = new Set(); // All exits tried
-
-function onMove(fromLocation, toLocation) {
-  // Mark edge as traversed
-  markEdgeTraversed(fromLocation, toLocation);
-  
-  // Add new location to frontier
-  if (!fullyExplored.has(toLocation)) {
-    frontier.add(toLocation);
-  }
-  
-  // Check if current location is fully explored
-  if (isFullyExplored(currentLocation)) {
-    frontier.delete(currentLocation);
-    fullyExplored.add(currentLocation);
-  }
-}
-
-function shouldTurn() {
-  // Turn if we're at a fully explored location
-  return fullyExplored.has(currentLocation);
-}
-```
-
-## Implementation Status
-
-**DEFAULT BEHAVIOR (v3.67.6+):** Self-avoiding walk is **ENABLED by default** (opt-out)
-
-Users can disable via control panel checkbox if they prefer simple random walk.
-
-For Drunk Walker's blind traversal (no map, no neighbor discovery), use **Entry State Tracking**:
-
-```javascript
-// Track (location + approximate entry heading) as state
-const visitedStates = new Map();
-
-function onArrive(location, heading) {
-  // Round heading to 45° bins (8 directions)
-  const binnedHeading = Math.round(heading / 45) * 45;
-  const state = `${location}@${binnedHeading}`;
-  
-  const count = visitedStates.get(state) || 0;
-  visitedStates.set(state, count + 1);
-  
-  return count; // 0 = first visit, 1+ = revisit
-}
-
-function shouldTurn(location, heading) {
-  const revisitCount = onArrive(location, heading);
-  
-  // Turn only if we've been here with similar heading before
-  // This allows exploring all exits before giving up
-  return revisitCount >= 1;
-}
-```
+This orientation is recorded in every step of the path export, allowing for reconstruction of the walk's geometry.
 
 ## Why This Works
 
-| Scenario | Simple Count | Entry State | Result |
-|----------|-------------|-------------|--------|
-| Arrive at A from north | count=1 | A@0°=1 | Continue |
-| Leave A, return from south | count=2 | A@180°=1 | Continue ✅ |
-| Return to A from north again | count=3 | A@0°=2 | **TURN** ✅ |
+| Feature | Benefit |
+|---------|---------|
+| **Angle Accumulation** | Prevents getting "stuck" in a preferred turn direction at a specific intersection. |
+| **360° Wrapping** | Ensures the walker eventually tries all directions at a node if it keeps returning. |
+| **Immediate Step** | Reduces time wasted in rotation; movement happens as soon as the heading changes. |
+| **Global Tracking** | Provides a continuous heading for spatial analysis. |
 
-**Simple counting** turns on 2nd visit even if it's a different path.
-**Entry state** allows exploring all approaches to a location before turning.
+## Implementation Details (navigation.js)
+
+```javascript
+const prevTurnAngle = locationTurns.get(currentLocation) || 0;
+const turnAngleChange = Math.round(getRandomTurnDuration() / 10);
+
+let newLocationAngle = prevTurnAngle + turnAngleChange;
+if (newLocationAngle >= 360) newLocationAngle -= 360;
+
+locationTurns.set(currentLocation, newLocationAngle);
+```
 
 ## Testing Checklist
 
-All tests automated in `src/core/self-avoiding.test.js` ✅
-
-- [x] **Straight corridor**: Walk forward without turning
-  - Test: "should walk forward without turning at new locations"
-  - Verifies: New locations don't trigger turns
-  
-- [x] **T-junction**: Explore all 3 branches
-  - Test: "should explore all branches of T-junction"
-  - Verifies: Different headings = different states
-  
-- [x] **Loop**: Detect and escape circular paths
-  - Test: "should detect loop when returning with same heading"
-  - Verifies: Same location+heading triggers turn
-  
-- [x] **Dead end**: Turn around efficiently
-  - Test: "should handle dead end by turning around"
-  - Verifies: Stuck detection + recovery
-  
-- [x] **Grid**: Systematic coverage without repetition
-  - Test: "should explore grid systematically"
-  - Verifies: Multi-direction exploration
-  
-- [x] **Open plaza**: Spiral outward pattern
-  - Test: "should handle realistic walk scenario"
-  - Verifies: Full integration with heading tracking
-
-### Additional Tests
-
-- [x] **Heading State Tracking**:
-  - "should distinguish same location with different headings"
-  - "should detect revisit with same binned heading"
-  - "should bin similar headings together"
-
-### Run Tests
-
-```bash
-npm test -- src/core/self-avoiding.test.js
-```
-
-Expected output: **9 tests passed** ✅
+Verified in `src/core/self-avoiding.test.js`:
+- [x] **New Locations**: No turning, straight forward movement.
+- [x] **Revisited Locations**: Accumulate angle and turn left.
+- [x] **Angle Wrapping**: Subtract 360 when exceeding the limit.
+- [x] **Global Orientation**: Continuous tracking across multiple turns.

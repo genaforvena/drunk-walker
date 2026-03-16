@@ -66,15 +66,15 @@ When you get stuck (same location for 3 steps):
 
 ```
 ┌─────────────────────────────┐
-│ 🤪 DRUNK WALKER v3.67.7-EXP│
+│ 🤪 DRUNK WALKER v3.69.0-EXP −│
+├─────────────────────────────┤
+│ STEPS: 42                   │
 ├─────────────────────────────┤
 │ STATUS: WALKING             │
-│ STEPS: 42                   │
 │ VISITED: 38                 │
 │ PACE: 2.0s     [━━━━○━━━]   │
-│ ☑ Record Path               │
-│ ☑ Self-Avoiding Walk        │
-│ [📋 Copy] [💾 Download]     │
+│ [💾 Download Path]          │
+│ [📄 Download Logs]          │
 │ [📂 Restore Walk]           │
 │ [🔴 STOP]                   │
 └─────────────────────────────┘
@@ -82,12 +82,12 @@ When you get stuck (same location for 3 steps):
 
 | Control | What It Does |
 |---------|--------------|
+| **− / +** | Minimize/Maximize the control panel |
+| **STEPS** | Total steps taken (always visible) |
 | **START/STOP** | Begin or end the walk |
 | **Pace Slider** | Adjust speed (0.5–5.0 seconds per step) |
-| **Record Path** | Enable path recording (on by default) |
-| **Self-Avoiding Walk** | Prefer unvisited nodes (on by default) |
-| **📋 Copy** | Copy path JSON to clipboard |
-| **💾 Download** | Download path as JSON file |
+| **💾 Download Path** | Download recorded path as JSON file |
+| **📄 Download Logs** | Download session logs as text file |
 | **📂 Restore Walk** | Load and resume a saved walk from JSON file |
 | **Visited Counter** | Shows unique locations visited |
 | **Status** | Shows WALKING, STUCK, or IDLE |
@@ -98,11 +98,12 @@ When you get stuck (same location for 3 steps):
 
 ### Always On
 - **Auto-Unstuck**: Recovers automatically when stuck (60° left turn)
-- **Path Recording**: Records your route automatically (can be disabled)
+- **Path Recording**: Saves your walk for later analysis or merging
+- **Self-Avoiding Walk**: Prefers unvisited nodes for better coverage efficiency
 - **Smart Pause**: Stops when you drag to look around, resumes when done
 
-### New in v3.67.0
-- **Self-Avoiding Walk**: Prefers unvisited nodes for better coverage
+### New in v3.69.0-EXP
+- **Minimized UI Mode**: Collapse the panel to save space while walking
 - **Visited Counter**: Track unique locations explored
 - **Path Merge Utility**: Combine multiple session exports
 
@@ -204,7 +205,7 @@ This happens automatically—no configuration needed.
 
 ## Version Comparison
 
-| Feature | Vanilla (v3.66.6) | Latest (v3.67.0) |
+| Feature | Vanilla (v3.66.6) | Latest (v3.69.0-EXP) |
 |---------|-------------------|------------------|
 | **Movement** | Random walk | Self-avoiding random walk |
 | **Unstuck** | Turn left 60° | Turn left 60° |
@@ -217,7 +218,7 @@ This happens automatically—no configuration needed.
 
 **Which version to use:**
 - **Vanilla (v3.66.6)**: Classic behavior, simpler random walk, good for testing
-- **Latest (v3.67.0)**: Better coverage, prefers unvisited areas, recommended for mapping
+- **Latest (v3.69.0-EXP)**: Better coverage, prefers unvisited areas, recommended for mapping
 
 See **[VERSIONS.md](VERSIONS.md)** for detailed version history and differences.
 
@@ -273,8 +274,8 @@ This is a technical experiment. Use responsibly.
 ## Versioning
 
 Versions are automatically incremented on each push to `main`:
-- **Format**: `v3.67.X-EXP` (patch version auto-increments)
-- **Tags**: Git tags created for each version (e.g., `v3.67.1-exp`)
+- **Format**: `v3.69.X-EXP` (patch version auto-increments)
+- **Tags**: Git tags created for each version (e.g., `v3.69.0-exp`)
 - **Releases**: GitHub releases auto-created with each version bump
 
 See **[VERSIONS.md](VERSIONS.md)** for version history and differences.

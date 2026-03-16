@@ -42,7 +42,7 @@ drunk-walker/
 │   ├── package.json         # Server dependencies
 │   └── walks.db             # SQLite database (created on first run)
 ├── merge-paths.js           # Path merge utility (CLI + browser)
-├── bookmarklet.js           # Built bundle (latest v3.67.1)
+├── bookmarklet.js           # Built bundle (latest v3.69.0-EXP)
 ├── bookmarklet-console.js   # Built bundle (console-friendly)
 ├── index.html               # Dual-version copy page
 ├── dashboard.html           # Walk dashboard (requires server)
@@ -194,7 +194,7 @@ VERIFYING: Check if URL changed after pace interval
 
 **Design Principle:** Always turn left. Consistent behavior over optimal behavior.
 
-### Self-Avoiding Walk (v3.67.0+)
+### Self-Avoiding Walk (v3.69.0-EXP+)
 
 ```javascript
 // Navigation module: createSelfAvoidingNavigation()
@@ -218,7 +218,7 @@ executeSelfAvoidingStep() {
 ### Path Recording
 
 ```javascript
-// Enabled via checkbox in UI (on by default in v3.67.0)
+// Enabled via checkbox in UI (on by default in v3.69.0-EXP)
 walkPath = [
   { url: "https://...", rotation: 60 },
   { url: "https://...", rotation: 60 }

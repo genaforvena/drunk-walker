@@ -46,8 +46,8 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('selfAvoiding:');
   });
   
-  it('should have correct version 3.67.7', () => {
-    expect(bundleCode).toContain('3.67.7-EXP');
+  it('should have correct version 3.69.0', () => {
+    expect(bundleCode).toContain('3.69.0-EXP');
   });
   
   it('should have engine.start() called in main initialization', () => {

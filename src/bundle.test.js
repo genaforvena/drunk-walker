@@ -27,7 +27,7 @@ describe('Bundled Bookmarklet Validation', () => {
     });
 
     it('should have version header', () => {
-      expect(bookmarkletCode).toContain('Drunk Walker v3.67.7-EXP');
+      expect(bookmarkletCode).toContain('Drunk Walker v3.69.0-EXP');
     });
 
     it('should prevent multiple instances', () => {

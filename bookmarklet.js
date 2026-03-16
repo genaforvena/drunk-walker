@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.67.7-EXP - Bundled Build
+// Drunk Walker v3.69.0-EXP - Bundled Build
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 // 
@@ -27,215 +27,51 @@
   // TO CHANGE NAVIGATION: Edit src/core/navigation.js
   /**
  * Navigation Strategies - Pluggable Movement Algorithms
- * 
- * ============================================================================
- * ARCHITECTURE
- * ============================================================================
- * 
- * This module contains ALL navigation/movement logic as swappable strategies.
- * The engine (engine.js) delegates movement decisions to this module.
- * 
- * TO CHANGE NAVIGATION BEHAVIOR:
- * 1. Edit this file (src/core/navigation.js)
- * 2. Or create a new strategy function and swap it in createNavigationController()
- * 
- * ============================================================================
- * STRATEGIES
- * ============================================================================
- * 
- * 1. createSelfAvoidingNavigation()
- *    - Prefers unvisited locations
- *    - Turns left 20°-50° at visited nodes
- *    - Immediately steps forward after turning
- *    - Verifies URL changed before allowing next action
- * 
- * 2. createUnstuckNavigation()
- *    - Recovery from stuck state (≥3 ticks at same URL)
- *    - Turns left 30°-90° with random bounded variation
- *    - Immediately steps forward after turning
- *    - Guaranteed to never get stuck (360° coverage)
- * 
- * 3. createNavigationController()
- *    - Combines both strategies
- *    - Priority: Unstuck > Self-Avoiding > Normal movement
- *    - State machine prevents continuous rotation
- * 
- * ============================================================================
- * STATE MACHINE
- * ============================================================================
- * 
- * Both strategies use the same state machine:
- * 
- *   IDLE ──▶ TURNING ──▶ MOVING ──▶ VERIFYING ──▶ IDLE
- *            (turn)     (step)     (check URL)
- * 
- * While busy (not IDLE), navigation.tick() returns { busy: true },
- * preventing new decisions until the current sequence completes.
- * 
- * ============================================================================
- * INTERFACE
- * ============================================================================
- * 
- * Each strategy returns an object with:
- * - executeStep/executeUnstuck(): Main action, returns { action, busy, ... }
- * - isBusy(): Check if sequence in progress
- * - getCumulativeTurnAngle(): Total degrees turned
- * - resetCumulativeTurnAngle(): Reset angle tracking
- * - reset(): Reset all state
- * - getState(): Debug info
- * 
- * createNavigationController() provides:
- * - tick(context): Main entry point, returns { action, busy, strategy }
- * - getCumulativeTurnAngle(), resetCumulativeTurnAngle(), reset, getState()
- * 
- * ============================================================================
- * EXAMPLE: Creating a Custom Strategy
- * ============================================================================
- * 
- * function createMyCustomNavigation(cfg, callbacks) {
- *   let state = 'IDLE';
- *   
- *   const executeStep = (currentUrl, visitedUrls) => {
- *     if (state !== 'IDLE') return { action: 'none', busy: false };
- *     
- *     // Your custom logic here
- *     if (shouldTurn()) {
- *       state = 'TURNING';
- *       callbacks.onLongKeyPress('ArrowLeft', 500, () => {
- *         callbacks.onKeyPress('ArrowUp');
- *         setTimeout(() => { state = 'IDLE'; }, cfg.pace);
- *       });
- *       return { action: 'turn', busy: true };
- *     }
- *     
- *     return { action: 'move', busy: false };
- *   };
- *   
- *   return {
- *     executeStep,
- *     isBusy: () => state !== 'IDLE',
- *     getCumulativeTurnAngle: () => 0,
- *     resetCumulativeTurnAngle: () => {},
- *     reset: () => { state = 'IDLE'; },
- *     getState: () => ({ state })
- *   };
- * }
  */
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SELF-AVOIDING NAVIGATION STRATEGY
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * Self-Avoiding Random Walk Navigation
- * 
- * Behavior:
- * - Detects when at a visited location
- * - Turns left with random bounded angle (20°-50°)
- * - Immediately steps forward after turn
- * - Verifies URL changed before allowing next action
- * 
- * @param {Object} cfg - Configuration object
- * @param {Object} callbacks - Callback functions
- * @returns {Object} Navigation strategy instance
- */
 function createSelfAvoidingNavigation(cfg, callbacks) {
   const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
 
-  // State machine: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING'
   let state = 'IDLE';
   let urlBeforeTurn = '';
-  let cumulativeTurnAngle = 0;
   
-  // Track tried turn directions at each location to avoid repeating
-  // Key: location, Value: Set of turn angles tried (binned to 30° = 12 directions)
-  const triedTurns = new Map();
+  // Track cumulative turn angle for each location (local memory)
+  const locationTurns = new Map();
 
-  /**
-   * Bin turn angle to nearest 30° (12 directions)
-   * @param {number} angle - Turn angle (0-360)
-   * @returns {number} Binned angle
-   */
-  const binTurnAngle = (angle) => {
-    return Math.round(angle / 30) * 30;
-  };
-
-  /**
-   * Get a new turn angle that hasn't been tried at this location
-   * @param {string} location - Current location
-   * @returns {number} Turn angle in ms (200-500ms = 20°-50°)
-   */
-  const getNewTurnAngle = (location) => {
-    const tried = triedTurns.get(location) || new Set();
-    
-    // Generate random angle between 20°-50° (200-500ms)
-    // If we've tried 3+ angles, just pick random
-    if (tried.size >= 3) {
-      triedTurns.delete(location);  // Reset memory
-      return getRandomTurnAngle();
-    }
-    
-    // Try up to 5 times to find untried angle
-    for (let i = 0; i < 5; i++) {
-      const angle = getRandomTurnAngle();
-      const binned = binTurnAngle(angle);
-      if (!tried.has(binned)) {
-        tried.add(binned);
-        triedTurns.set(location, tried);
-        return angle;
-      }
-    }
-    
-    // All angles tried, pick random anyway
-    return getRandomTurnAngle();
-  };
-
-  /**
-   * Get random turn angle (20°-50° = 200-500ms)
-   * @returns {number} Turn duration in ms
-   */
   const getRandomTurnAngle = () => {
     const randomVariation = (Math.random() - 0.5) * 300;  // ±150ms = ±15°
     const baseDuration = cfg.turnDuration / 2;  // ~300ms = ~30°
     return Math.max(200, Math.min(500, baseDuration + randomVariation));
   };
 
-  /**
-   * Execute self-avoiding step
-   * @param {string} currentUrl - Current page URL
-   * @param {Set} visitedUrls - Set of visited location identifiers
-   * @returns {Object} Action result: { action: 'turn'|'move'|'none', ... }
-   */
   const executeStep = (currentUrl, visitedUrls) => {
     if (!cfg.selfAvoiding || !onKeyPress) return { action: 'none' };
-    if (state !== 'IDLE') return { action: 'none' }; // Already in progress
+    if (state !== 'IDLE') return { action: 'none' };
 
     const currentLocation = extractLocation(currentUrl);
     
-    // Self-avoiding only triggers when we're stuck (URL hasn't changed)
-    // This is handled by the engine's stuck detection, not here
-    // Self-avoiding just influences TURN DIRECTION selection
-    
-    // ALWAYS TURN LEFT - but pick angle we haven't tried at this location
-    const turnKey = 'ArrowLeft';
-    const turnDuration = getNewTurnAngle(currentLocation);
+    // Logic: prev_angle + new_random. If > 360, subtract 360.
+    const prevTurnAngle = locationTurns.get(currentLocation) || 0;
+    const turnDuration = getRandomTurnAngle();
     const turnAngleChange = Math.round(turnDuration / 10);
 
-    // Update cumulative turn angle
-    cumulativeTurnAngle = (cumulativeTurnAngle + turnAngleChange) % 360;
+    let newLocationAngle = prevTurnAngle + turnAngleChange;
+    if (newLocationAngle >= 360) newLocationAngle -= 360;
+    locationTurns.set(currentLocation, newLocationAngle);
 
-    // Start turn + move sequence: TURN -> MOVE -> VERIFY
     urlBeforeTurn = currentUrl;
     state = 'TURNING';
 
     if (onLongKeyPress) {
-      onLongKeyPress(turnKey, turnDuration, () => {
-        console.log(`⬅️ Self-avoiding turn ~${turnAngleChange}° (cumulative: ${cumulativeTurnAngle}°)`);
-        // After turn completes, immediately step forward
+      onLongKeyPress('ArrowLeft', turnDuration, () => {
+        console.log(`⬅️ Self-avoiding turn ~${turnAngleChange}° (loc angle: ${newLocationAngle}°)`);
         if (onKeyPress) onKeyPress('ArrowUp');
         console.log(`⬆️ Moving forward after turn`);
 
-        // Verify after delay
         setTimeout(() => {
           state = 'VERIFYING';
           const newUrl = typeof window !== 'undefined' ? window.location.href : urlBeforeTurn;
@@ -243,17 +79,14 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
 
           if (newUrl !== urlBeforeTurn) {
             visitedUrls.add(newLocation);
-            console.log(`✅ Self-avoiding step successful - moved to: ${newLocation} (stuck reset to 0)`);
-            // Clear tried turns for new location
-            triedTurns.delete(newLocation);
+            console.log(`✅ Self-avoiding step successful - moved to: ${newLocation}`);
           } else {
             console.log(`⚠️ Still at same location after ${turnAngleChange}° turn`);
           }
 
           state = 'IDLE';
-          // Reset stuck count on success (handled by engine via callback)
           if (onStatusUpdate) {
-            onStatusUpdate('WALKING', 0, 0);  // Reset stuck on successful move
+            onStatusUpdate('WALKING', 0, 0);
           }
         }, cfg.pace);
       });
@@ -261,55 +94,19 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
 
     return {
       action: 'turn',
-      turnAngle: turnAngleChange,
-      cumulativeTurnAngle
+      turnAngle: turnAngleChange
     };
   };
 
-  /**
-   * Check if navigation sequence is in progress
-   * @returns {boolean} True if busy with turn/move/verify sequence
-   */
-  const isBusy = () => state !== 'IDLE';
-
-  /**
-   * Get current cumulative turn angle
-   * @returns {number} Degrees turned (0-360)
-   */
-  const getCumulativeTurnAngle = () => cumulativeTurnAngle;
-
-  /**
-   * Reset cumulative turn angle
-   */
-  const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
-
-  /**
-   * Reset strategy state
-   */
-  const reset = () => {
-    state = 'IDLE';
-    urlBeforeTurn = '';
-    cumulativeTurnAngle = 0;
-    triedTurns.clear();
-  };
-
-  /**
-   * Get current state for debugging
-   * @returns {Object} Current state info
-   */
-  const getState = () => ({
-    state,
-    urlBeforeTurn,
-    cumulativeTurnAngle
-  });
-
   return {
     executeStep,
-    isBusy,
-    getCumulativeTurnAngle,
-    resetCumulativeTurnAngle,
-    reset,
-    getState
+    isBusy: () => state !== 'IDLE',
+    reset: () => {
+      state = 'IDLE';
+      urlBeforeTurn = '';
+      locationTurns.clear();
+    },
+    getState: () => ({ state, locationTurnsCount: locationTurns.size })
   };
 }
 
@@ -317,81 +114,60 @@ function createSelfAvoidingNavigation(cfg, callbacks) {
 // UNSTUCK NAVIGATION STRATEGY
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * Unstuck Algorithm - Recovery from being stuck
- * 
- * Behavior:
- * - Detects when stuck (URL unchanged for N ticks)
- * - Turns left with random bounded angle (30°-90°)
- * - Immediately steps forward after turn
- * - Verifies URL changed, increments stuck counter if still stuck
- * - Guaranteed to eventually escape (360° coverage)
- * 
- * @param {Object} cfg - Configuration object
- * @param {Object} callbacks - Callback functions
- * @returns {Object} Navigation strategy instance
- */
 function createUnstuckNavigation(cfg, callbacks) {
-  const { onKeyPress, onLongKeyPress, onStatusUpdate } = callbacks;
+  const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
 
-  // State machine: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING'
   let state = 'IDLE';
   let urlBeforeUnstuck = '';
-  let cumulativeTurnAngle = 0;
+  
+  // Memory of turns per location
+  const locationTurns = new Map();
 
-  /**
-   * Execute unstuck sequence
-   * @param {number} stuckCount - Current stuck counter
-   * @param {number} panicThreshold - Threshold to trigger unstuck
-   * @returns {Object} Action result: { action: 'turn'|'move'|'none', ... }
-   */
   const executeUnstuck = (stuckCount, panicThreshold) => {
     if (state !== 'IDLE') return { action: 'none' };
     if (!cfg.expOn || stuckCount < panicThreshold) return { action: 'none' };
 
     console.log(`🚨 UNSTUCK TRIGGERED: Stuck count=${stuckCount} (threshold=${panicThreshold})`);
 
-    // Start unstuck sequence: TURN -> MOVE -> VERIFY
-    urlBeforeUnstuck = window.location.href;
+    const currentUrl = window.location.href;
+    const currentLocation = extractLocation(currentUrl);
+
+    urlBeforeUnstuck = currentUrl;
     state = 'TURNING';
 
     // Turn left with bounded randomization (~30° to ~90°)
-    // ALWAYS turns left - never right, never stuck
     const baseTurnDuration = cfg.turnDuration;  // 600ms = ~60°
     const randomVariation = (Math.random() - 0.5) * 600;  // ±300ms = ±30°
     const turnDuration = Math.max(300, Math.min(900, baseTurnDuration + randomVariation));
     const turnAngle = Math.round(turnDuration / 10);
 
+    // Logic: prev_angle + new_random. If > 360, subtract 360.
+    const prevTurnAngle = locationTurns.get(currentLocation) || 0;
+    let newLocationAngle = prevTurnAngle + turnAngle;
+    if (newLocationAngle >= 360) newLocationAngle -= 360;
+    locationTurns.set(currentLocation, newLocationAngle);
+
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', turnDuration, () => {
-        // Track turn angle
-        cumulativeTurnAngle = (cumulativeTurnAngle + turnAngle) % 360;
-        console.log(`⬅️ Unstuck: Turning left ~${turnAngle}° (cumulative: ${cumulativeTurnAngle}°)`);
-
-        // After turn, move forward
+        console.log(`⬅️ Unstuck: Turning left ~${turnAngle}° (loc angle: ${newLocationAngle}°)`);
         state = 'MOVING';
         if (onKeyPress) onKeyPress('ArrowUp');
         console.log(`⬆️ Unstuck: Moving forward after turn`);
 
-        // Verify after delay
         setTimeout(() => {
           state = 'VERIFYING';
           const newUrl = typeof window !== 'undefined' ? window.location.href : urlBeforeUnstuck;
 
-          // stuckCount returned here: 0 if moved, stuckCount+1 if still stuck
           let newStuckCount = 0;
           if (newUrl !== urlBeforeUnstuck) {
-            // Successfully moved to new location - FRESH START!
             newStuckCount = 0;
-            console.log(`✅ Unstuck SUCCESS - moved to new location (stuck reset to 0)`);
+            console.log(`✅ Unstuck SUCCESS - moved to new location`);
           } else {
-            // Still at same location - increment stuck
             newStuckCount = stuckCount + 1;
             console.log(`⚠️ Still at same location after ${turnAngle}° left turn (stuck=${newStuckCount})`);
           }
 
           state = 'IDLE';
-          // Return stuckCount to engine for reset
           if (onStatusUpdate) {
             onStatusUpdate('WALKING', 0, newStuckCount);
           }
@@ -401,55 +177,19 @@ function createUnstuckNavigation(cfg, callbacks) {
 
     return {
       action: 'turn',
-      turnAngle,
-      cumulativeTurnAngle,
-      willUpdateStuckCount: true
+      turnAngle
     };
   };
 
-  /**
-   * Check if unstuck sequence is in progress
-   * @returns {boolean} True if busy with turn/move/verify sequence
-   */
-  const isBusy = () => state !== 'IDLE';
-
-  /**
-   * Get current cumulative turn angle
-   * @returns {number} Degrees turned (0-360)
-   */
-  const getCumulativeTurnAngle = () => cumulativeTurnAngle;
-
-  /**
-   * Reset cumulative turn angle
-   */
-  const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
-
-  /**
-   * Reset strategy state
-   */
-  const reset = () => {
-    state = 'IDLE';
-    urlBeforeUnstuck = '';
-    cumulativeTurnAngle = 0;
-  };
-
-  /**
-   * Get current state for debugging
-   * @returns {Object} Current state info
-   */
-  const getState = () => ({
-    state,
-    urlBeforeUnstuck,
-    cumulativeTurnAngle
-  });
-
   return {
     executeUnstuck,
-    isBusy,
-    getCumulativeTurnAngle,
-    resetCumulativeTurnAngle,
-    reset,
-    getState
+    isBusy: () => state !== 'IDLE',
+    reset: () => {
+      state = 'IDLE';
+      urlBeforeUnstuck = '';
+      locationTurns.clear();
+    },
+    getState: () => ({ state, locationTurnsCount: locationTurns.size })
   };
 }
 
@@ -457,118 +197,65 @@ function createUnstuckNavigation(cfg, callbacks) {
 // COMBINED NAVIGATION CONTROLLER
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * Combined Navigation Controller
- *
- * Manages both self-avoiding and unstuck strategies.
- * 
- * STRATEGY:
- * - Self-avoiding: Only triggers when stuck (same as unstuck)
- * - Self-avoiding influences TURN DIRECTION (avoids repeating same turn angles)
- * - Unstuck: Falls back if self-avoiding doesn't trigger
- *
- * @param {Object} cfg - Configuration object
- * @param {Object} callbacks - Callback functions
- * @returns {Object} Navigation controller instance
- */
 function createNavigationController(cfg, callbacks) {
   const selfAvoiding = createSelfAvoidingNavigation(cfg, callbacks);
   const unstuck = createUnstuckNavigation(cfg, callbacks);
 
-  /**
-   * Main navigation tick
-   * @param {Object} context - Current navigation context
-   * @param {string} context.currentUrl - Current page URL
-   * @param {Set} context.visitedUrls - Set of visited locations
-   * @param {number} context.stuckCount - Current stuck counter
-   * @param {boolean} context.isKeyboardMode - True if keyboard mode enabled
-   * @returns {Object} Navigation result
-   */
+  // Global orientation (start + all turns made)
+  let globalOrientation = 0;
+
   const tick = (context) => {
     const { currentUrl, visitedUrls, stuckCount, isKeyboardMode } = context || {};
 
-    // Check if either strategy is busy
     if (selfAvoiding.isBusy() || unstuck.isBusy()) {
       return { action: 'none', busy: true };
     }
 
-    // Skip navigation logic if no context provided (busy check only)
-    if (!context) {
-      return { action: 'none', busy: false };
-    }
+    if (!context) return { action: 'none', busy: false };
 
-    // Priority: Self-avoiding when stuck > Unstuck when stuck > Normal movement
-    // Self-avoiding only triggers when stuck (not on every revisit)
-    if (isKeyboardMode && cfg.selfAvoiding && stuckCount >= cfg.panicThreshold) {
-      // Use self-avoiding turn (picks new turn angle) when stuck
-      const result = selfAvoiding.executeStep(currentUrl, visitedUrls);
-      if (result.action !== 'none') {
-        return {
-          ...result,
-          strategy: 'self-avoiding',
-          busy: true
-        };
-      }
-    }
-    
-    // Fallback to unstuck if self-avoiding didn't trigger
+    // 1. UNSTUCK - URL hasn't changed
     if (cfg.expOn && stuckCount >= cfg.panicThreshold) {
       const result = unstuck.executeUnstuck(stuckCount, cfg.panicThreshold);
       if (result.action !== 'none') {
-        return {
-          ...result,
-          strategy: 'unstuck',
-          busy: true
-        };
+        globalOrientation += result.turnAngle;
+        if (globalOrientation >= 360) globalOrientation -= 360;
+        console.log(`🧭 Global orientation: ${globalOrientation}°`);
+        return { ...result, strategy: 'unstuck', busy: true, cumulativeTurnAngle: globalOrientation };
       }
     }
 
-    // Normal movement (no special navigation needed)
-    return {
-      action: 'move',
-      strategy: 'normal',
-      busy: false
-    };
-  };
+    // 2. SELF-AVOIDING - At a visited location
+    const currentLocation = callbacks.extractLocation(currentUrl);
+    if (isKeyboardMode && cfg.selfAvoiding && visitedUrls.has(currentLocation)) {
+      const result = selfAvoiding.executeStep(currentUrl, visitedUrls);
+      if (result.action !== 'none') {
+        globalOrientation += result.turnAngle;
+        if (globalOrientation >= 360) globalOrientation -= 360;
+        console.log(`🧭 Global orientation: ${globalOrientation}°`);
+        return { ...result, strategy: 'self-avoiding', busy: true, cumulativeTurnAngle: globalOrientation };
+      }
+    }
 
-  /**
-   * Get cumulative turn angle (from either strategy)
-   * @returns {number} Total degrees turned
-   */
-  const getCumulativeTurnAngle = () => {
-    return selfAvoiding.getCumulativeTurnAngle() || unstuck.getCumulativeTurnAngle();
+    return { action: 'move', strategy: 'normal', busy: false };
   };
-
-  /**
-   * Reset all navigation state
-   */
-  const reset = () => {
-    selfAvoiding.reset();
-    unstuck.reset();
-  };
-
-  /**
-   * Get navigation state for debugging
-   * @returns {Object} Navigation state
-   */
-  const getState = () => ({
-    selfAvoiding: selfAvoiding.getState(),
-    unstuck: unstuck.getState()
-  });
 
   return {
     tick,
-    getCumulativeTurnAngle,
-    resetCumulativeTurnAngle: () => {
-      selfAvoiding.resetCumulativeTurnAngle();
-      unstuck.resetCumulativeTurnAngle();
+    getCumulativeTurnAngle: () => globalOrientation,
+    resetCumulativeTurnAngle: () => { globalOrientation = 0; },
+    reset: () => {
+      selfAvoiding.reset();
+      unstuck.reset();
+      globalOrientation = 0;
     },
-    reset,
-    getState
+    getState: () => ({
+      globalOrientation,
+      selfAvoiding: selfAvoiding.getState(),
+      unstuck: unstuck.getState()
+    })
   };
 }
 
-// Default export for convenience
 
 
 
@@ -589,7 +276,7 @@ function createNavigationController(cfg, callbacks) {
 
 
 
-const VERSION = '3.67.7-EXP';
+const VERSION = '3.69.0-EXP';
 
 const defaultConfig = {
   pace: 2000,
@@ -1158,7 +845,7 @@ function setupInteractionListeners(callbacks = {}) {
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '3.67.5-EXP',
+    version = '3.69.0-EXP',
     autoStart = true,
     onPathCollectionToggle = null  // Callback for path collection toggle
   } = options;
@@ -1170,10 +857,10 @@ function createControlPanel(engine, options = {}) {
   let visitedEl = null;
   let paceValEl = null;
   let paceSlider = null;
-  let collectCheckbox = null;
-  let copyPathBtn = null;
-  let updateBtn = null;
   let downloadLogsBtn = null;
+  let minimizeBtn = null;
+  let mainContent = null;
+  let isMinimized = false;
   
   // Session logs storage
   const sessionLogs = [];
@@ -1195,25 +882,54 @@ function createControlPanel(engine, options = {}) {
     container.id = 'dw-ctrl-panel';
     container.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;z-index:999999;border:2px solid #0f0;border-radius:10px;box-shadow:0 0 15px #0f0;min-width:180px;user-select:none;';
 
-    // Title
+    // Header with minimize button
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;';
+    
     const title = document.createElement('div');
-    title.innerHTML = `🤪 DRUNK WALKER v${version}<hr style="border-color:#0f0">`;
-    container.appendChild(title);
+    title.innerText = `🤪 DRUNK WALKER v${version}`;
+    title.style.fontSize = '12px';
+    title.style.fontWeight = 'bold';
+    
+    minimizeBtn = document.createElement('button');
+    minimizeBtn.innerText = '−';
+    minimizeBtn.style.cssText = 'background:none;border:1px solid #0f0;color:#0f0;cursor:pointer;padding:0 5px;font-weight:bold;font-size:14px;';
+    minimizeBtn.onclick = toggleMinimize;
+    
+    header.appendChild(title);
+    header.appendChild(minimizeBtn);
+    container.appendChild(header);
 
-    // Stats
+    const hr = document.createElement('hr');
+    hr.id = 'dw-header-hr';
+    hr.style.borderColor = '#0f0';
+    container.appendChild(hr);
+
+    // Visible Steps (Always visible or in steps section)
+    const stepsLine = document.createElement('div');
+    stepsLine.style.margin = '5px 0';
+    stepsLine.innerHTML = 'STEPS: <span id="dw-steps">0</span>';
+    container.appendChild(stepsLine);
+    stepsEl = stepsLine.querySelector('#dw-steps');
+
+    // Main Content wrapper (Toggleable)
+    mainContent = document.createElement('div');
+    mainContent.id = 'dw-main-content';
+    
+    // Remaining Stats
     const stats = document.createElement('div');
-    stats.style.margin = '10px 0';
-    stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>STEPS: <span id="dw-steps">0</span><br>VISITED: <span id="dw-visited">0</span>';
-    container.appendChild(stats);
+    stats.style.margin = '5px 0';
+    stats.innerHTML = 'STATUS: <span id="dw-status">IDLE</span><br>VISITED: <span id="dw-visited">0</span>';
+    mainContent.appendChild(stats);
     statusEl = stats.querySelector('#dw-status');
-    stepsEl = stats.querySelector('#dw-steps');
     visitedEl = stats.querySelector('#dw-visited');
 
     // Pace control
     const paceLabel = document.createElement('div');
     paceLabel.style.fontSize = '10px';
+    paceLabel.style.marginTop = '10px';
     paceLabel.innerHTML = 'PACE: <span id="dw-pace-val">2.0</span>s';
-    container.appendChild(paceLabel);
+    mainContent.appendChild(paceLabel);
     paceValEl = paceLabel.querySelector('#dw-pace-val');
 
     paceSlider = document.createElement('input');
@@ -1228,88 +944,20 @@ function createControlPanel(engine, options = {}) {
       if (paceValEl) paceValEl.innerText = (newPace / 1000).toFixed(1);
       engine.setPace(newPace);
     };
-    container.appendChild(paceSlider);
+    mainContent.appendChild(paceSlider);
 
-    // Path collection toggle (opt-in)
-    const collectDiv = document.createElement('div');
-    collectDiv.style.fontSize = '10px';
-    collectDiv.style.marginTop = '8px';
-    collectDiv.style.display = 'flex';
-    collectDiv.style.alignItems = 'center';
-    collectDiv.style.gap = '5px';
-    collectCheckbox = document.createElement('input');
-    collectCheckbox.type = 'checkbox';
-    collectCheckbox.id = 'dw-record-path';
-    collectCheckbox.checked = true;  // Enabled by default
-    collectCheckbox.onchange = () => {
-      if (onPathCollectionToggle) {
-        onPathCollectionToggle(collectCheckbox.checked);
-      }
-    };
-    const collectLabel = document.createElement('label');
-    collectLabel.htmlFor = 'dw-record-path';
-    collectLabel.innerText = 'Record Path';
-    collectLabel.style.cursor = 'pointer';
-    collectDiv.appendChild(collectCheckbox);
-    collectDiv.appendChild(collectLabel);
-    container.appendChild(collectDiv);
-
-    // Self-avoiding walk toggle (opt-in)
-    const selfAvoidingDiv = document.createElement('div');
-    selfAvoidingDiv.style.fontSize = '10px';
-    selfAvoidingDiv.style.marginTop = '4px';
-    selfAvoidingDiv.style.display = 'flex';
-    selfAvoidingDiv.style.alignItems = 'center';
-    selfAvoidingDiv.style.gap = '5px';
-    const selfAvoidingCheckbox = document.createElement('input');
-    selfAvoidingCheckbox.type = 'checkbox';
-    selfAvoidingCheckbox.id = 'dw-self-avoiding';
-    selfAvoidingCheckbox.checked = true;  // Enabled by default (opt-out)
-    selfAvoidingCheckbox.onchange = () => {
-      engine.setSelfAvoiding(selfAvoidingCheckbox.checked);
-    };
-    const selfAvoidingLabel = document.createElement('label');
-    selfAvoidingLabel.htmlFor = 'dw-self-avoiding';
-    selfAvoidingLabel.innerText = 'Self-Avoiding Walk';
-    selfAvoidingLabel.style.cursor = 'pointer';
-    selfAvoidingDiv.appendChild(selfAvoidingCheckbox);
-    selfAvoidingDiv.appendChild(selfAvoidingLabel);
-    container.appendChild(selfAvoidingDiv);
-
-    // Path export buttons (Copy + Download)
+    // Path export button (Download only)
     const exportDiv = document.createElement('div');
     exportDiv.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
     
-    // Copy path JSON button
-    copyPathBtn = document.createElement('button');
-    copyPathBtn.innerText = '📋 Copy';
-    copyPathBtn.style.cssText = 'flex:1;padding:6px;background:#0066cc;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
-    copyPathBtn.onclick = () => {
-      const walkPath = engine.getWalkPath();
-      if (walkPath.length === 0) {
-        alert('No path recorded. Enable "Record Path" and start walking!');
-        return;
-      }
-      const jsonStr = JSON.stringify(walkPath, null, 2);
-      navigator.clipboard.writeText(jsonStr).then(() => {
-        copyPathBtn.innerText = '✓ Copied!';
-        setTimeout(() => {
-          copyPathBtn.innerText = '📋 Copy';
-        }, 2000);
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert('Failed to copy to clipboard');
-      });
-    };
-    
     // Download path JSON button
     const downloadPathBtn = document.createElement('button');
-    downloadPathBtn.innerText = '💾 Download';
+    downloadPathBtn.innerText = '💾 Download Path';
     downloadPathBtn.style.cssText = 'flex:1;padding:6px;background:#28a745;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
     downloadPathBtn.onclick = () => {
       const walkPath = engine.getWalkPath();
       if (walkPath.length === 0) {
-        alert('No path recorded. Enable "Record Path" and start walking!');
+        alert('No path recorded. Start walking!');
         return;
       }
       const jsonStr = JSON.stringify(walkPath, null, 2);
@@ -1324,13 +972,12 @@ function createControlPanel(engine, options = {}) {
       URL.revokeObjectURL(url);
       downloadPathBtn.innerText = '✓ Downloaded!';
       setTimeout(() => {
-        downloadPathBtn.innerText = '💾 Download';
+        downloadPathBtn.innerText = '💾 Download Path';
       }, 2000);
     };
     
-    exportDiv.appendChild(copyPathBtn);
     exportDiv.appendChild(downloadPathBtn);
-    container.appendChild(exportDiv);
+    mainContent.appendChild(exportDiv);
 
     // Download logs button
     const logsDiv = document.createElement('div');
@@ -1363,7 +1010,7 @@ function createControlPanel(engine, options = {}) {
     };
     
     logsDiv.appendChild(downloadLogsBtn);
-    container.appendChild(logsDiv);
+    mainContent.appendChild(logsDiv);
 
     // Restore Walk from JSON button
     const restoreBtn = document.createElement('button');
@@ -1414,16 +1061,7 @@ function createControlPanel(engine, options = {}) {
       };
       input.click();
     };
-    container.appendChild(restoreBtn);
-
-    // Update script button
-    updateBtn = document.createElement('button');
-    updateBtn.innerText = '🔄 Update Script';
-    updateBtn.style.cssText = 'width:100%;margin-top:8px;padding:6px;background:#cc6600;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
-    updateBtn.onclick = () => {
-      updateScriptFromGitHub();
-    };
-    container.appendChild(updateBtn);
+    mainContent.appendChild(restoreBtn);
 
     // Start/Stop button
     btn = document.createElement('button');
@@ -1437,13 +1075,32 @@ function createControlPanel(engine, options = {}) {
       }
       updateButton();
     };
-    container.appendChild(btn);
+    mainContent.appendChild(btn);
 
+    container.appendChild(mainContent);
     document.body.appendChild(container);
+    
+    // Ensure features are enabled by default as requested
+    if (onPathCollectionToggle) onPathCollectionToggle(true);
+    engine.setSelfAvoiding(true);
+  };
+
+  const toggleMinimize = () => {
+    isMinimized = !isMinimized;
+    if (isMinimized) {
+      mainContent.style.display = 'none';
+      minimizeBtn.innerText = '+';
+      container.style.minWidth = '100px';
+    } else {
+      mainContent.style.display = 'block';
+      minimizeBtn.innerText = '−';
+      container.style.minWidth = '180px';
+    }
   };
 
   // Update button appearance based on state
   const updateButton = () => {
+    if (!btn) return;
     if (engine.isNavigating()) {
       btn.innerText = '🔴 STOP';
       btn.style.background = '#f00';
@@ -1485,65 +1142,8 @@ function createControlPanel(engine, options = {}) {
     }
   };
 
-  // Path collection state getter
-  const getPathCollectionEnabled = () => collectCheckbox ? collectCheckbox.checked : false;
-
-  // Update script from GitHub
-  const updateScriptFromGitHub = async () => {
-    if (!updateBtn) return;
-    
-    const originalText = updateBtn.innerText;
-    updateBtn.innerText = '⏳ Updating...';
-    updateBtn.disabled = true;
-
-    try {
-      const response = await fetch('https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet-console.js');
-      if (!response.ok) {
-        throw new Error('Failed to fetch latest version');
-      }
-      
-      const latestCode = await response.text();
-      
-      // Extract version from latest code
-      const versionMatch = latestCode.match(/v([\d.]+-EXP)/);
-      const latestVersion = versionMatch ? versionMatch[1] : 'unknown';
-      
-      // Compare with current version
-      const currentVersion = version.replace('v', '').replace('-EXP', '');
-      
-      if (latestVersion.includes(currentVersion)) {
-        updateBtn.innerText = '✓ Up to date!';
-        setTimeout(() => {
-          updateBtn.innerText = originalText;
-          updateBtn.disabled = false;
-        }, 2000);
-        alert(`You're already on the latest version (v${latestVersion})`);
-        return;
-      }
-
-      // Show update confirmation
-      if (confirm(`New version available: v${latestVersion}\n\nThis will copy the latest script to your clipboard. Paste it into the console to update.`)) {
-        await navigator.clipboard.writeText(latestCode);
-        updateBtn.innerText = '✓ Copied!';
-        setTimeout(() => {
-          updateBtn.innerText = originalText;
-          updateBtn.disabled = false;
-        }, 2000);
-        alert('Latest script copied to clipboard!\n\nPaste it into the console (F12) and press Enter to update.');
-      } else {
-        updateBtn.innerText = originalText;
-        updateBtn.disabled = false;
-      }
-    } catch (error) {
-      console.error('Update failed:', error);
-      updateBtn.innerText = '❌ Failed';
-      setTimeout(() => {
-        updateBtn.innerText = originalText;
-        updateBtn.disabled = false;
-      }, 2000);
-      alert('Failed to fetch update. Please check your internet connection.');
-    }
-  };
+  // Path collection state getter - always true now
+  const getPathCollectionEnabled = () => true;
 
   // Cleanup
   const destroy = () => {

@@ -12,7 +12,7 @@
 
 import { createNavigationController } from './navigation.js';
 
-export const VERSION = '3.67.7-EXP';
+export const VERSION = '3.69.0-EXP';
 
 export const defaultConfig = {
   pace: 2000,

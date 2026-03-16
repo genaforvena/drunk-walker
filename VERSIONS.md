@@ -4,14 +4,32 @@
 
 | Version | Name | Key Feature | Status |
 |---------|------|-------------|--------|
-| v3.67.0-EXP | **Latest** | Self-avoiding walk, visited memory | ✅ Recommended |
-| v3.66.6-EXP | **Vanilla** | Classic random walk | 📌 Stable reference |
+| v3.69.0-EXP | **Latest** | Minimized UI, simplified controls | ✅ Recommended |
+| v3.67.0-EXP | **Stable** | Self-avoiding walk, visited memory | 📌 Stable |
 
 ---
 
 ## Detailed Version History
 
-### v3.67.0-EXP (Current Latest)
+### v3.69.0-EXP (Current Latest)
+
+**Release:** March 16, 2026
+
+**New Features:**
+- **Minimized UI Mode**: Added a button to collapse the control panel, showing only the step counter to save screen space.
+- **Simplified Interface**: Removed "Update Script" and "Copy" buttons for a cleaner layout.
+
+**Changes:**
+- Path recording and Self-Avoiding walk are now permanently enabled and the toggles have been removed from the UI.
+- Improved control panel layout with a dedicated header.
+
+**Best For:**
+- Users who want a less intrusive UI while recording long walks.
+- Simplified automated exploration.
+
+---
+
+### v3.67.0-EXP (Stable)
 
 **Release:** Current development version
 

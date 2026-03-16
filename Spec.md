@@ -1,4 +1,4 @@
-# Drunk Walker Specification (v3.67.0-EXP)
+# Drunk Walker Specification (v3.69.0-EXP)
 
 ## Executive Summary
 
@@ -25,7 +25,7 @@ The engine simulates keyboard input (Arrow Up) at regular intervals to navigate 
 
 | Version | Key Features |
 |---------|--------------|
-| v3.67.0-EXP | Self-avoiding random walk, visited nodes memory, path merge utility |
+| v3.69.0-EXP | Self-avoiding random walk, visited nodes memory, path merge utility |
 | v3.66.6-EXP | Path recording with JSON export, fixed 60° turn angle |
 | v3.3-EXP | Auto-Unstuck Algorithm (turn left 60°, move forward, verify) |
 | v3.2-EXP | Keyboard mode default, Smart Observation, Persistent control panel |
@@ -41,14 +41,17 @@ The engine simulates keyboard input (Arrow Up) at regular intervals to navigate 
 |---------|------|-------------|
 | START/STOP | Button | Toggle walking on/off |
 | STATUS | Text | Shows WALKING, STUCK, or IDLE |
-| STEPS | Counter | Total steps taken |
-| VISITED | Counter | Unique nodes visited (new in v3.67.0) |
+| STEPS | Counter | Total steps taken (always visible) |
+| VISITED | Counter | Unique nodes visited |
 | PACE | Slider | 0.5 - 5.0 seconds between steps |
-| Record Path | Checkbox | Enable path recording (on by default) |
-| Self-Avoiding Walk | Checkbox | Prefer unvisited nodes (on by default) |
-| Copy Path JSON | Button | Export recorded path as JSON |
+| 💾 Download Path | Button | Export recorded path as JSON |
+| 📄 Download Logs | Button | Export session logs as TXT |
+| 📂 Restore Walk | Button | Load and resume from JSON |
+| − / + | Button | Minimize/Maximize the control panel |
 
-### 3.2 Core Algorithm (v3.67.0)
+> **Note:** Path recording and self-avoiding walk are now permanently enabled.
+
+### 3.2 Core Algorithm (v3.69.0-EXP)
 
 **Normal Walking:**
 1. Wait for pace interval (default 2000ms)
@@ -118,7 +121,7 @@ const merged = mergePaths([path1, path2, path3]);
   stuckCount: number,
   unstuckState: 'IDLE' | 'TURNING' | 'MOVING' | 'VERIFYING',
   walkPath: Array<{ url: string, rotation: number }>,
-  visitedUrls: Set<string>  // New in v3.67.0
+  visitedUrls: Set<string>  // New in v3.69.0-EXP
 }
 ```
 
@@ -132,7 +135,7 @@ const defaultConfig = {
   panicThreshold: 3,       // Steps before unstuck triggers
   turnDuration: 600,       // ms for 60° left turn
   collectPath: true,       // Path recording (on by default)
-  selfAvoiding: true       // Self-avoiding walk (on by default, new in v3.67.0)
+  selfAvoiding: true       // Self-avoiding walk (on by default, new in v3.69.0-EXP)
 };
 ```
 
@@ -255,7 +258,7 @@ setTimeout(() => {
 
 ## 11. Conclusion
 
-Drunk Walker v3.67.0-EXP is a minimalist automation tool that:
+Drunk Walker v3.69.0-EXP is a minimalist automation tool that:
 1. Moves forward automatically (Arrow Up)
 2. Recovers from stuck positions (60° left turn)
 3. Prefers unvisited nodes (self-avoiding random walk)
