@@ -93,8 +93,12 @@ IDLE → TURNING (hold ArrowLeft 600ms) → MOVING (press ArrowUp) → VERIFYING
 - `server/` — Optional backend (Express + SQLite)
 - `build.js` — Bundles src/ → bookmarklet.js
 - `DEVELOPER.md` — Developer documentation
-- `Spec.md` — Technical specification
-- `PROJECT_MEMORY.md` — This knowledge base
+- [Spec.md](Spec.md) — Technical specification
+- [PROJECT_MEMORY.md](PROJECT_MEMORY.md) — This knowledge base
+- [ALGORITHM.md](ALGORITHM.md) — Walking algorithm guide
+- [HOW_IT_WORKS.md](HOW_IT_WORKS.md) — System overview
+- [DEVELOPER.md](DEVELOPER.md) — Developer guide
+- [VERSIONS.md](VERSIONS.md) — Version history
 
 ---
 

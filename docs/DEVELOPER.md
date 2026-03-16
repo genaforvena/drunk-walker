@@ -567,17 +567,17 @@ Server provides:
 | v3.2-EXP | | Keyboard mode default, smart observation |
 | v3.0 | | Strict autonomy, forward-default targeting |
 
-See **[VERSIONS.md](VERSIONS.md)** for detailed version comparison.
+See [VERSIONS.md](VERSIONS.md) for detailed version comparison.
 
 ---
 
 ## Resources
 
-- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — What it measures and how it works
-- **[ALGORITHM.md](ALGORITHM.md)** — Complete walking algorithm guide
-- **[VERSIONS.md](VERSIONS.md)** — Version comparison and history
-- **[README.md](README.md)** — User documentation
-- **[Spec.md](Spec.md)** — Technical specification
-- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Unstuck recovery details
-- **[SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md)** — Self-avoiding walk design
-- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** — Project history
+- [HOW_IT_WORKS.md](HOW_IT_WORKS.md) — What it measures and how it works
+- [ALGORITHM.md](ALGORITHM.md) — Complete walking algorithm guide
+- [VERSIONS.md](VERSIONS.md) — Version comparison and history
+- [../README.md](../README.md) — User documentation
+- [Spec.md](Spec.md) — Technical specification
+- [UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md) — Unstuck recovery details
+- [SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md) — Self-avoiding walk design
+- [PROJECT_MEMORY.md](PROJECT_MEMORY.md) — Project history

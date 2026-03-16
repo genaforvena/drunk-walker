@@ -245,8 +245,9 @@ url=https://www.google.com/maps/@37.7749,-122.4194,3a,0y,90t/data=!3m4!1e1, curr
 
 ## See Also
 
-- **[ALGORITHM.md](ALGORITHM.md)** — Complete walking algorithm guide
-- **[VERSIONS.md](VERSIONS.md)** — Version history
-- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Recovery details
-- **[SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md)** — Navigation design
-- **[DEVELOPER.md](DEVELOPER.md)** — Developer guide
+- [ALGORITHM.md](ALGORITHM.md) — Complete walking algorithm guide
+- [VERSIONS.md](VERSIONS.md) — Version history
+- [UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md) — Recovery details
+- [SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md) — Navigation design
+- [DEVELOPER.md](DEVELOPER.md) — Developer guide
+- [../README.md](../README.md) — User documentation

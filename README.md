@@ -249,14 +249,15 @@ See **[VERSIONS.md](VERSIONS.md)** for detailed version history and differences.
 ## Documentation
 
 ### User Docs
-- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — What it measures and how it works
-- **[ALGORITHM.md](ALGORITHM.md)** — Complete walking algorithm guide
-- **[VERSIONS.md](VERSIONS.md)** — Version comparison and history
-- **[DEVELOPER.md](DEVELOPER.md)** — Developer guide (build, test, API reference)
-- **[Spec.md](Spec.md)** — Technical specification
-- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Auto-recovery details
-- **[SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md)** — Self-avoiding walk design
-- **[PROJECT_MEMORY.md](PROJECT_MEMORY.md)** — Architecture & history
+- **[docs/](docs/)** — Documentation hub
+- **[docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)** — What it measures and how it works
+- **[docs/ALGORITHM.md](docs/ALGORITHM.md)** — Complete walking algorithm guide
+- **[docs/VERSIONS.md](docs/VERSIONS.md)** — Version comparison and history
+- **[docs/DEVELOPER.md](docs/DEVELOPER.md)** — Developer guide (build, test, API reference)
+- **[docs/Spec.md](docs/Spec.md)** — Technical specification
+- **[docs/UNSTUCK_ALGORITHM.md](docs/UNSTUCK_ALGORITHM.md)** — Auto-recovery details
+- **[docs/SELF_AVOIDING_DESIGN.md](docs/SELF_AVOIDING_DESIGN.md)** — Self-avoiding walk design
+- **[docs/PROJECT_MEMORY.md](docs/PROJECT_MEMORY.md)** — Architecture & history
 
 ---
 
@@ -270,7 +271,7 @@ See **[VERSIONS.md](VERSIONS.md)** for detailed version history and differences.
 
 ## Contributing
 
-Contributions welcome! See **[DEVELOPER.md](DEVELOPER.md)** for build and test instructions.
+Contributions welcome! See **[docs/DEVELOPER.md](docs/DEVELOPER.md)** for build and test instructions.
 
 1. Fork the repo
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)

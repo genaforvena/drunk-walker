@@ -251,7 +251,8 @@ console.log(delta);  // Should be negative: -30, -55, -75, etc.
 
 ## See Also
 
-- **[ALGORITHM.md](ALGORITHM.md)** — Complete walking algorithm guide
-- **[SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md)** — Self-avoiding walk
-- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — What it measures
-- **[DEVELOPER.md](DEVELOPER.md)** — Developer guide
+- [ALGORITHM.md](ALGORITHM.md) — Complete walking algorithm guide
+- [SELF_AVOIDING_DESIGN.md](SELF_AVOIDING_DESIGN.md) — Self-avoiding walk
+- [HOW_IT_WORKS.md](HOW_IT_WORKS.md) — What it measures
+- [DEVELOPER.md](DEVELOPER.md) — Developer guide
+- [../README.md](../README.md) — User documentation

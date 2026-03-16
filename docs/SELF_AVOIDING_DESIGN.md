@@ -278,7 +278,8 @@ Both use the same relative delta mechanism:
 
 ## See Also
 
-- **[ALGORITHM.md](ALGORITHM.md)** — Complete walking algorithm guide
-- **[UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md)** — Unstuck recovery details
-- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)** — What it measures
-- **[DEVELOPER.md](DEVELOPER.md)** — Developer guide
+- [ALGORITHM.md](ALGORITHM.md) — Complete walking algorithm guide
+- [UNSTUCK_ALGORITHM.md](UNSTUCK_ALGORITHM.md) — Unstuck recovery details
+- [HOW_IT_WORKS.md](HOW_IT_WORKS.md) — What it measures
+- [DEVELOPER.md](DEVELOPER.md) — Developer guide
+- [../README.md](../README.md) — User documentation
