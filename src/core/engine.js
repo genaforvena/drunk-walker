@@ -12,7 +12,7 @@
 
 import { createNavigationController } from './navigation.js';
 
-export const VERSION = '3.69.0-EXP';
+export const VERSION = '3.70.0-EXP';
 
 export const defaultConfig = {
   pace: 2000,
@@ -269,8 +269,10 @@ export function createEngine(config = {}) {
     }
 
     // Get navigation decision (also checks if busy)
+    const currentLocation = extractLocation(window.location.href);
     const navResult = navigation.tick({
       currentUrl: window.location.href,
+      currentLocation,
       visitedUrls,
       stuckCount,
       isKeyboardMode: cfg.kbOn,
