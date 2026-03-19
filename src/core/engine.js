@@ -22,8 +22,8 @@ export const defaultConfig = {
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
   radius: 50,
-  targetX: 0.5,    // 50% of screen width
-  targetY: 0.7,    // 70% of screen height
+  targetX: 0.4,    // 40% of screen width (left of center)
+  targetY: 0.8,    // 80% of screen height (lower than center)
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
   selfAvoiding: true  // Self-avoiding walk ENABLED by default (opt-out)

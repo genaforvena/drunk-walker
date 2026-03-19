@@ -62,8 +62,8 @@ describe('Bundled Bookmarklet Validation', () => {
 
     it('should have click mode logic', () => {
       expect(bookmarkletCode).toContain('calculateClickTarget');
-      expect(bookmarkletCode).toContain('targetX: 0.5');
-      expect(bookmarkletCode).toContain('targetY: 0.7');
+      expect(bookmarkletCode).toContain('targetX: 0.4');
+      expect(bookmarkletCode).toContain('targetY: 0.8');
     });
   });
 

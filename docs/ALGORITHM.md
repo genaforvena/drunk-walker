@@ -30,7 +30,7 @@ The v4.0.0+ architecture decouples state management from decision-making logic, 
 ### A. Weighted "Heatmap" Exploration
 Instead of a simple visited set, the engine maintains a `Map<Location, VisitCount>`.
 
-1. **Scan**: On every tick, the algorithm "looks" in 12 directions (every 30°).
+1. **Scan**: On every tick, the algorithm "looks" in 6 directions (every 60°).
 2. **Predict**: It projects the next coordinate for each direction using a fixed `stepDistance`.
 3. **Score**: It calculates a score for each direction:
    - `Score = (VisitCount * 10) + BreadcrumbPenalty + ForwardBias`
@@ -48,9 +48,9 @@ When the walker is genuinely stuck (e.g., hitting a wall or a dead-end):
 
 1. **Trigger**: `stuckCount >= panicThreshold` (default: 3).
 2. **Escalation**: Instead of turning randomly, it performs a systematic sweep:
-   - 1st stuck tick: Turn 30°
-   - 2nd stuck tick: Turn 60°
-   - 3rd stuck tick: Turn 90°
+   - 1st stuck tick: Turn 60°
+   - 2nd stuck tick: Turn 120°
+   - 3rd stuck tick: Turn 180°
    - ...and so on until the URL changes.
 3. **Reset**: Once the walker successfully moves (URL changes), the search pattern resets.
 

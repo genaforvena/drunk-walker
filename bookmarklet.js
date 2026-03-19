@@ -133,10 +133,10 @@ function createDefaultAlgorithm(cfg) {
       // If we just got stuck, start with a small angle
       // If we stay stuck, escalate the angle to scan all directions
       if (stuckCount === panicThreshold) {
-        lastSearchAngle = 30;
+        lastSearchAngle = 60; // Doubled from 30
       } else {
-        lastSearchAngle = (lastSearchAngle + 30) % 360;
-        if (lastSearchAngle === 0) lastSearchAngle = 30;
+        lastSearchAngle = (lastSearchAngle + 60) % 360; // Doubled increment
+        if (lastSearchAngle === 0) lastSearchAngle = 60;
       }
       
       console.log(`Systematic Search: stuckCount=${stuckCount}, angle=${lastSearchAngle}`);
@@ -148,8 +148,8 @@ function createDefaultAlgorithm(cfg) {
       // Reset search angle when not stuck
       lastSearchAngle = 0;
 
-      // Scan 360 degrees in 30 degree increments
-      const scanAngles = [0, 30, -30, 60, -60, 90, -90, 120, -120, 150, -150, 180];
+      // Scan 360 degrees in 60 degree increments (doubled from 30)
+      const scanAngles = [0, 60, -60, 120, -120, 180, -180];
       let bestScore = Infinity;
       let bestAngle = 0;
 
@@ -272,8 +272,8 @@ const defaultConfig = {
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
   radius: 50,
-  targetX: 0.5,    // 50% of screen width
-  targetY: 0.7,    // 70% of screen height
+  targetX: 0.4,    // 40% of screen width (left of center)
+  targetY: 0.8,    // 80% of screen height (lower than center)
   turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
   collectPath: true,  // Path recording ENABLED by default
   selfAvoiding: true  // Self-avoiding walk ENABLED by default (opt-out)

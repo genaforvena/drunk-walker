@@ -156,7 +156,7 @@ describe('Core Engine', () => {
       expect(typeof y).toBe('number');
     });
 
-    it('should target 50% width, 70% height by default', () => {
+    it('should target 40% width, 80% height by default', () => {
       const mouseClickMock = vi.fn();
       const engine = createEngine({ kbOn: false, radius: 0 });
       engine.setActionHandlers({ mouseClick: mouseClickMock });
@@ -170,8 +170,8 @@ describe('Core Engine', () => {
       engine.tick();
 
       const [x, y] = mouseClickMock.mock.calls[0];
-      expect(x).toBe(1920 * 0.5);
-      expect(y).toBe(1080 * 0.7);
+      expect(x).toBe(1920 * 0.4);
+      expect(y).toBe(1080 * 0.8);
     });
   });
 
