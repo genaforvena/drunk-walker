@@ -38,4 +38,19 @@ Sometimes it's fun to actually *find* the dead ends.
 
 ---
 
-**Basically, the "Drunk Walker" is just a way to see how a simple set of rules (avoid the past, run straight, turn when stuck) handles the messy, inconsistent metadata of the real world.**
+## 9. The Surgical Surveyor: Maximizing the Ratio
+What if the goal isn't just to wander, but to be as efficient as possible? The "Ratio King" approach tries to keep the **Steps/Visited ratio** as close to 1:1 as possible. 
+
+### The Rule: Never Waste a Step
+In this mode, the bot refuses to move unless it knows the next spot is new.
+*   **High-Res Scanning:** Instead of scanning every 60°, it might scan every 10°. It’s slow, but it finds every tiny side-alley.
+*   **Frontier Mapping:** The bot remembers every unvisited exit it saw but didn't take. When it hits a dead end, it doesn't wander back blindly; it "tunnels" directly back to the nearest unvisited exit it remembers.
+
+### The Street View Reality Check
+Maintaining a 1:1 ratio is almost impossible because:
+1.  **Snap-to-Road:** Google's "snap" logic is unpredictable. You think you're clicking on a new node, but Google "snaps" you to an old one 2 meters away.
+2.  **Backtracking:** Unless the world is one infinite straight line, you *will* eventually have to walk back through a visited area to find a new one. The ratio will always decay over time.
+
+---
+
+**The Drunk Walker accepts the decay. The Surgical Surveyor fights it. Most of the time, the Drunk Walker has more fun.**
