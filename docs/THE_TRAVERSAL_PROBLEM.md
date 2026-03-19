@@ -46,4 +46,22 @@ By combining a **Weighted Heatmap** (long-term memory) with **Breadcrumbs** (sho
 
 It’s not just a bot pressing keys; it’s a probabilistic agent trying to solve a hidden graph under conditions of high uncertainty and sensor drift. 
 
-**Next time you see it get stuck in a cul-de-sac, don't be mad—it's just wrestling with the limits of online graph exploration!**
+## 6. The Territory: High-Speed Traps and Urban Islands
+The algorithm doesn't live in a vacuum; it lives on the roads Google chose to drive. The specific "territory" changes the rules of the game.
+
+### The "Highway Effect" (Node Density)
+In Street View, nodes aren't spaced evenly. On a highway, you might jump 50 meters in one click. In a city, it's 5 meters. 
+*   **The Problem:** Our prediction math uses a fixed "step distance." If we overleap a side street because the nodes are too far apart, we'll never "see" the intersection. The highway becomes a "river" that is very hard to jump out of.
+
+### The "Island" Problem (Topology)
+Imagine a neighborhood connected to the main city by a single bridge. 
+*   **The Trap:** The bot enters the neighborhood, explores it, and turns the whole area "hot" on the Heatmap. To leave, it must cross the bridge—but the bridge is also "hot." 
+*   **The Loop:** Because the bot is programmed to avoid hot areas, it might avoid the only exit (the bridge) and stay trapped in the neighborhood forever, searching for a "colder" exit that doesn't exist.
+
+### Urban Canyons & The "Click"
+In narrow streets, the geometry of the "sphere" we are standing in is warped. 
+*   **The Problem:** Clicking slightly off-center (to the bottom-left) might work perfectly on a wide road to "hug" the lane, but in a narrow alley, that same click might hit a wall or a parked car's metadata, resulting in no movement. The territory redefines what our coordinates actually do.
+
+---
+
+**Next time you see the Walker spinning on a bridge, remember: it might be experiencing a "Topological Trap" where its own memory is preventing its escape!**
