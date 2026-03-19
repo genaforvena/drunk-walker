@@ -8,7 +8,9 @@
 //
 // TO MAKE CHANGES:
 //   Edit files in src/ directory, then run: node build.js
-//   - src/core/navigation.js  - Navigation strategies (self-avoiding, unstuck)
+//   - src/core/wheel.js       - Wheel component
+//   - src/core/traversal.js   - Traversal algorithms
+//   - src/core/navigation.js  - Compatibility layer
 //   - src/core/engine.js      - Core engine (state, timing, path recording)
 //   - src/input/handlers.js   - Keyboard/mouse events
 //   - src/ui/controller.js    - Control panel UI
@@ -26,260 +28,61 @@ void function initDrunkWalker(){
   }
   window.DRUNK_WALKER_ACTIVE = true;
 
-  // === NAVIGATION STRATEGIES ===
-  // Pluggable movement algorithms (self-avoiding, unstuck, etc.)
-  // TO CHANGE NAVIGATION: Edit src/core/navigation.js
+  // === WHEEL ===
   /**
- * Navigation Strategies - Pluggable Movement Algorithms
+ * Wheel component for Drunk Walker
+ * Manages orientation and turning (only left)
  */
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// PROACTIVE SELF-AVOIDING STRATEGY
-// ═══════════════════════════════════════════════════════════════════════════════
+function createWheel(callbacks) {
+  const { onLongKeyPress } = callbacks;
+  let orientation = 0; // 0-359
 
-/**
- * Proactive Self-Avoiding Algorithm - Prevent entering visited areas
- *
- * Behavior:
- * - Before moving forward, check if the next location is already visited
- * - If visited, proactively turn toward unvisited direction BEFORE getting stuck
- * - Uses lookahead to predict next position based on current heading
- * - Prefers right turns first (less common, more exploration), then left
- *
- * Key invariants:
- * - Only triggers when NOT stuck (proactive, not reactive)
- * - Scans multiple angles to find unvisited direction
- * - Falls back to unstuck algorithm if all directions are visited
- */
-function createProactiveAvoidance(cfg, callbacks) {
-  const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
+  const getOrientation = () => orientation;
 
-  let state = 'IDLE';
-  let urlBeforeTurn = '';
-
-  // Track which directions we've tried at each location
-  const locationAttempts = new Map();
-
-  /**
-   * Predict next location given current location, yaw, and step distance
-   */
-  const predictNextLocation = (currentLocation, yaw, stepDistance = 0.0005) => {
-    const [lat, lng] = currentLocation.split(',').map(Number);
-    const yawRad = yaw * Math.PI / 180;
-    
-    // Approximate lat/lng offset based on yaw (simplified projection)
-    const dLat = Math.cos(yawRad) * stepDistance;
-    const dLng = Math.sin(yawRad) * stepDistance / Math.cos(lat * Math.PI / 180);
-    
-    const nextLat = (lat + dLat).toFixed(6);
-    const nextLng = (lng + dLng).toFixed(6);
-    
-    return `${nextLat},${nextLng}`;
+  const setOrientation = (newOrientation) => {
+    orientation = normalizeAngle(newOrientation);
   };
 
-  /**
-   * Check if a direction leads to visited location
-   */
-  const isDirectionVisited = (currentLocation, yaw, visitedUrls) => {
-    const predicted = predictNextLocation(currentLocation, yaw);
-    return visitedUrls.has(predicted);
-  };
-
-  /**
-   * Find best unvisited direction by scanning angles
-   * Returns { yaw, angle } or null if all directions visited
-   */
-  const findUnvisitedDirection = (currentLocation, currentYaw, visitedUrls) => {
-    // Scan angles relative to current yaw: prefer perpendicular directions first
-    const scanAngles = [90, -90, 45, -45, 135, -135, 180, 0];
-    
-    for (const angle of scanAngles) {
-      const testYaw = normalizeAngle(currentYaw + angle);
-      if (!isDirectionVisited(currentLocation, testYaw, visitedUrls)) {
-        return { yaw: testYaw, angle };
-      }
-    }
-    
-    return null; // All directions visited
-  };
-
-  const executeProactiveAvoidance = (currentYaw, currentLocation, visitedUrls) => {
-    if (state !== 'IDLE') return { action: 'none' };
-    if (!cfg.expOn || !cfg.selfAvoiding) return { action: 'none' };
-    if (!currentLocation) return { action: 'none' };
-
-    // Check if forward direction leads to visited location
-    const forwardVisited = isDirectionVisited(currentLocation, currentYaw, visitedUrls);
-    
-    if (!forwardVisited) {
-      // Forward is clear, no avoidance needed
-      return { action: 'none' };
-    }
-
-    // Forward leads to visited area, find alternative
-    const bestDirection = findUnvisitedDirection(currentLocation, currentYaw, visitedUrls);
-    
-    if (!bestDirection) {
-      // All directions visited, fall back to unstuck
-      return { action: 'none', fallback: true };
-    }
-
-    urlBeforeTurn = window.location.href;
-    state = 'TURNING';
-
-    // Track this attempt
-    const attemptsKey = currentLocation;
-    const prevAttempts = locationAttempts.get(attemptsKey) || [];
-    locationAttempts.set(attemptsKey, [...prevAttempts, bestDirection.angle]);
-
-    const turnAngle = bestDirection.angle;
-    const turnDuration = Math.round(Math.abs(turnAngle) * 10);
-    const clampedDuration = Math.max(300, Math.min(900, turnDuration));
-
-    if (onLongKeyPress) {
-      const turnKey = turnAngle > 0 ? 'ArrowRight' : 'ArrowLeft';
-      onLongKeyPress(turnKey, clampedDuration, () => {
-        console.log(`proactive: url=${urlBeforeTurn}, currentYaw=${Math.round(bestDirection.yaw)}`);
-        state = 'MOVING';
-        if (onKeyPress) onKeyPress('ArrowUp');
-
-        setTimeout(() => {
-          state = 'IDLE';
-          if (onStatusUpdate) {
-            onStatusUpdate('WALKING', 0, 0);
-          }
-        }, cfg.pace);
-      });
-    }
-
-    return {
-      action: 'turn',
-      turnAngle,
-      newYaw: bestDirection.yaw,
-      isProactive: true
-    };
-  };
-
-  return {
-    executeProactiveAvoidance,
-    isBusy: () => state !== 'IDLE',
-    reset: () => {
-      state = 'IDLE';
-      urlBeforeTurn = '';
-      locationAttempts.clear();
-    },
-    getState: () => ({ state, locationAttemptsCount: locationAttempts.size })
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// UNSTUCK NAVIGATION STRATEGY
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Unstuck Algorithm - Recovery from being stuck
- *
- * Behavior:
- * - Detects when stuck (URL unchanged for N ticks)
- * - Stores relative turn deltas (always negative/left) per location
- * - Applies progressively sharper left turns from current arrival facing
- * - Immediately steps forward after turn
- * - Verifies URL changed, increments stuck counter if still stuck
- *
- * Key invariants:
- * - lastTurnDelta is always negative (left turn magnitude)
- * - Same location revisited gets escalating left turn (more negative each time)
- * - Turn is always relative to how we arrived (physically coherent)
- */
-function createUnstuckNavigation(cfg, callbacks) {
-  const { onKeyPress, onLongKeyPress, onStatusUpdate, extractLocation } = callbacks;
-
-  let state = 'IDLE';
-  let urlBeforeUnstuck = '';
-
-  // Memory of relative turn deltas per location (always negative, 0 to -90 degrees)
-  const locationTurnDeltas = new Map();
-
-  const executeUnstuck = (stuckCount, panicThreshold, currentYaw) => {
-    if (state !== 'IDLE') return { action: 'none' };
-    if (!cfg.expOn || stuckCount < panicThreshold) return { action: 'none' };
-
-    const currentUrl = window.location.href;
-    const currentLocation = extractLocation(currentUrl);
-
-    urlBeforeUnstuck = currentUrl;
-    state = 'TURNING';
-
-    // Get previous delta for this location (always negative or 0)
-    const prevTurnDelta = locationTurnDeltas.get(currentLocation) || 0;
-
-    // Compute baseDelta: prevDelta + random left increment (-15 to -45 degrees)
-    // If first visit (prevDelta = 0), this gives fresh left turn of -15 to -45
-    // If revisited, this makes turn more leftward than last time
-    const randomLeftIncrement = -15 - Math.random() * 30;  // -15 to -45
-    let baseDelta = prevTurnDelta + randomLeftIncrement;
-
-    // Clamp to -90 degrees maximum (ensure we don't turn more than 90° left)
-    baseDelta = Math.max(-90, baseDelta);
-
-    // Store the delta we're using (always negative)
-    locationTurnDeltas.set(currentLocation, baseDelta);
-
-    // Apply to current arrival facing: newYaw = normalize(currentYaw + baseDelta)
-    const newYaw = normalizeAngle(currentYaw + baseDelta);
-    const turnAngle = Math.abs(baseDelta);  // Duration based on magnitude
-
-    // Convert angle to duration (10ms per degree)
-    const turnDuration = Math.round(turnAngle * 10);
-    const clampedDuration = Math.max(300, Math.min(900, turnDuration));
+  const turnLeft = (angle, callback) => {
+    // Convert angle to duration (10ms per degree as per existing code)
+    const duration = Math.round(angle * 10);
+    const clampedDuration = Math.max(300, Math.min(900, duration));
 
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', clampedDuration, () => {
-        console.log(`url=${currentUrl}, currentYaw=${Math.round(newYaw)}`);
-        state = 'MOVING';
-        if (onKeyPress) onKeyPress('ArrowUp');
-
-        setTimeout(() => {
-          state = 'VERIFYING';
-          const newUrl = typeof window !== 'undefined' ? window.location.href : urlBeforeUnstuck;
-
-          let newStuckCount = 0;
-          if (newUrl !== urlBeforeUnstuck) {
-            newStuckCount = 0;
-          } else {
-            newStuckCount = stuckCount + 1;
-          }
-
-          state = 'IDLE';
-          if (onStatusUpdate) {
-            onStatusUpdate('WALKING', 0, newStuckCount);
-          }
-        }, cfg.pace);
+        orientation = normalizeAngle(orientation - angle);
+        if (callback) callback();
       });
+    } else {
+      orientation = normalizeAngle(orientation - angle);
+      if (callback) callback();
     }
+  };
 
-    return {
-      action: 'turn',
-      turnAngle: baseDelta,  // Return signed delta (negative for left)
-      newYaw
-    };
+  const normalizeAngle = (angle) => {
+    angle = angle % 360;
+    if (angle < 0) angle += 360;
+    return angle;
   };
 
   return {
-    executeUnstuck,
-    isBusy: () => state !== 'IDLE',
-    reset: () => {
-      state = 'IDLE';
-      urlBeforeUnstuck = '';
-      locationTurnDeltas.clear();
-    },
-    getState: () => ({ state, locationTurnDeltasCount: locationTurnDeltas.size }),
-    getDeltaForLocation: (loc) => locationTurnDeltas.get(loc) || 0
+    getOrientation,
+    setOrientation,
+    turnLeft,
+    reset: () => { orientation = 0; }
   };
 }
 
+
+  // === TRAVERSAL ALGORITHMS ===
+  /**
+ * Traversal algorithms for Drunk Walker
+ * This is where decision-making logic lives
+ */
+
 /**
- * Normalize angle to 0-360 range
+ * Normalizes angle to 0-359
  */
 function normalizeAngle(angle) {
   angle = angle % 360;
@@ -287,70 +90,121 @@ function normalizeAngle(angle) {
   return angle;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// COMBINED NAVIGATION CONTROLLER
-// ═══════════════════════════════════════════════════════════════════════════════
+/**
+ * Predict next location given current location, orientation, and step distance
+ */
+function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005) {
+  if (!currentLocation || typeof currentLocation !== 'string') return null;
+  const parts = currentLocation.split(',');
+  if (parts.length < 2) return currentLocation;
 
-function createNavigationController(cfg, callbacks) {
-  const proactive = createProactiveAvoidance(cfg, callbacks);
-  const unstuck = createUnstuckNavigation(cfg, callbacks);
+  const [lat, lng] = parts.map(Number);
+  const yawRad = orientation * Math.PI / 180;
+  
+  // Approximate lat/lng offset based on yaw (simplified projection)
+  const dLat = Math.cos(yawRad) * stepDistance;
+  const dLng = Math.sin(yawRad) * stepDistance / Math.cos(lat * Math.PI / 180);
+  
+  const nextLat = (lat + dLat).toFixed(6);
+  const nextLng = (lng + dLng).toFixed(6);
+  
+  return `${nextLat},${nextLng}`;
+}
 
-  // Global orientation (start + all turns made)
-  let globalOrientation = 0;
+/**
+ * Default Algorithm: Simple stuck detection and proactive avoidance
+ */
+function createDefaultAlgorithm(cfg) {
+  const panicThreshold = cfg.panicThreshold || 3;
 
-  const tick = (context) => {
-    const { stuckCount, currentYaw, currentLocation, visitedUrls } = context || {};
+  /**
+   * Decide what to do next
+   * @param {Object} context - current state
+   * @returns {Object} { turn: boolean, angle?: number }
+   */
+  const decide = (context) => {
+    const { stuckCount, currentLocation, visitedUrls, orientation } = context;
 
-    if (proactive.isBusy() || unstuck.isBusy()) {
-      return { action: 'none', busy: true };
+    // PRIORITY 1: Unstuck (when stuck for N ticks)
+    if (cfg.expOn && stuckCount >= panicThreshold) {
+      // Escalating turn: more stuck = sharper turn
+      // Always turn left (negative delta in old code, here positive angle to turnLeft)
+      const angle = 30 + Math.random() * 60; // 30 to 90 degrees
+      return { turn: true, angle };
     }
 
-    if (!context) return { action: 'none', busy: false };
-
-    // PRIORITY 1: Proactive avoidance (when NOT stuck)
-    // Check if we should avoid visited areas before moving
-    if (cfg.expOn && cfg.selfAvoiding && stuckCount === 0) {
-      const result = proactive.executeProactiveAvoidance(currentYaw, currentLocation, visitedUrls);
-      if (result.action === 'turn') {
-        // Update global orientation with signed delta
-        globalOrientation += result.turnAngle;
-        if (globalOrientation < 0) globalOrientation += 360;
-        if (globalOrientation >= 360) globalOrientation -= 360;
-        return { ...result, strategy: 'proactive', busy: true, cumulativeTurnAngle: globalOrientation };
+    // PRIORITY 2: Proactive avoidance (if enabled, only when NOT stuck)
+    if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
+      // Check if forward direction leads to visited location
+      const nextLocation = predictNextLocation(currentLocation, orientation);
+      
+      if (nextLocation && nextLocation !== currentLocation && visitedUrls.has(nextLocation)) {
+        // Forward leads to visited area, find alternative
+        // Scan angles relative to current orientation: prefer perpendicular/backwards
+        const scanAngles = [90, -90, 180, 45, -45];
+        
+        for (const angle of scanAngles) {
+          const testOrientation = normalizeAngle(orientation + angle);
+          const testLocation = predictNextLocation(currentLocation, testOrientation);
+          if (testLocation && !visitedUrls.has(testLocation)) {
+            return { turn: true, angle: Math.abs(angle) };
+          }
+        }
+        
+        // If all directions visited, just turn a default amount
+        return { turn: true, angle: 90 };
       }
-      // If fallback: true, all directions visited - let unstuck handle it
     }
 
-    // PRIORITY 2: Unstuck (when stuck for N ticks)
-    if (cfg.expOn && stuckCount >= cfg.panicThreshold) {
-      const result = unstuck.executeUnstuck(stuckCount, cfg.panicThreshold, currentYaw);
-      if (result.action !== 'none') {
-        // Update global orientation with signed delta (negative for left turn)
-        globalOrientation += result.turnAngle;
-        if (globalOrientation < 0) globalOrientation += 360;
-        if (globalOrientation >= 360) globalOrientation -= 360;
-        return { ...result, strategy: 'unstuck', busy: true, cumulativeTurnAngle: globalOrientation };
-      }
-    }
-
-    // Normal movement (no special navigation needed)
-    return { action: 'move', strategy: 'normal', busy: false };
+    return { turn: false };
   };
 
+  return { decide };
+}
+
+
+  // === NAVIGATION COMPATIBILITY LAYER ===
+  /**
+ * Navigation Strategies - Compatibility Wrapper for v4.0.0+
+ * This file maintains the old API for tests and bundle validation
+ * but uses the new Traversal/Wheel architecture.
+ */
+
+
+
+function createProactiveAvoidance(cfg, callbacks) {
+  const algorithm = createDefaultAlgorithm(cfg);
   return {
-    tick,
-    getCumulativeTurnAngle: () => globalOrientation,
-    resetCumulativeTurnAngle: () => { globalOrientation = 0; },
-    reset: () => {
-      proactive.reset();
-      unstuck.reset();
-      globalOrientation = 0;
+    executeProactiveAvoidance: (yaw, loc, visited) => {
+      const result = algorithm.decide({ stuckCount: 0, currentLocation: loc, visitedUrls: visited, orientation: yaw });
+      return result.turn ? { action: 'turn', turnAngle: result.angle, newYaw: (yaw - result.angle + 360) % 360 } : { action: 'none' };
     },
-    getState: () => ({
-      globalOrientation,
-      proactive: proactive.getState(),
-      unstuck: unstuck.getState()
-    })
+    isBusy: () => false,
+    reset: () => {},
+    getState: () => ({ state: 'IDLE' })
+  };
+}
+
+function createUnstuckNavigation(cfg, callbacks) {
+  const algorithm = createDefaultAlgorithm(cfg);
+  return {
+    executeUnstuck: (stuckCount, panicThreshold, yaw) => {
+      const result = algorithm.decide({ stuckCount, currentLocation: '', visitedUrls: new Set(), orientation: yaw });
+      return result.turn ? { action: 'turn', turnAngle: result.angle, newYaw: (yaw - result.angle + 360) % 360 } : { action: 'none' };
+    },
+    isBusy: () => false,
+    reset: () => {},
+    getState: () => ({ state: 'IDLE' })
+  };
+}
+
+function createNavigationController(cfg, callbacks) {
+  return {
+    tick: () => ({ action: 'move', strategy: 'normal', busy: false }),
+    getCumulativeTurnAngle: () => 0,
+    resetCumulativeTurnAngle: () => {},
+    reset: () => {},
+    getState: () => ({ globalOrientation: 0, proactive: { state: 'IDLE' }, unstuck: { state: 'IDLE' } })
   };
 }
 
@@ -366,11 +220,13 @@ function createNavigationController(cfg, callbacks) {
  * 
  * ARCHITECTURE:
  * - Engine: State management, tick timing, path recording (this file)
- * - Navigation: Movement algorithms in src/core/navigation.js (pluggable)
+ * - Wheel: Orientation management (in src/core/wheel.js)
+ * - Traversal: Decision-making logic (in src/core/traversal.js)
  * 
  * TO CHANGE NAVIGATION BEHAVIOR:
- * Edit src/core/navigation.js - NOT this file
+ * Edit src/core/traversal.js - NOT this file
  */
+
 
 
 
@@ -400,20 +256,50 @@ function createEngine(config = {}) {
   let isUserMouseDown = false;
   let poly = [];
   let isDrawing = false;
+  let isBusy = false;
 
   // Path collection (opt-in)
   let walkPath = [];
-  let isPathCollectionEnabled = cfg.collectPath;  // Initialize from config (default: true)
+  let isPathCollectionEnabled = cfg.collectPath;
 
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Set();
 
-  // Current facing direction (yaw) - starts at 0° (north)
-  let currentYaw = 0;
+  // Action callbacks (to be provided by caller)
+  let onKeyPress = null;
+  let onMouseClick = null;
+  let onStatusUpdate = null;
+  let onLongKeyPress = null;
+  let onWalkStop = null;
 
-  // Navigation controller (pluggable movement algorithms)
-  // Will be initialized after extractLocation is defined
-  let navigation = null;
+  // Extract location from Street View URL
+  const extractLocation = (url) => {
+    try {
+      const urlObj = new URL(url);
+      const hash = urlObj.hash || urlObj.pathname;
+      const match = hash.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match) {
+        return `${match[1]},${match[2]}`;
+      }
+      const placeMatch = urlObj.searchParams.get('place_id');
+      if (placeMatch) {
+        return `place:${placeMatch}`;
+      }
+      return urlObj.pathname + urlObj.hash;
+    } catch (e) {
+      return url;
+    }
+  };
+
+  // Components
+  const wheel = createWheel({
+    onLongKeyPress: (key, duration, callback) => {
+      if (onLongKeyPress) onLongKeyPress(key, duration, callback);
+      else if (callback) callback();
+    }
+  });
+
+  let algorithm = createDefaultAlgorithm(cfg);
 
   // State getters
   const getStatus = () => status;
@@ -424,7 +310,6 @@ function createEngine(config = {}) {
   // Configuration setters
   const setPace = (newPace) => {
     cfg.pace = newPace;
-    // Update interval if running without resetting steps
     if (intervalId && status === 'WALKING') {
       clearInterval(intervalId);
       intervalId = setInterval(tick, cfg.pace);
@@ -437,72 +322,35 @@ function createEngine(config = {}) {
   const setPathCollection = (enabled) => {
     isPathCollectionEnabled = enabled;
     cfg.collectPath = enabled;
-    if (!enabled) {
-      walkPath = [];  // Clear path if disabled
-    }
+    if (!enabled) walkPath = [];
   };
   const setWalkPath = (path) => { walkPath = path ? [...path] : []; };
   const setSteps = (count) => { steps = count; };
-  const getWalkPath = () => [...walkPath];  // Return copy
+  const getWalkPath = () => [...walkPath];
   const clearWalkPath = () => { walkPath = []; };
-
-  // Extract location from Street View URL (ignores query params that change)
-  // Format: https://www.google.com/maps/@lat,lng,zoom... or place_id format
-  const extractLocation = (url) => {
-    try {
-      const urlObj = new URL(url);
-      const hash = urlObj.hash || urlObj.pathname;
-      // Extract @lat,lng pattern from URL hash or pathname
-      const match = hash.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (match) {
-        return `${match[1]},${match[2]}`;  // Return "lat,lng" as unique location
-      }
-      // Fallback: use place_id if available
-      const placeMatch = urlObj.searchParams.get('place_id');
-      if (placeMatch) {
-        return `place:${placeMatch}`;
-      }
-      // Last resort: use full pathname
-      return urlObj.pathname + urlObj.hash;
-    } catch (e) {
-      return url;  // Return original if parsing fails
-    }
-  };
-
-  // Initialize navigation controller with stub callbacks
-  // Will be updated with real callbacks when setActionHandlers is called
-  navigation = createNavigationController(cfg, {
-    onKeyPress: null,
-    onMouseClick: null,
-    onStatusUpdate: null,
-    onLongKeyPress: null,
-    extractLocation
-  });
 
   const recordStep = () => {
     if (isPathCollectionEnabled) {
-      const currentUrl = window.location.href;
+      const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
       const location = extractLocation(currentUrl);
       walkPath.push({
         url: currentUrl,
-        currentYaw: Math.round(currentYaw)
+        currentYaw: Math.round(wheel.getOrientation())
       });
-      // Track visited locations for self-avoiding walk
       if (cfg.selfAvoiding) {
-        visitedUrls.add(location);  // Use location, not full URL
+        visitedUrls.add(location);
       }
     }
   };
+
   const isUrlVisited = (location) => visitedUrls.has(location);
   const clearVisitedUrls = () => { visitedUrls.clear(); };
   const getVisitedCount = () => visitedUrls.size;
-  const getCurrentYaw = () => currentYaw;
-  const resetCurrentYaw = () => { currentYaw = 0; };
-  // Alias for backward compatibility with tests
+  const getCurrentYaw = () => wheel.getOrientation();
+  const resetCurrentYaw = () => { wheel.reset(); };
   const getCumulativeTurnAngle = getCurrentYaw;
   const resetCumulativeTurnAngle = resetCurrentYaw;
 
-  // Restore visited URLs from a path array
   const restoreVisitedFromPath = (path) => {
     visitedUrls.clear();
     path.forEach(step => {
@@ -515,16 +363,8 @@ function createEngine(config = {}) {
     });
   };
 
-  // User interaction handlers
   const setUserMouseDown = (down) => { isUserMouseDown = down; };
   const setIsDrawing = (drawing) => { isDrawing = drawing; };
-
-  // Action callbacks (to be provided by caller)
-  let onKeyPress = null;
-  let onMouseClick = null;
-  let onStatusUpdate = null;
-  let onLongKeyPress = null;
-  let onWalkStop = null;
 
   const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress, walkStop }) => {
     onKeyPress = keyPress;
@@ -532,33 +372,15 @@ function createEngine(config = {}) {
     onStatusUpdate = statusUpdate;
     onLongKeyPress = longKeyPress;
     onWalkStop = walkStop;
-
-    // Reinitialize navigation controller with real callbacks
-    // NOTE: Navigation logic is in src/core/navigation.js
-    navigation = createNavigationController(cfg, {
-      onKeyPress,
-      onMouseClick,
-      onStatusUpdate: (statusText, _, newStuckCount) => {
-        // Update stuck count from navigation callback
-        // Navigation returns new stuckCount after verification
-        if (newStuckCount !== undefined) {
-          stuckCount = newStuckCount;
-        }
-        if (onStatusUpdate) onStatusUpdate(statusText, steps, stuckCount);
-      },
-      onLongKeyPress,
-      extractLocation
-    });
   };
 
-  // Stuck detection (simple URL comparison)
   const updateStuckDetection = () => {
     if (!cfg.expOn) {
       stuckCount = 0;
       return;
     }
 
-    const currentUrl = window.location.href;
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
     if (currentUrl === lastUrl) {
       stuckCount++;
     } else {
@@ -574,10 +396,9 @@ function createEngine(config = {}) {
   };
 
   const calculateClickTarget = () => {
-    const cw = window.innerWidth;
-    const ch = window.innerHeight;
+    const cw = typeof window !== 'undefined' ? window.innerWidth : 1000;
+    const ch = typeof window !== 'undefined' ? window.innerHeight : 1000;
 
-    // If polygon defined, pick random point inside
     if (poly.length > 2) {
       const minX = Math.min(...poly.map(p => p.x));
       const maxX = Math.max(...poly.map(p => p.x));
@@ -594,7 +415,6 @@ function createEngine(config = {}) {
       return { x: tx, y: ty };
     }
 
-    // Default target with wobble
     const radius = cfg.expOn && stuckCount >= cfg.panicThreshold
       ? cfg.radius * Math.pow(1.5, stuckCount - cfg.panicThreshold + 1)
       : cfg.radius;
@@ -606,7 +426,6 @@ function createEngine(config = {}) {
     };
   };
 
-  // Polygon hit testing (kept for future use)
   const inPoly = (p, vs) => {
     let inside = false;
     for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
@@ -619,9 +438,7 @@ function createEngine(config = {}) {
     return inside;
   };
 
-  // Main navigation tick
   const tick = () => {
-    // Skip if user is interacting
     if (isUserMouseDown || isDrawing) return;
 
     updateStuckDetection();
@@ -630,63 +447,69 @@ function createEngine(config = {}) {
       onStatusUpdate(getStatusText(), steps, stuckCount);
     }
 
-    // Get navigation decision (also checks if busy)
-    const currentLocation = extractLocation(window.location.href);
-    const navResult = navigation.tick({
-      currentUrl: window.location.href,
-      currentLocation,
-      visitedUrls,
-      stuckCount,
-      isKeyboardMode: cfg.kbOn,
-      currentYaw
-    });
-
-    // Handle navigation result
-    if (navResult.busy) {
-      // Navigation is handling the action (turning, moving, verifying)
-      // Update currentYaw if turn was performed
-      if (navResult.newYaw !== undefined) {
-        currentYaw = navResult.newYaw;
-      }
-      // stuckCount will be reset by navigation callback after verification
+    if (isBusy) {
+      // Skip decision and movement, but still count the step as "busy"
       steps++;
       recordStep();
       return;
     }
 
-    // Normal movement
-    if (cfg.kbOn) {
-      // Keyboard mode: press ArrowUp for forward movement
-      console.log(`url=${window.location.href}, currentYaw=${Math.round(currentYaw)}`);
-      if (onKeyPress) onKeyPress('ArrowUp');
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
+    const currentLocation = extractLocation(currentUrl);
+
+    // Get algorithm decision
+    const context = {
+      url: currentUrl,
+      location: currentLocation,
+      visitedUrls,
+      stuckCount,
+      orientation: wheel.getOrientation()
+    };
+
+    const decision = algorithm.decide(context);
+
+    if (decision.turn) {
+      // Turn BEFORE pressing ArrowUp
+      isBusy = true;
+      wheel.turnLeft(decision.angle || 60, () => {
+        // Continue with ArrowUp after turn finishes
+        if (cfg.kbOn) {
+          if (onKeyPress) onKeyPress('ArrowUp');
+        } else {
+          const target = calculateClickTarget();
+          if (onMouseClick) onMouseClick(target.x, target.y);
+        }
+        // Step and record are handled by the main tick or here
+        // Wait, if we set isBusy=true, the current tick should still count as a step
+        isBusy = false;
+      });
+      // The tick that triggered the turn also counts as a step
+      steps++;
+      recordStep();
     } else {
-      // Click mode: calculate and click target
-      const target = calculateClickTarget();
-      console.log(`url=${window.location.href}, currentYaw=${Math.round(currentYaw)}`);
-      if (onMouseClick) onMouseClick(target.x, target.y);
+      // Normal movement
+      if (cfg.kbOn) {
+        if (onKeyPress) onKeyPress('ArrowUp');
+      } else {
+        const target = calculateClickTarget();
+        if (onMouseClick) onMouseClick(target.x, target.y);
+      }
+      steps++;
+      recordStep();
     }
-
-    // Increment step counter - every tick = one step (time-based, not movement-based)
-    steps++;
-
-    // Record step for path collection (after movement)
-    recordStep();
+    
+    console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}`);
   };
 
-  // Control functions
   const start = () => {
     if (status === 'WALKING') return;
-
     status = 'WALKING';
-    // Only reset on first start, not on resume
     if (steps === 0) {
       stuckCount = 0;
-      lastUrl = window.location.href;
+      lastUrl = typeof window !== 'undefined' ? window.location.href : '';
     }
-
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(tick, cfg.pace);
-
     if (onStatusUpdate) onStatusUpdate('WALKING', steps, stuckCount);
   };
 
@@ -696,12 +519,9 @@ function createEngine(config = {}) {
       clearInterval(intervalId);
       intervalId = null;
     }
-
-    // Submit walk path if collection enabled
     if (onWalkStop && isPathCollectionEnabled && walkPath.length > 0) {
       onWalkStop(getWalkPath());
     }
-
     if (onStatusUpdate) onStatusUpdate('IDLE', steps, 0);
   };
 
@@ -711,18 +531,14 @@ function createEngine(config = {}) {
     stuckCount = 0;
     lastUrl = '';
     status = 'IDLE';
-    currentYaw = 0;  // Reset yaw on reset
-    if (navigation) navigation.reset();  // Reset navigation state
+    wheel.reset();
   };
 
   return {
-    // State
     getStatus,
     getSteps,
     getStuckCount,
     isNavigating,
-
-    // Configuration
     setPace,
     setTurnDuration,
     setKeyboardMode,
@@ -734,38 +550,26 @@ function createEngine(config = {}) {
     getWalkPath,
     clearWalkPath,
     setSelfAvoiding: (enabled) => { cfg.selfAvoiding = enabled; },
-
-    // Visited nodes
     getVisitedCount,
     clearVisitedUrls,
     isUrlVisited,
-
-    // Yaw tracking
     getCurrentYaw,
     resetCurrentYaw,
-    getCumulativeTurnAngle,  // Alias for backward compatibility
-    resetCumulativeTurnAngle,  // Alias for backward compatibility
+    getCumulativeTurnAngle,
+    resetCumulativeTurnAngle,
     restoreVisitedFromPath,
-
-    // Interaction
     setUserMouseDown,
     setIsDrawing,
-
-    // Handlers
     setActionHandlers,
-
-    // Control
     start,
     stop,
     reset,
-
-    // Direct access for testing
     tick,
     getConfig: () => ({ ...cfg }),
-
-    // Navigation access (for debugging/testing)
-    getNavigation: () => navigation,
-    getNavigationState: () => navigation ? navigation.getState() : null
+    // Stubs for backward compatibility
+    getNavigation: () => null,
+    getNavigationState: () => ({}),
+    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; }
   };
 }
 

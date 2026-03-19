@@ -1,18 +1,23 @@
 /**
  * Build Script - Creates both regular and console-friendly versions
- * 
+ *
  * ⚠️ GENERATED FILES WARNING:
  * The output files (bookmarklet.js, bookmarklet-console.js) are AUTO-GENERATED.
  * DO NOT edit these files directly - changes will be lost on next build.
- * 
+ *
  * TO MAKE CHANGES:
  * 1. Edit source files in src/ directory:
- *    - src/core/engine.js    - Core navigation logic
+ *    - src/core/engine.js    - Core navigation logic (VERSION defined here)
+ *    - src/core/navigation.js  - Navigation strategies
  *    - src/input/handlers.js - Keyboard/mouse event simulation
  *    - src/ui/controller.js  - Control panel UI
  *    - src/main.js           - Entry point and initialization
  * 2. Run: node build.js
  * 3. Generated files will be updated automatically
+ *
+ * VERSION MANAGEMENT:
+ * - Update version in src/core/engine.js
+ * - Run: node build.js (version will be propagated automatically)
  */
 
 import fs from 'fs';
@@ -20,7 +25,14 @@ import fs from 'fs';
 const outfile = 'bookmarklet.js';
 const consoleFile = 'bookmarklet-console.js';
 
-// Read all source files (order matters - navigation must come before engine)
+// Read version from engine.js (single source of truth)
+const engineSource = fs.readFileSync('src/core/engine.js', 'utf8');
+const versionMatch = engineSource.match(/export const VERSION = ['"]([^'"]+)['"]/);
+const VERSION = versionMatch ? versionMatch[1] : '0.0.0-DEV';
+
+// Read all source files (order matters)
+const wheel = fs.readFileSync('src/core/wheel.js', 'utf8');
+const traversal = fs.readFileSync('src/core/traversal.js', 'utf8');
 const navigation = fs.readFileSync('src/core/navigation.js', 'utf8');
 const engine = fs.readFileSync('src/core/engine.js', 'utf8');
 const handlers = fs.readFileSync('src/input/handlers.js', 'utf8');
@@ -30,7 +42,7 @@ const main = fs.readFileSync('src/main.js', 'utf8');
 // Regular build (IIFE)
 let bundled = `
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.70.0-EXP - Bundled Build
+// Drunk Walker v${VERSION} - Bundled Build
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -39,7 +51,9 @@ let bundled = `
 //
 // TO MAKE CHANGES:
 //   Edit files in src/ directory, then run: node build.js
-//   - src/core/navigation.js  - Navigation strategies (self-avoiding, unstuck)
+//   - src/core/wheel.js       - Wheel component
+//   - src/core/traversal.js   - Traversal algorithms
+//   - src/core/navigation.js  - Compatibility layer
 //   - src/core/engine.js      - Core engine (state, timing, path recording)
 //   - src/input/handlers.js   - Keyboard/mouse events
 //   - src/ui/controller.js    - Control panel UI
@@ -53,10 +67,23 @@ let bundled = `
   if (window.DRUNK_WALKER_ACTIVE) return;
   window.DRUNK_WALKER_ACTIVE = true;
 
-  // === NAVIGATION STRATEGIES ===
-  // Pluggable movement algorithms (self-avoiding, unstuck, etc.)
-  // TO CHANGE NAVIGATION: Edit src/core/navigation.js
+  // === WHEEL ===
+  ${wheel
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
+  // === TRAVERSAL ALGORITHMS ===
+  ${traversal
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
+  // === NAVIGATION COMPATIBILITY LAYER ===
   ${navigation
+    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export default \{[\s\S]*?\};/g, '')
     .replace(/export const/g, 'const')
@@ -68,6 +95,8 @@ let bundled = `
   // TO CHANGE ENGINE: Edit src/core/engine.js
   ${engine
     .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
+    .replace(/import \{[^}]+\} from ['"]\.\/wheel\.js['"];?/g, '')
+    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
@@ -98,7 +127,7 @@ let bundled = `
 // Console-friendly build (no outer IIFE, uses void operator)
 let consoleFriendly = `
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v3.70.0-EXP - CONSOLE VERSION
+// Drunk Walker v${VERSION} - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -107,7 +136,9 @@ let consoleFriendly = `
 //
 // TO MAKE CHANGES:
 //   Edit files in src/ directory, then run: node build.js
-//   - src/core/navigation.js  - Navigation strategies (self-avoiding, unstuck)
+//   - src/core/wheel.js       - Wheel component
+//   - src/core/traversal.js   - Traversal algorithms
+//   - src/core/navigation.js  - Compatibility layer
 //   - src/core/engine.js      - Core engine (state, timing, path recording)
 //   - src/input/handlers.js   - Keyboard/mouse events
 //   - src/ui/controller.js    - Control panel UI
@@ -125,10 +156,23 @@ void function initDrunkWalker(){
   }
   window.DRUNK_WALKER_ACTIVE = true;
 
-  // === NAVIGATION STRATEGIES ===
-  // Pluggable movement algorithms (self-avoiding, unstuck, etc.)
-  // TO CHANGE NAVIGATION: Edit src/core/navigation.js
+  // === WHEEL ===
+  ${wheel
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
+  // === TRAVERSAL ALGORITHMS ===
+  ${traversal
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
+  // === NAVIGATION COMPATIBILITY LAYER ===
   ${navigation
+    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export default \{[\s\S]*?\};/g, '')
     .replace(/export const/g, 'const')
@@ -140,6 +184,8 @@ void function initDrunkWalker(){
   // TO CHANGE ENGINE: Edit src/core/engine.js
   ${engine
     .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
+    .replace(/import \{[^}]+\} from ['"]\.\/wheel\.js['"];?/g, '')
+    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
@@ -169,6 +215,8 @@ void function initDrunkWalker(){
   }
 }();
 `.trim();
+
+
 
 fs.writeFileSync(outfile, bundled);
 fs.writeFileSync(consoleFile, consoleFriendly);

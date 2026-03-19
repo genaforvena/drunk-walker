@@ -112,7 +112,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should have the correct version in the title', () => {
-    expect(indexContent).toContain('<title>🤪 Drunk Walker v3.69.0-EXP');
+    expect(indexContent).toContain('<title>🤪 Drunk Walker v3.70.0-EXP');
   });
 
   it('should have loading message for script fetch', () => {

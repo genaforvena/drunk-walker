@@ -45,7 +45,7 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('selfAvoiding:');
   });
   
-  it('should have correct version 3.69.0', () => {
+  it('should have correct version 3.70.0-EXP', () => {
     expect(bundleCode).toContain('3.70.0-EXP');
   });
   

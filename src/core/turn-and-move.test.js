@@ -13,7 +13,9 @@ describe('Turn and Move Integration', () => {
 
   beforeEach(() => {
     mockKeyPress = vi.fn();
-    mockLongKeyPress = vi.fn();
+    mockLongKeyPress = vi.fn((key, duration, callback) => {
+      if (callback) callback();
+    });
 
     engine = createEngine({
       pace: 100,  // Fast pace for testing
