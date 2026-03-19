@@ -32,8 +32,8 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('visitedUrls.size');
   });
   
-  it('should have visitedUrls Set', () => {
-    expect(bundleCode).toContain('visitedUrls = new Set()');
+  it('should have visitedUrls memory structure', () => {
+    expect(bundleCode).toMatch(/visitedUrls = new (Set|Map)\(\)/);
   });
   
   it('should have navigation strategies', () => {

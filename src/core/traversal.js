@@ -34,10 +34,17 @@ function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005
 }
 
 /**
- * Default Algorithm: Simple stuck detection and proactive avoidance
+ * Advanced Traversal Algorithm
+ * Implements:
+ * A. Weighted "Heatmap" Exploration
+ * B. Systematic Search Pattern for stuck recovery
+ * C. Path avoidance using breadcrumbs
  */
 export function createDefaultAlgorithm(cfg) {
   const panicThreshold = cfg.panicThreshold || 3;
+  
+  // State for Systematic Search Pattern (Spiral Recovery)
+  let lastSearchAngle = 0;
 
   /**
    * Decide what to do next
@@ -45,36 +52,67 @@ export function createDefaultAlgorithm(cfg) {
    * @returns {Object} { turn: boolean, angle?: number }
    */
   const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, orientation } = context;
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
 
-    // PRIORITY 1: Unstuck (when stuck for N ticks)
+    // PRIORITY 1: Systematic Search (Stuck Recovery)
     if (cfg.expOn && stuckCount >= panicThreshold) {
-      // Escalating turn: more stuck = sharper turn
-      // Always turn left (negative delta in old code, here positive angle to turnLeft)
-      const angle = 30 + Math.random() * 60; // 30 to 90 degrees
-      return { turn: true, angle };
+      // If we just got stuck, start with a small angle
+      // If we stay stuck, escalate the angle to scan all directions
+      if (stuckCount === panicThreshold) {
+        lastSearchAngle = 30;
+      } else {
+        lastSearchAngle = (lastSearchAngle + 30) % 360;
+        if (lastSearchAngle === 0) lastSearchAngle = 30;
+      }
+      
+      console.log(`Systematic Search: stuckCount=${stuckCount}, angle=${lastSearchAngle}`);
+      return { turn: true, angle: lastSearchAngle };
     }
 
-    // PRIORITY 2: Proactive avoidance (if enabled, only when NOT stuck)
+    // PRIORITY 2: Weighted Exploration (Proactive Avoidance)
     if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
-      // Check if forward direction leads to visited location
-      const nextLocation = predictNextLocation(currentLocation, orientation);
-      
-      if (nextLocation && nextLocation !== currentLocation && visitedUrls.has(nextLocation)) {
-        // Forward leads to visited area, find alternative
-        // Scan angles relative to current orientation: prefer perpendicular/backwards
-        const scanAngles = [90, -90, 180, 45, -45];
+      // Reset search angle when not stuck
+      lastSearchAngle = 0;
+
+      // Scan 360 degrees in 30 degree increments
+      const scanAngles = [0, 30, -30, 60, -60, 90, -90, 120, -120, 150, -150, 180];
+      let bestScore = Infinity;
+      let bestAngle = 0;
+
+      for (const angle of scanAngles) {
+        const testOrientation = normalizeAngle(orientation + angle);
+        const testLocation = predictNextLocation(currentLocation, testOrientation);
         
-        for (const angle of scanAngles) {
-          const testOrientation = normalizeAngle(orientation + angle);
-          const testLocation = predictNextLocation(currentLocation, testOrientation);
-          if (testLocation && !visitedUrls.has(testLocation)) {
-            return { turn: true, angle: Math.abs(angle) };
+        if (!testLocation) continue;
+
+        // Calculate score: Lower is better
+        // 1. Visit Count (Heatmap)
+        const visitCount = visitedUrls.get(testLocation) || 0;
+        
+        // 2. Breadcrumb Penalty (Scent) - avoid recently visited areas more strongly
+        let breadcrumbPenalty = 0;
+        breadcrumbs.forEach((bc, index) => {
+          if (bc === testLocation) {
+            // Penalty is higher for more recent breadcrumbs
+            breadcrumbPenalty += (index + 1); 
           }
+        });
+
+        // 3. Forward bias: slight preference for staying the same course if everything else is equal
+        const forwardBias = (angle === 0) ? -0.1 : 0;
+
+        const score = (visitCount * 10) + breadcrumbPenalty + forwardBias;
+
+        if (score < bestScore) {
+          bestScore = score;
+          bestAngle = angle;
         }
-        
-        // If all directions visited, just turn a default amount
-        return { turn: true, angle: 90 };
+      }
+
+      // Only turn if the best angle is NOT the current one
+      if (bestAngle !== 0) {
+        console.log(`Exploration Decision: angle=${bestAngle}, score=${bestScore}`);
+        return { turn: true, angle: Math.abs(bestAngle) };
       }
     }
 

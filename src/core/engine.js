@@ -47,7 +47,8 @@ export function createEngine(config = {}) {
   let isPathCollectionEnabled = cfg.collectPath;
 
   // Visited nodes memory for self-avoiding walk
-  let visitedUrls = new Set();
+  let visitedUrls = new Map(); // location -> count
+  let breadcrumbs = []; // last 20 locations
 
   // Action callbacks (to be provided by caller)
   let onKeyPress = null;
@@ -122,13 +123,17 @@ export function createEngine(config = {}) {
         currentYaw: Math.round(wheel.getOrientation())
       });
       if (cfg.selfAvoiding) {
-        visitedUrls.add(location);
+        const count = visitedUrls.get(location) || 0;
+        visitedUrls.set(location, count + 1);
+
+        breadcrumbs.push(location);
+        if (breadcrumbs.length > 20) breadcrumbs.shift();
       }
     }
   };
 
   const isUrlVisited = (location) => visitedUrls.has(location);
-  const clearVisitedUrls = () => { visitedUrls.clear(); };
+  const clearVisitedUrls = () => { visitedUrls.clear(); breadcrumbs = []; };
   const getVisitedCount = () => visitedUrls.size;
   const getCurrentYaw = () => wheel.getOrientation();
   const resetCurrentYaw = () => { wheel.reset(); };
@@ -137,12 +142,18 @@ export function createEngine(config = {}) {
 
   const restoreVisitedFromPath = (path) => {
     visitedUrls.clear();
+    breadcrumbs = [];
     path.forEach(step => {
-      if (step.location) {
-        visitedUrls.add(step.location);
-      } else if (step.url) {
-        const loc = extractLocation(step.url);
-        if (loc) visitedUrls.add(loc);
+      let loc = step.location;
+      if (!loc && step.url) {
+        loc = extractLocation(step.url);
+      }
+      if (loc) {
+        const count = visitedUrls.get(loc) || 0;
+        visitedUrls.set(loc, count + 1);
+
+        breadcrumbs.push(loc);
+        if (breadcrumbs.length > 20) breadcrumbs.shift();
       }
     });
   };
@@ -246,6 +257,7 @@ export function createEngine(config = {}) {
       url: currentUrl,
       location: currentLocation,
       visitedUrls,
+      breadcrumbs,
       stuckCount,
       orientation: wheel.getOrientation()
     };
