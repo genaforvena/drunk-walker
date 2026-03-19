@@ -96,11 +96,25 @@ export function createControlPanel(engine, options = {}) {
     modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #0f0;font-size:10px;cursor:pointer;';
     modeBtn.onclick = () => {
       const currentMode = engine.getConfig().mode;
-      const newMode = currentMode === 'EXPLORER' ? 'HUNTER' : 'EXPLORER';
+      let newMode;
+      if (currentMode === 'EXPLORER') newMode = 'HUNTER';
+      else if (currentMode === 'HUNTER') newMode = 'SURGEON';
+      else newMode = 'EXPLORER';
+
       engine.setMode(newMode);
       modeValEl.innerText = newMode;
-      modeBtn.innerText = newMode === 'EXPLORER' ? '🏹 SWITCH TO HUNTER' : '🌍 SWITCH TO EXPLORER';
-      modeBtn.style.borderColor = newMode === 'EXPLORER' ? '#0f0' : '#f60';
+      
+      // Update button text/style
+      if (newMode === 'EXPLORER') {
+        modeBtn.innerText = '🏹 SWITCH TO HUNTER';
+        modeBtn.style.borderColor = '#0f0';
+      } else if (newMode === 'HUNTER') {
+        modeBtn.innerText = '🔪 SWITCH TO SURGEON';
+        modeBtn.style.borderColor = '#f60';
+      } else {
+        modeBtn.innerText = '🌍 SWITCH TO EXPLORER';
+        modeBtn.style.borderColor = '#0cf';
+      }
     };
     mainContent.appendChild(modeBtn);
 

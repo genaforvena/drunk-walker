@@ -54,6 +54,13 @@ When the walker is genuinely stuck (e.g., hitting a wall or a dead-end):
    - ...and so on until the URL changes.
 3. **Reset**: Once the walker successfully moves (URL changes), the search pattern resets.
 
+### D. Surgical Surveyor (Ratio Mode)
+A specialized mode focused on maximum efficiency (Steps/Visited ratio).
+
+1. **Veto Logic**: Unlike other modes, the Surveyor uses projection math to **veto** any direction that points toward a visited location.
+2. **Ghost Step Prevention**: It refuses to press "Up" if it knows the target bubble is already in the heatmap.
+3. **Scan-First**: If the forward direction is visited, it scans 360° and picks the first "clean" direction it finds.
+
 ---
 
 ## Math & Logic

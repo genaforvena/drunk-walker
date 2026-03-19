@@ -152,5 +152,58 @@ export function createHunterAlgorithm(cfg) {
   return { decide };
 }
 
+/**
+ * SURGICAL SURVEYOR ALGORITHM
+ * Focus: Maximizing steps/visited ratio.
+ * Vetoes probing directions that are already visited.
+ */
+export function createSurgicalAlgorithm(cfg) {
+  const panicThreshold = cfg.panicThreshold || 3;
+
+  const decide = (context) => {
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
+
+    // The Surgical mode treats EVERY tick as a potential probe.
+    // If stuck OR if forward is visited, it scans for the "cleanest" exit.
+    const isForwardVisited = currentLocation && visitedUrls.has(predictNextLocation(currentLocation, orientation));
+
+    if (stuckCount > 0 || isForwardVisited) {
+      // Scan 360 in 60 increments
+      const scanAngles = [60, -60, 120, -120, 180, 0]; 
+      
+      for (const angle of scanAngles) {
+        const testOrientation = normalizeAngle(orientation + angle);
+        const testLocation = predictNextLocation(currentLocation, testOrientation);
+        
+        // VETO: If we know it's visited, don't even try (don't probe)
+        if (testLocation && visitedUrls.has(testLocation)) continue;
+        if (testLocation && breadcrumbs.includes(testLocation)) continue;
+
+        // Found a potentially "clean" node
+        if (angle === 0) return { turn: false };
+        return { turn: true, angle: Math.abs(angle) };
+      }
+
+      // If everything is visited, fall back to the "coldest" heatmap spot (Explorer logic)
+      let bestScore = Infinity;
+      let bestAngle = 60;
+      for (const angle of [60, -60, 120, -120, 180]) {
+        const testOrientation = normalizeAngle(orientation + angle);
+        const testLocation = predictNextLocation(currentLocation, testOrientation);
+        const score = visitedUrls.get(testLocation) || 0;
+        if (score < bestScore) {
+          bestScore = score;
+          bestAngle = angle;
+        }
+      }
+      return { turn: true, angle: Math.abs(bestAngle) };
+    }
+
+    return { turn: false };
+  };
+
+  return { decide };
+}
+
 // Default export for backward compatibility
 export const createDefaultAlgorithm = createExplorationAlgorithm;

@@ -15,6 +15,7 @@ import { createWheel } from './wheel.js';
 import { 
   createExplorationAlgorithm, 
   createHunterAlgorithm,
+  createSurgicalAlgorithm,
   createDefaultAlgorithm 
 } from './traversal.js';
 
@@ -369,9 +370,13 @@ export function createEngine(config = {}) {
     getConfig: () => ({ ...cfg }),
     setMode: (mode) => {
       cfg.mode = mode;
-      algorithm = (mode === 'HUNTER') 
-        ? createHunterAlgorithm(cfg) 
-        : createExplorationAlgorithm(cfg);
+      if (mode === 'HUNTER') {
+        algorithm = createHunterAlgorithm(cfg);
+      } else if (mode === 'SURGEON') {
+        algorithm = createSurgicalAlgorithm(cfg);
+      } else {
+        algorithm = createExplorationAlgorithm(cfg);
+      }
       console.log(`🤪 Mode changed to: ${mode}`);
     },
     // Stubs for backward compatibility

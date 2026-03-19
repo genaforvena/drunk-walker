@@ -230,6 +230,59 @@ function createHunterAlgorithm(cfg) {
   return { decide };
 }
 
+/**
+ * SURGICAL SURVEYOR ALGORITHM
+ * Focus: Maximizing steps/visited ratio.
+ * Vetoes probing directions that are already visited.
+ */
+function createSurgicalAlgorithm(cfg) {
+  const panicThreshold = cfg.panicThreshold || 3;
+
+  const decide = (context) => {
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
+
+    // The Surgical mode treats EVERY tick as a potential probe.
+    // If stuck OR if forward is visited, it scans for the "cleanest" exit.
+    const isForwardVisited = currentLocation && visitedUrls.has(predictNextLocation(currentLocation, orientation));
+
+    if (stuckCount > 0 || isForwardVisited) {
+      // Scan 360 in 60 increments
+      const scanAngles = [60, -60, 120, -120, 180, 0]; 
+      
+      for (const angle of scanAngles) {
+        const testOrientation = normalizeAngle(orientation + angle);
+        const testLocation = predictNextLocation(currentLocation, testOrientation);
+        
+        // VETO: If we know it's visited, don't even try (don't probe)
+        if (testLocation && visitedUrls.has(testLocation)) continue;
+        if (testLocation && breadcrumbs.includes(testLocation)) continue;
+
+        // Found a potentially "clean" node
+        if (angle === 0) return { turn: false };
+        return { turn: true, angle: Math.abs(angle) };
+      }
+
+      // If everything is visited, fall back to the "coldest" heatmap spot (Explorer logic)
+      let bestScore = Infinity;
+      let bestAngle = 60;
+      for (const angle of [60, -60, 120, -120, 180]) {
+        const testOrientation = normalizeAngle(orientation + angle);
+        const testLocation = predictNextLocation(currentLocation, testOrientation);
+        const score = visitedUrls.get(testLocation) || 0;
+        if (score < bestScore) {
+          bestScore = score;
+          bestAngle = angle;
+        }
+      }
+      return { turn: true, angle: Math.abs(bestAngle) };
+    }
+
+    return { turn: false };
+  };
+
+  return { decide };
+}
+
 // Default export for backward compatibility
 const createDefaultAlgorithm = createExplorationAlgorithm;
 
@@ -652,9 +705,13 @@ function createEngine(config = {}) {
     getConfig: () => ({ ...cfg }),
     setMode: (mode) => {
       cfg.mode = mode;
-      algorithm = (mode === 'HUNTER') 
-        ? createHunterAlgorithm(cfg) 
-        : createExplorationAlgorithm(cfg);
+      if (mode === 'HUNTER') {
+        algorithm = createHunterAlgorithm(cfg);
+      } else if (mode === 'SURGEON') {
+        algorithm = createSurgicalAlgorithm(cfg);
+      } else {
+        algorithm = createExplorationAlgorithm(cfg);
+      }
       console.log(`🤪 Mode changed to: ${mode}`);
     },
     // Stubs for backward compatibility
@@ -937,11 +994,25 @@ function createControlPanel(engine, options = {}) {
     modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #0f0;font-size:10px;cursor:pointer;';
     modeBtn.onclick = () => {
       const currentMode = engine.getConfig().mode;
-      const newMode = currentMode === 'EXPLORER' ? 'HUNTER' : 'EXPLORER';
+      let newMode;
+      if (currentMode === 'EXPLORER') newMode = 'HUNTER';
+      else if (currentMode === 'HUNTER') newMode = 'SURGEON';
+      else newMode = 'EXPLORER';
+
       engine.setMode(newMode);
       modeValEl.innerText = newMode;
-      modeBtn.innerText = newMode === 'EXPLORER' ? '🏹 SWITCH TO HUNTER' : '🌍 SWITCH TO EXPLORER';
-      modeBtn.style.borderColor = newMode === 'EXPLORER' ? '#0f0' : '#f60';
+      
+      // Update button text/style
+      if (newMode === 'EXPLORER') {
+        modeBtn.innerText = '🏹 SWITCH TO HUNTER';
+        modeBtn.style.borderColor = '#0f0';
+      } else if (newMode === 'HUNTER') {
+        modeBtn.innerText = '🔪 SWITCH TO SURGEON';
+        modeBtn.style.borderColor = '#f60';
+      } else {
+        modeBtn.innerText = '🌍 SWITCH TO EXPLORER';
+        modeBtn.style.borderColor = '#0cf';
+      }
     };
     mainContent.appendChild(modeBtn);
 
