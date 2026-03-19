@@ -38,19 +38,23 @@ Sometimes it's fun to actually *find* the dead ends.
 
 ---
 
-## 9. The Surgical Surveyor: Maximizing the Ratio
-What if the goal isn't just to wander, but to be as efficient as possible? The "Ratio King" approach tries to keep the **Steps/Visited ratio** as close to 1:1 as possible. 
+## 9. The Probing Dilemma: Steps vs. Discovery
+Wait, we missed something important: the bot can't actually "see" nodes. It only knows a node exists **after it tries to move there.** 
 
-### The Rule: Never Waste a Step
-In this mode, the bot refuses to move unless it knows the next spot is new.
-*   **High-Res Scanning:** Instead of scanning every 60°, it might scan every 10°. It’s slow, but it finds every tiny side-alley.
-*   **Frontier Mapping:** The bot remembers every unvisited exit it saw but didn't take. When it hits a dead end, it doesn't wander back blindly; it "tunnels" directly back to the nearest unvisited exit it remembers.
+This means our "360° Scan" isn't just looking around—it’s **Physical Probing.** Every time we turn 60° and press "Up," we are performing a physical experiment. 
 
-### The Street View Reality Check
-Maintaining a 1:1 ratio is almost impossible because:
-1.  **Snap-to-Road:** Google's "snap" logic is unpredictable. You think you're clicking on a new node, but Google "snaps" you to an old one 2 meters away.
-2.  **Backtracking:** Unless the world is one infinite straight line, you *will* eventually have to walk back through a visited area to find a new one. The ratio will always decay over time.
+### The Ratio Killer: "Ghost Steps"
+If the goal is the best **Steps/Visited ratio**, every "Up" press that doesn't move the URL is a disaster. 
+*   **The Scenario:** You’re at a T-junction. You scan 6 directions (60° each). You press "Up" 6 times.
+*   **The Result:** 4 times you hit a "virtual wall" (no node there). 2 times you successfully move. 
+*   **The Math:** You spent 6 steps to find 2 nodes. Your ratio is 3:1.
+
+### How to win the Ratio Game?
+To get closer to a 1:1 ratio, the bot has to become a **Better Guesser.**
+1.  **Stop Probing "Hot" Zones:** If the projection math says a 60° turn points back to a node we already visited, **don't press Up.** Skip that portion of the scan entirely. 
+2.  **The "Probability" Map:** Instead of scanning every direction, the bot should prioritize directions that "look" like a road (based on the previous trajectory). 
+3.  **Physical BFS:** To be perfectly efficient, the bot would probe one direction, find a new node, and then *immediately* backtrack to the junction to probe the next one. But even backtracking costs "Steps," so you’re still fighting the ratio!
 
 ---
 
-**The Drunk Walker accepts the decay. The Surgical Surveyor fights it. Most of the time, the Drunk Walker has more fun.**
+**The "Drunk Walker" accepts that it will bump into walls. The "Efficiency King" tries to memorize the walls so it never has to bump into them twice.**
