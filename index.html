@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤪 Drunk Walker v3.70.0-EXP - Developer Console Install</title>
+    <title>🤪 Drunk Walker (End of the World Finder)</title>
     <style>
         body { font-family: 'Courier New', Courier, monospace; background: #000; color: #0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
         .container { border: 2px solid #0f0; padding: 40px; border-radius: 15px; box-shadow: 0 0 20px #0f0; max-width: 650px; }
         h1 { font-size: 2.5em; text-shadow: 0 0 10px #0f0; margin-top: 0; }
+        .quote { font-style: italic; color: #ff00ff; margin-bottom: 30px; line-height: 1.4; opacity: 0.9; }
         .btn-main { display: inline-block; background: #0f0; color: #000; padding: 25px 50px; font-weight: bold; text-decoration: none; border-radius: 8px; margin: 15px 0; cursor: pointer; font-size: 1.5em; border: none; transition: all 0.2s; min-width: 350px; }
         .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 20px #0f0; }
         .btn-main:active { transform: scale(0.95); }
@@ -26,145 +27,79 @@
 <body>
     <div class="container">
         <h1>🤪 DRUNK WALKER</h1>
-
-        <div class="instructions" style="background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; margin-bottom: 30px; text-align: center;">
-            <strong>THE "NO-INSTALL" STREET VIEW WALKER</strong><br><br>
-            Drunk Walker automates Google Street View navigation by pressing Arrow Up<br>
-            to move forward. When stuck, it turns left 30°-90° and immediately steps forward.<br>
-            Self-avoiding walk mode prefers unvisited nodes. Path recording with turn angles.<br>
-            Guaranteed to never get stuck - will explore all reachable areas.
+        
+        <div class="quote">
+            "The direction isn't a point on a map; it's a constant flight away from the past. The bot is always running away from its own breadcrumbs until it eventually runs out of world to explore."
         </div>
 
         <div class="button-group">
             <button class="btn-main btn-latest" id="copyLatestBtn" onclick="copyToClipboard()" disabled>📋 COPY LATEST</button>
-            <div class="version-label">✨ Self-avoiding walk • Smart turn selection • Path merge</div>
+            <div class="version-label">🌍 Explorer • 🏹 Hunter • 🔪 Surgeon</div>
         </div>
         
-        <div id="loading" class="loading">⏳ Loading scripts from repository...</div>
+        <div id="loading" class="loading">⏳ Loading from repository...</div>
         <div id="success" class="success-msg">✓ CODE COPIED TO CLIPBOARD!</div>
 
         <div class="instructions">
-            <strong>CORE FEATURES:</strong><br>
-            🔄 <strong>Auto-Unstuck:</strong> Turns left 30°-90° and steps forward immediately.<br>
-            ⌨️ <strong>Arrow Up Movement:</strong> Simulates Arrow Up key press for smooth forward movement.<br>
-            🎚️ <strong>Adjustable Pace:</strong> Control walking speed from 0.5 to 5.0 seconds per step.<br>
-            ⏸ <strong>Smart Pause:</strong> Pauses when you drag to look around, resumes automatically.<br>
-            📍 <strong>Path Recording:</strong> Automatic path recording with turn angles and location.<br>
-            🧭 <strong>Self-Avoiding Walk:</strong> Turns left at visited locations to explore new areas.<br>
-            📂 <strong>Restore Walks:</strong> Load and continue from saved walk JSON files.<br>
-            🔒 <strong>Never Gets Stuck:</strong> Random bounded left turns guarantee eventual escape.<br>
-            🛠️ <strong>Zero Install:</strong> Runs entirely in your browser console.
+            <strong>HOW TO RUN:</strong><br>
+            1. Open <a href="https://www.google.com/maps" target="_blank" style="color: #0f0;">Street View</a> in your browser.<br>
+            2. Press <code>F12</code> and go to the <strong>Console</strong> tab.<br>
+            3. Paste (<code>Ctrl+V</code>) and press <strong>Enter</strong>.<br>
+            4. Type <code>allow pasting</code> if asked, then paste again.<br>
+            5. Click <strong>START</strong>. Watch it run away from its past.
         </div>
 
-        <div class="instructions">
-            <strong>HOW TO RUN (Developer Console):</strong><br>
-            1. Open <a href="https://www.google.com/maps" target="_blank" style="color: #0f0;">Google Maps Street View</a>.<br>
-            2. Press <code>F12</code> (or <code>Right-Click > Inspect</code>) and go to the <strong>Console</strong> tab.<br>
-            3. Paste (<code>Ctrl+V</code> or <code>Cmd+V</code>) and press <strong>Enter</strong>.<br>
-            4. Type <code>allow pasting</code> if your browser asks, then paste again.<br>
-            5. The control panel appears—click <strong>START</strong> to begin walking!
-        </div>
-
-        <div class="instructions" style="background: rgba(0, 255, 0, 0.05); border-color: #0f0; margin-top: 20px;">
-            <strong>WHAT HAPPENS:</strong><br>
-            • Script presses <strong>Arrow Up</strong> every pace interval (step counter increments)<br>
-            • <strong>Auto-unstuck</strong> turns left 30°-90° then immediately steps forward<br>
-            • <strong>Self-avoiding</strong> turns left 20°-50° at visited locations<br>
-            • <strong>Path recording</strong> saves URLs, locations, and cumulative turn angles<br>
-            • <strong>Copy/Download</strong> buttons export your walk as JSON<br>
-            • <strong>Restore Walk</strong> loads and continues from saved JSON files
+        <div class="instructions" style="background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; margin-top: 20px;">
+            <strong>THE SANDBOX:</strong><br>
+            • <strong>Memory:</strong> Heatmap tracks every spot to avoid loops.<br>
+            • <strong>Scent:</strong> Breadcrumbs stop the bot from retracing its trail.<br>
+            • <strong>Entropy:</strong> The bot eventually hits equilibrium and forgets.<br>
+            • <strong>Personas:</strong> Cycle between Explorer, Hunter, and Surgeon modes.
         </div>
 
         <div class="footer">
-            Works on any browser. No extension required. <br>
+            Runs entirely in your console. Zero install. <br>
             <a href="https://github.com/genaforvena/drunk-walker" style="color: #0f0;">View Source on GitHub</a>
         </div>
     </div>
 
 <script>
-        // GitHub raw URL - points to main branch
         const LATEST_URL = 'https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet.js';
-
         let latestScriptCode = null;
         let latestLoaded = false;
 
-        // Fetch the script from GitHub
         async function fetchScript() {
             try {
                 const response = await fetch(LATEST_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                const code = await response.text();
-
-                latestScriptCode = code;
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                latestScriptCode = await response.text();
                 latestLoaded = true;
-                console.log('✓ Drunk Walker (v3.70.0-EXP) loaded');
-
-                // Enable button and hide loading
                 updateButtonStates();
             } catch (error) {
-                console.error(`Failed to load script:`, error);
-                document.getElementById('copyLatestBtn').disabled = true;
+                console.error(`Failed to load:`, error);
                 document.getElementById('copyLatestBtn').innerText = '❌ FAILED TO LOAD';
             }
         }
 
-        // Update button state based on load status
         function updateButtonStates() {
             const latestBtn = document.getElementById('copyLatestBtn');
-
             if (latestLoaded) {
                 latestBtn.disabled = false;
-                latestBtn.innerText = '📋 COPY LATEST (v3.70.0-EXP)';
+                latestBtn.innerText = '📋 COPY JS TO CLIPBOARD';
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        // Load script on page load
         fetchScript();
 
         function copyToClipboard() {
-            if (!latestScriptCode) {
-                alert('Script not loaded yet. Please wait or refresh the page.');
-                return;
-            }
-
-            // Success handler
+            if (!latestScriptCode) return;
             const showSuccess = () => {
                 const success = document.getElementById('success');
                 success.style.display = 'block';
                 setTimeout(() => { success.style.display = 'none'; }, 3000);
             };
-
-            // Main clipboard logic
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(latestScriptCode).then(showSuccess).catch(err => {
-                    console.error("Clipboard API failed, using fallback", err);
-                    fallbackCopy(latestScriptCode, showSuccess);
-                });
-            } else {
-                fallbackCopy(latestScriptCode, showSuccess);
-            }
-        }
-
-        function fallbackCopy(text, callback) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            textArea.style.top = "0";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) callback();
-            } catch (err) {
-                console.error('Fallback copy failed', err);
-                alert("Failed to copy. Please copy manually from the browser console if you see the code there.");
-            }
-            document.body.removeChild(textArea);
+            navigator.clipboard.writeText(latestScriptCode).then(showSuccess);
         }
     </script>
 </body>
