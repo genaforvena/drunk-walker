@@ -36,9 +36,14 @@ Sometimes it's fun to actually *find* the dead ends.
 *   **The Signature:** A dead end is a node where only one direction (the way you came) works. 
 *   **The Snap-Back:** In Hunter mode, when the bot realizes it's reached a dead end, it marks the spot and does a **180° Snap-Back turn** to run away and find the next one.
 
+## 7. Surgeon Mode & Efficiency
+If Explorer is a forager and Hunter is a sniper, the **Surgeon** is a perfectionist.
+*   **The Goal:** A perfect **1:1 steps-to-discovery ratio**.
+*   **The Veto:** The Surgeon uses projection math to "see" if a turn points toward a spot it already visited. If it does, the Surgeon **vetoes** the move and keeps scanning until it finds a clean node.
+
 ---
 
-## 9. The Probing Dilemma: Steps vs. Discovery
+## 8. The Probing Dilemma: Steps vs. Discovery
 Wait, we missed something important: the bot can't actually "see" nodes. It only knows a node exists **after it tries to move there.** 
 
 This means our "360° Scan" isn't just looking around—it’s **Physical Probing.** Every time we turn 60° and press "Up," we are performing a physical experiment. 
@@ -51,10 +56,10 @@ If the goal is the best **Steps/Visited ratio**, every "Up" press that doesn't m
 
 ### How to win the Ratio Game?
 To get closer to a 1:1 ratio, the bot has to become a **Better Guesser.**
-1.  **Stop Probing "Hot" Zones:** If the projection math says a 60° turn points back to a node we already visited, **don't press Up.** Skip that portion of the scan entirely. 
-2.  **The "Probability" Map:** Instead of scanning every direction, the bot should prioritize directions that "look" like a road (based on the previous trajectory). 
-3.  **Physical BFS:** To be perfectly efficient, the bot would probe one direction, find a new node, and then *immediately* backtrack to the junction to probe the next one. But even backtracking costs "Steps," so you’re still fighting the ratio!
+1.  **Stop Probing "Hot" Zones:** This is exactly what **Surgeon Mode** does. It refuses to probe directions that projection math identifies as already visited.
+2.  **The "Probability" Map:** Instead of scanning every direction, the bot should prioritize directions that "look" like a road.
+3.  **Entropy Equilibrium:** Eventually, the entire neighborhood becomes "hot" on the map. At this point, even the Surgeon starts to fail because there are no "clean" directions left to probe.
 
 ---
 
-**The "Drunk Walker" accepts that it will bump into walls. The "Efficiency King" tries to memorize the walls so it never has to bump into them twice.**
+**Basically, the "Drunk Walker" is just a way to see how a simple set of rules (avoid the past, run straight, turn when stuck) handles the messy, inconsistent metadata of the real world.**
