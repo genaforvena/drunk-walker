@@ -1,4 +1,4 @@
-# Walking Algorithm Guide (v4.0.0+)
+# Walking Algorithm Guide (v4.2.0+)
 
 **Comprehensive documentation of the Advanced Traversal Engine**
 
@@ -88,7 +88,7 @@ if (angle < 0) angle += 360;
 |-------|---------|----------|
 | **Normal** | `stuckCount == 0` | Scan 360°, pick lowest heatmap/breadcrumb score. |
 | **Stuck** | `stuckCount > 0` | Maintain course, hope for late load. |
-| **Panic** | `stuckCount >= 3`| Start Systematic Search (30°, 60°, 90°...). |
+| **Panic** | `stuckCount >= 3`| Start Systematic Search (60°, 120°, 180°...). |
 
 ---
 

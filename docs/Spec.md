@@ -1,4 +1,4 @@
-# Drunk Walker Specification (v3.70.0-EXP)
+# Drunk Walker Specification (v4.2.0-EXP)
 
 ## Executive Summary
 

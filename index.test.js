@@ -15,7 +15,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should contain the latest version string in bookmarklet.js', () => {
-    expect(bookmarkletContent).toContain('v3.70.0-EXP');
+    expect(bookmarkletContent).toContain('v4.2.0-EXP');
   });
 
   it('should have keyboard mode enabled by default', () => {
@@ -112,11 +112,11 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should have the correct version in the title', () => {
-    expect(indexContent).toContain('<title>🤪 Drunk Walker v3.70.0-EXP');
+    expect(indexContent).toContain('<title>🤪 Drunk Walker v4.2.0-EXP');
   });
 
   it('should have loading message for script fetch', () => {
-    expect(indexContent).toContain('Loading scripts from repository');
+    expect(indexContent).toContain('Loading from repository');
   });
 
   it('should have disabled copy button initially', () => {

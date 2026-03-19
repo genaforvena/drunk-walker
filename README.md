@@ -1,4 +1,4 @@
-# 🤪 Drunk Walker (End of the World Finder)
+# 🤪 Drunk Walker v4.2.0-EXP (End of the World Finder)
 
 ![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)

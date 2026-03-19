@@ -4,14 +4,29 @@
 
 | Version | Name | Key Feature | Status |
 |---------|------|-------------|--------|
-| v3.69.0-EXP | **Latest** | Minimized UI, simplified controls | ✅ Recommended |
-| v3.67.0-EXP | **Stable** | Self-avoiding walk, visited memory | 📌 Stable |
+| v4.2.0-EXP | **Current** | Surgeon Mode, Decoupled Architecture | ✅ Recommended |
+| v3.70.0-EXP | **Refactor** | Hunter Mode, Physical Probing | 📌 Stable |
 
 ---
 
 ## Detailed Version History
 
-### v3.69.0-EXP (Current Latest)
+### v4.2.0-EXP (Current Latest)
+
+**Release:** March 20, 2026
+
+**New Features:**
+- **SURGEON Mode**: Specialized efficiency algorithm that vetoes already-visited nodes using projection math.
+- **End of the World Finder**: Rebranded framing focusing on "flight from the past" and boundary discovery.
+- **Triple-Mode Cycling**: UI now cycles through EXPLORER, HUNTER, and SURGEON.
+
+**Changes:**
+- Optimized projection math for better veto decisions.
+- Updated documentation with deep dives into traversal theory.
+
+---
+
+### v3.70.0-EXP
 
 **Release:** March 16, 2026
 

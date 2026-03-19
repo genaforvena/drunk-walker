@@ -19,7 +19,7 @@ import {
   createDefaultAlgorithm 
 } from './traversal.js';
 
-export const VERSION = '3.70.0-EXP';
+export const VERSION = '4.2.0-EXP';
 
 export const defaultConfig = {
   pace: 2000,
