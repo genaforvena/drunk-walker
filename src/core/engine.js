@@ -12,12 +12,17 @@
  */
 
 import { createWheel } from './wheel.js';
-import { createDefaultAlgorithm } from './traversal.js';
+import { 
+  createExplorationAlgorithm, 
+  createHunterAlgorithm,
+  createDefaultAlgorithm 
+} from './traversal.js';
 
 export const VERSION = '3.70.0-EXP';
 
 export const defaultConfig = {
   pace: 2000,
+  mode: 'EXPLORER', // Default mode
   kbOn: true,      // Keyboard mode ON by default
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
@@ -362,6 +367,13 @@ export function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
+    setMode: (mode) => {
+      cfg.mode = mode;
+      algorithm = (mode === 'HUNTER') 
+        ? createHunterAlgorithm(cfg) 
+        : createExplorationAlgorithm(cfg);
+      console.log(`🤪 Mode changed to: ${mode}`);
+    },
     // Stubs for backward compatibility
     getNavigation: () => null,
     getNavigationState: () => ({}),

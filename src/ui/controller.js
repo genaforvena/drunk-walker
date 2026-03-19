@@ -83,6 +83,27 @@ export function createControlPanel(engine, options = {}) {
     statusEl = stats.querySelector('#dw-status');
     visitedEl = stats.querySelector('#dw-visited');
 
+    // Mode toggle
+    const modeLabel = document.createElement('div');
+    modeLabel.style.fontSize = '10px';
+    modeLabel.style.marginTop = '10px';
+    modeLabel.innerHTML = 'MODE: <span id="dw-mode-val">EXPLORER</span>';
+    mainContent.appendChild(modeLabel);
+    const modeValEl = modeLabel.querySelector('#dw-mode-val');
+
+    const modeBtn = document.createElement('button');
+    modeBtn.innerText = '🏹 SWITCH TO HUNTER';
+    modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #0f0;font-size:10px;cursor:pointer;';
+    modeBtn.onclick = () => {
+      const currentMode = engine.getConfig().mode;
+      const newMode = currentMode === 'EXPLORER' ? 'HUNTER' : 'EXPLORER';
+      engine.setMode(newMode);
+      modeValEl.innerText = newMode;
+      modeBtn.innerText = newMode === 'EXPLORER' ? '🏹 SWITCH TO HUNTER' : '🌍 SWITCH TO EXPLORER';
+      modeBtn.style.borderColor = newMode === 'EXPLORER' ? '#0f0' : '#f60';
+    };
+    mainContent.appendChild(modeBtn);
+
     // Pace control
     const paceLabel = document.createElement('div');
     paceLabel.style.fontSize = '10px';

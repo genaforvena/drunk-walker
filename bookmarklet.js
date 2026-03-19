@@ -108,47 +108,30 @@ function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005
 }
 
 /**
- * Advanced Traversal Algorithm
- * Implements:
- * A. Weighted "Heatmap" Exploration
- * B. Systematic Search Pattern for stuck recovery
- * C. Path avoidance using breadcrumbs
+ * EXPLORATION ALGORITHM (Default)
+ * Focus: Heatmap avoidance and Breadcrumb scent
  */
-function createDefaultAlgorithm(cfg) {
+function createExplorationAlgorithm(cfg) {
   const panicThreshold = cfg.panicThreshold || 3;
-  
-  // State for Systematic Search Pattern (Spiral Recovery)
   let lastSearchAngle = 0;
 
-  /**
-   * Decide what to do next
-   * @param {Object} context - current state
-   * @returns {Object} { turn: boolean, angle?: number }
-   */
   const decide = (context) => {
     const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
 
     // PRIORITY 1: Systematic Search (Stuck Recovery)
     if (cfg.expOn && stuckCount >= panicThreshold) {
-      // If we just got stuck, start with a small angle
-      // If we stay stuck, escalate the angle to scan all directions
       if (stuckCount === panicThreshold) {
-        lastSearchAngle = 60; // Doubled from 30
+        lastSearchAngle = 60;
       } else {
-        lastSearchAngle = (lastSearchAngle + 60) % 360; // Doubled increment
+        lastSearchAngle = (lastSearchAngle + 60) % 360;
         if (lastSearchAngle === 0) lastSearchAngle = 60;
       }
-      
-      console.log(`Systematic Search: stuckCount=${stuckCount}, angle=${lastSearchAngle}`);
       return { turn: true, angle: lastSearchAngle };
     }
 
     // PRIORITY 2: Weighted Exploration (Proactive Avoidance)
     if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
-      // Reset search angle when not stuck
       lastSearchAngle = 0;
-
-      // Scan 360 degrees in 60 degree increments (doubled from 30)
       const scanAngles = [0, 60, -60, 120, -120, 180, -180];
       let bestScore = Infinity;
       let bestAngle = 0;
@@ -156,25 +139,15 @@ function createDefaultAlgorithm(cfg) {
       for (const angle of scanAngles) {
         const testOrientation = normalizeAngle(orientation + angle);
         const testLocation = predictNextLocation(currentLocation, testOrientation);
-        
         if (!testLocation) continue;
 
-        // Calculate score: Lower is better
-        // 1. Visit Count (Heatmap)
         const visitCount = visitedUrls.get(testLocation) || 0;
-        
-        // 2. Breadcrumb Penalty (Scent) - avoid recently visited areas more strongly
         let breadcrumbPenalty = 0;
         breadcrumbs.forEach((bc, index) => {
-          if (bc === testLocation) {
-            // Penalty is higher for more recent breadcrumbs
-            breadcrumbPenalty += (index + 1); 
-          }
+          if (bc === testLocation) breadcrumbPenalty += (index + 1);
         });
 
-        // 3. Forward bias: slight preference for staying the same course if everything else is equal
         const forwardBias = (angle === 0) ? -0.1 : 0;
-
         const score = (visitCount * 10) + breadcrumbPenalty + forwardBias;
 
         if (score < bestScore) {
@@ -183,9 +156,7 @@ function createDefaultAlgorithm(cfg) {
         }
       }
 
-      // Only turn if the best angle is NOT the current one
       if (bestAngle !== 0) {
-        console.log(`Exploration Decision: angle=${bestAngle}, score=${bestScore}`);
         return { turn: true, angle: Math.abs(bestAngle) };
       }
     }
@@ -195,6 +166,68 @@ function createDefaultAlgorithm(cfg) {
 
   return { decide };
 }
+
+/**
+ * CUL-DE-SAC HUNTER ALGORITHM
+ * Focus: Seeking dead-ends and "High Friction" areas
+ */
+function createHunterAlgorithm(cfg) {
+  const panicThreshold = cfg.panicThreshold || 3;
+  
+  const decide = (context) => {
+    const { stuckCount, currentLocation, visitedUrls, orientation } = context;
+
+    // PRIORITY 1: Snap-Back (The Dead-End Escape)
+    // When we hit the panic threshold, we assume we found a dead end.
+    // Instead of a search, we perform a 180 degree snap-back to escape.
+    if (cfg.expOn && stuckCount >= panicThreshold) {
+      console.log("🎯 CUL-DE-SAC HUNTER: Dead-end found! Performing Snap-Back escape.");
+      // 180 degree turn to go back exactly where we came from
+      return { turn: true, angle: 180 };
+    }
+
+    // PRIORITY 2: Curiosity-Based Sampling
+    // The hunter prefers directions that it HASN'T visited yet, but it
+    // doesn't care about the heatmap as much as finding "one-way" nodes.
+    if (cfg.expOn && currentLocation && stuckCount === 0) {
+      // Scan to find how many "exits" are available
+      const scanAngles = [0, 60, 120, 180, 240, 300];
+      let availableExits = 0;
+      let unvisitedAngles = [];
+
+      for (const angle of scanAngles) {
+        const testOrientation = normalizeAngle(orientation + angle);
+        const testLocation = predictNextLocation(currentLocation, testOrientation);
+        if (testLocation && !visitedUrls.has(testLocation)) {
+          unvisitedAngles.push(angle);
+        }
+        if (testLocation) availableExits++;
+      }
+
+      // If only 1 exit is available (and it's probably behind us), 
+      // this is a "High Interest" node.
+      if (availableExits <= 1) {
+        console.log("🔍 CUL-DE-SAC HUNTER: High Interest node detected (1 exit).");
+      }
+
+      // Prefer unvisited directions to keep hunting
+      if (unvisitedAngles.length > 0) {
+        // Pick an unvisited angle that isn't 0
+        const bestAngle = unvisitedAngles.find(a => a !== 0) || 0;
+        if (bestAngle !== 0) {
+          return { turn: true, angle: Math.abs(bestAngle) };
+        }
+      }
+    }
+
+    return { turn: false };
+  };
+
+  return { decide };
+}
+
+// Default export for backward compatibility
+const createDefaultAlgorithm = createExplorationAlgorithm;
 
 
   // === NAVIGATION COMPATIBILITY LAYER ===
@@ -268,6 +301,7 @@ const VERSION = '3.70.0-EXP';
 
 const defaultConfig = {
   pace: 2000,
+  mode: 'EXPLORER', // Default mode
   kbOn: true,      // Keyboard mode ON by default
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
@@ -612,6 +646,13 @@ function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
+    setMode: (mode) => {
+      cfg.mode = mode;
+      algorithm = (mode === 'HUNTER') 
+        ? createHunterAlgorithm(cfg) 
+        : createExplorationAlgorithm(cfg);
+      console.log(`🤪 Mode changed to: ${mode}`);
+    },
     // Stubs for backward compatibility
     getNavigation: () => null,
     getNavigationState: () => ({}),
@@ -878,6 +919,27 @@ function createControlPanel(engine, options = {}) {
     mainContent.appendChild(stats);
     statusEl = stats.querySelector('#dw-status');
     visitedEl = stats.querySelector('#dw-visited');
+
+    // Mode toggle
+    const modeLabel = document.createElement('div');
+    modeLabel.style.fontSize = '10px';
+    modeLabel.style.marginTop = '10px';
+    modeLabel.innerHTML = 'MODE: <span id="dw-mode-val">EXPLORER</span>';
+    mainContent.appendChild(modeLabel);
+    const modeValEl = modeLabel.querySelector('#dw-mode-val');
+
+    const modeBtn = document.createElement('button');
+    modeBtn.innerText = '🏹 SWITCH TO HUNTER';
+    modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #0f0;font-size:10px;cursor:pointer;';
+    modeBtn.onclick = () => {
+      const currentMode = engine.getConfig().mode;
+      const newMode = currentMode === 'EXPLORER' ? 'HUNTER' : 'EXPLORER';
+      engine.setMode(newMode);
+      modeValEl.innerText = newMode;
+      modeBtn.innerText = newMode === 'EXPLORER' ? '🏹 SWITCH TO HUNTER' : '🌍 SWITCH TO EXPLORER';
+      modeBtn.style.borderColor = newMode === 'EXPLORER' ? '#0f0' : '#f60';
+    };
+    mainContent.appendChild(modeBtn);
 
     // Pace control
     const paceLabel = document.createElement('div');

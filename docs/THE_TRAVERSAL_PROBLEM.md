@@ -62,6 +62,20 @@ Imagine a neighborhood connected to the main city by a single bridge.
 In narrow streets, the geometry of the "sphere" we are standing in is warped. 
 *   **The Problem:** Clicking slightly off-center (to the bottom-left) might work perfectly on a wide road to "hug" the lane, but in a narrow alley, that same click might hit a wall or a parked car's metadata, resulting in no movement. The territory redefines what our coordinates actually do.
 
+## 7. Hunter Mode: The Cul-de-sac Signature
+Sometimes, you don't want to avoid the "stuck" areas—you want to find them. The "Cul-de-sac Hunter" algorithm is a specialized mode that shifts the bot's goal from efficient exploration to feature detection.
+
+### The "Dead-End" Signature
+In Street View, a cul-de-sac or a dead-end has a very specific mathematical signature:
+*   **One-Way Node:** When scanning 360°, the bot finds that only one direction (the way it just came from) has a valid exit panorama.
+*   **High Friction:** Every other "guess" results in a stuck state.
+
+### The "Snap-Back" Escape
+In Explorer mode, the bot tries to "wiggle" out of a stuck state by turning 60°, 120°, etc. In Hunter mode, once the bot confirms it is at a dead end (reaching the `panicThreshold`):
+1.  It marks the location as a **Discovery**.
+2.  It performs a **180° Snap-Back turn**.
+3.  It immediately retreats back out the way it came.
+
 ---
 
-**Next time you see the Walker spinning on a bridge, remember: it might be experiencing a "Topological Trap" where its own memory is preventing its escape!**
+**By toggling between Explorer and Hunter modes, the bot shifts from a "Global Forager" to a "Topological Sniper."**
