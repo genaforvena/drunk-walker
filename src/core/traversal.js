@@ -61,6 +61,27 @@ function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005
 }
 
 /**
+ * Calculate entropy of visited locations in scan directions
+ * Low entropy = all directions equally "hot" (time for random exploration)
+ * High entropy = clear difference between hot and cold (use normal scoring)
+ */
+function calculateEntropy(visitedUrls, currentLocation, orientation) {
+  const scanAngles = [0, 60, -60, 120, -120, 180];
+  
+  const visitCounts = scanAngles.map(angle => {
+    const testOrientation = normalizeAngle(orientation + angle);
+    const testLocation = predictNextLocation(currentLocation, testOrientation);
+    if (!testLocation) return 0;
+    return visitedUrls.get(testLocation) || 0;
+  });
+  
+  const avgVisits = visitCounts.reduce((a, b) => a + b, 0) / visitCounts.length;
+  const variance = visitCounts.reduce((sum, v) => sum + Math.pow(v - avgVisits, 2), 0) / visitCounts.length;
+  
+  return { avgVisits, variance, visitCounts };
+}
+
+/**
  * EXPLORATION ALGORITHM (Default)
  * Focus: Heatmap avoidance and Breadcrumb scent
  */
@@ -68,6 +89,8 @@ export function createExplorationAlgorithm(cfg) {
   const panicThreshold = cfg.panicThreshold || 3;
   let lastSearchAngle = 0;
   let extendedStuckCount = 0;
+  let lowEntropyMode = false;
+  let lowEntropyCounter = 0;
 
   const decide = (context) => {
     const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
@@ -86,7 +109,9 @@ export function createExplorationAlgorithm(cfg) {
     // PRIORITY 1: Systematic Search (Stuck Recovery)
     if (cfg.expOn && stuckCount >= panicThreshold) {
       extendedStuckCount = stuckCount;
-      
+      lowEntropyMode = false;
+      lowEntropyCounter = 0;
+
       // Adaptive search: use smaller angles if stuck for too long
       let searchIncrement = 60;
       if (stuckCount >= 10) {
@@ -98,7 +123,7 @@ export function createExplorationAlgorithm(cfg) {
         console.log(`🎲 Extended stuck (${stuckCount}), trying random angle: ${randomAngle}°`);
         return { turn: true, angle: randomAngle };
       }
-      
+
       if (stuckCount === panicThreshold) {
         lastSearchAngle = searchIncrement;
       } else {
@@ -108,10 +133,32 @@ export function createExplorationAlgorithm(cfg) {
       return { turn: true, angle: lastSearchAngle };
     }
 
-    // PRIORITY 2: Weighted Exploration (Proactive Avoidance)
+    // PRIORITY 2: Entropy-Based Exploration
+    // When all directions are equally "hot", switch to random exploration
     if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
-      lastSearchAngle = 0;
+      const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
+      
+      // Detect low entropy: all directions similarly visited
+      const isLowEntropy = entropy.variance < 3 && entropy.avgVisits > 3;
+      
+      if (isLowEntropy) {
+        lowEntropyCounter++;
+        
+        // After 3+ ticks of low entropy, trigger random exploration
+        if (lowEntropyCounter >= 3) {
+          lowEntropyMode = true;
+          const randomAngle = Math.floor(Math.random() * 360);
+          console.log(`🎲 LOW ENTROPY (var=${entropy.variance.toFixed(2)}, avg=${entropy.avgVisits.toFixed(1)}), random escape: ${randomAngle}°`);
+          return { turn: true, angle: randomAngle };
+        }
+      } else {
+        lowEntropyMode = false;
+        lowEntropyCounter = 0;
+      }
+      
       extendedStuckCount = 0;
+      lastSearchAngle = 0;
+      
       const scanAngles = [0, 60, -60, 120, -120, 180, -180];
       let bestScore = Infinity;
       let bestAngle = 0;
