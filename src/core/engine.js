@@ -12,11 +12,13 @@
  */
 
 import { createWheel } from './wheel.js';
-import { 
-  createExplorationAlgorithm, 
+import {
+  createExplorationAlgorithm,
   createHunterAlgorithm,
   createSurgicalAlgorithm,
-  createDefaultAlgorithm 
+  createDefaultAlgorithm,
+  extractYawFromUrl,
+  extractLocationFromUrl
 } from './traversal.js';
 
 export const VERSION = '4.2.0-EXP';
@@ -124,19 +126,26 @@ export function createEngine(config = {}) {
     if (isPathCollectionEnabled) {
       const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
       const location = extractLocation(currentUrl);
-      
+
       // Always record the step event for analysis
       walkPath.push({
         url: currentUrl,
         currentYaw: Math.round(wheel.getOrientation())
       });
 
+      // ORIENTATION RECALIBRATION
+      // Extract actual yaw from URL and sync internal orientation to prevent drift
+      const actualYaw = extractYawFromUrl(currentUrl);
+      if (actualYaw !== null) {
+        wheel.setOrientation(actualYaw);
+      }
+
       // MEMORY UPDATE LOGIC
       // Only update Breadcrumbs and Heatmap if we actually MOVED to a new location.
       // This prevents "Amnesia via Hyper-Focus" where spinning in place 20 times
       // would flush the breadcrumb buffer and make the bot forget where it came from.
       const lastRecordedLocation = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : null;
-      
+
       if (cfg.selfAvoiding && location !== lastRecordedLocation) {
         const count = visitedUrls.get(location) || 0;
         visitedUrls.set(location, count + 1);
