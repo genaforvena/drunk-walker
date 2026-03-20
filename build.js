@@ -6,14 +6,25 @@
  * DO NOT edit these files directly - changes will be lost on next build.
  *
  * TO MAKE CHANGES:
- * 1. Edit source files in src/ directory:
- *    - src/core/engine.js    - Core navigation logic (VERSION defined here)
- *    - src/core/navigation.js  - Navigation strategies
- *    - src/input/handlers.js - Keyboard/mouse event simulation
- *    - src/ui/controller.js  - Control panel UI
- *    - src/main.js           - Entry point and initialization
+ * 1. Edit source files in src/ directory
  * 2. Run: node build.js
  * 3. Generated files will be updated automatically
+ *
+ * ⚠️ CRITICAL: EXPORT/IMPORT STRIPPING
+ * When adding new source files, you MUST add export stripping for them below!
+ * The build uses regex to remove ES module syntax. If you see "export" in the
+ * output, the regex isn't catching your file.
+ *
+ * Common patterns that need stripping:
+ * - export function foo() {}
+ * - export const X = 1
+ * - export { a, b, c }
+ * - export default X
+ * - export class Foo {}
+ * - import { x } from './file.js'
+ *
+ * TO TEST: After building, run: npm test
+ * The tests will fail if any export/import keywords remain.
  *
  * VERSION MANAGEMENT:
  * - Update version in src/core/engine.js
@@ -29,6 +40,33 @@ const consoleFile = 'bookmarklet-console.js';
 const engineSource = fs.readFileSync('src/core/engine.js', 'utf8');
 const versionMatch = engineSource.match(/export const VERSION = ['"]([^'"]+)['"]/);
 const VERSION = versionMatch ? versionMatch[1] : '0.0.0-DEV';
+
+/**
+ * Strip ES module syntax from source code
+ * This is CRITICAL - any exports/imports left will cause browser errors
+ * 
+ * @param {string} code - Source code to strip
+ * @returns {string} - Code with all ES module syntax removed
+ */
+function stripModuleSyntax(code) {
+  return code
+    // Remove all import statements (various formats)
+    .replace(/import\s+.*?\s+from\s+['"][^'"]+['"];?/g, '')
+    .replace(/import\s+['"][^'"]+['"];?/g, '')  // side-effect imports
+    // Remove all export statements (various formats)
+    .replace(/export\s+{/g, 'const __export_dummy = {')  // export { a, b }
+    .replace(/export\s+default\s+/g, 'const __default_export = ')  // export default
+    .replace(/export\s+const\s+/g, 'const ')
+    .replace(/export\s+let\s+/g, 'let ')
+    .replace(/export\s+var\s+/g, 'var ')
+    .replace(/export\s+function\s+/g, 'function ')
+    .replace(/export\s+class\s+/g, 'class ')
+    .replace(/export\s+async\s+function/g, 'async function')
+    // Remove standalone export statements
+    .replace(/^\s*export\s*;?/gm, '')
+    // Remove empty lines created by stripping
+    .replace(/^\s*$/gm, '');
+}
 
 // Read all source files (order matters)
 const wheel = fs.readFileSync('src/core/wheel.js', 'utf8');
@@ -69,67 +107,30 @@ let bundled = `
   window.DRUNK_WALKER_ACTIVE = true;
 
   // === WHEEL ===
-  ${wheel
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(wheel)}
 
   // === TRANSITION GRAPH ===
-  ${transitionGraph
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(transitionGraph)}
 
   // === TRAVERSAL ALGORITHMS ===
-  ${traversal
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(traversal)}
 
   // === NAVIGATION COMPATIBILITY LAYER ===
-  ${navigation
-    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export default \{[\s\S]*?\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(navigation)}
 
   // === CORE ENGINE ===
   // State management, tick timing, path recording
   // TO CHANGE ENGINE: Edit src/core/engine.js
-  ${engine
-    .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/wheel\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/transition-graph\.js['"];?/g, '')
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(engine)}
 
   // === INPUT HANDLERS ===
-  ${handlers
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export function/g, 'function')
-    .replace(/export const/g, 'const')
-  }
+  ${stripModuleSyntax(handlers)}
 
   // === UI CONTROLLER ===
-  ${controller
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(controller)}
 
   // === MAIN ENTRY ===
-  ${main
-    .replace(/import \{[^}]+\} from ['"]\.\/core\/engine\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/input\/handlers\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/ui\/controller\.js['"];?/g, '')
-  }
+  ${stripModuleSyntax(main)}
 })();
 `.trim();
 
@@ -166,70 +167,30 @@ void function initDrunkWalker(){
   window.DRUNK_WALKER_ACTIVE = true;
 
   // === WHEEL ===
-  ${wheel
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(wheel)}
 
   // === TRANSITION GRAPH ===
-  ${transitionGraph
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(transitionGraph)}
 
   // === TRAVERSAL ALGORITHMS ===
-  ${traversal
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(traversal)}
 
   // === NAVIGATION COMPATIBILITY LAYER ===
-  ${navigation
-    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export default \{[\s\S]*?\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(navigation)}
 
   // === CORE ENGINE ===
   // State management, tick timing, path recording
   // TO CHANGE ENGINE: Edit src/core/engine.js
-  ${engine
-    .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/wheel\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/transition-graph\.js['"];?/g, '')
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export const/g, 'const')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(engine)}
 
   // === INPUT HANDLERS ===
-  ${handlers
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export function/g, 'function')
-    .replace(/export const/g, 'const')
-  }
+  ${stripModuleSyntax(handlers)}
 
   // === UI CONTROLLER ===
-  ${controller
-    .replace(/export \{[^}]+\};/g, '')
-    .replace(/export function/g, 'function')
-  }
+  ${stripModuleSyntax(controller)}
 
   // === MAIN ENTRY ===
-  ${main
-    .replace(/import \{[^}]+\} from ['"]\.\/core\/engine\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/input\/handlers\.js['"];?/g, '')
-    .replace(/import \{[^}]+\} from ['"]\.\/ui\/controller\.js['"];?/g, '')
-    // Remove the IIFE wrapper from main.js since we're wrapping it ourselves
-    .replace(/^\(function\(\) \{/, '')
-    .replace(/\}\)\(\);[\s\n]*$/, '')
-  }
+  ${stripModuleSyntax(main)}
 }();
 `.trim();
 

@@ -149,7 +149,21 @@ describe('Bundled Bookmarklet Validation', () => {
     });
 
     it('should not contain ES module exports', () => {
-      expect(bookmarkletCode).not.toMatch(/export\s+(const|function|{)/);
+      expect(bookmarkletCode).not.toMatch(/export\s+(const|function|{|class|let|var|default)/);
+    });
+
+    it('should not contain any export keywords at all', () => {
+      // Catch any export statement (more strict check)
+      // Exclude comments by checking for actual export syntax
+      const exportMatches = bookmarkletCode.match(/\bexport\s+(const|let|var|function|class|default|{)/g);
+      expect(exportMatches).toBeNull();
+    });
+
+    it('should not contain any import keywords at all', () => {
+      // Catch any import statement (more strict check)
+      // Exclude comments by checking for actual import syntax
+      const importMatches = bookmarkletCode.match(/\bimport\s+.*\s+from\b/g);
+      expect(importMatches).toBeNull();
     });
 
     it('should be under 65KB', () => {

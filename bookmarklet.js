@@ -29,22 +29,17 @@
  * Wheel component for Drunk Walker
  * Manages orientation and turning (only left)
  */
-
 function createWheel(callbacks) {
   const { onLongKeyPress } = callbacks;
   let orientation = 0; // 0-359
-
   const getOrientation = () => orientation;
-
   const setOrientation = (newOrientation) => {
     orientation = normalizeAngle(newOrientation);
   };
-
   const turnLeft = (angle, callback) => {
     // Convert angle to duration (10ms per degree as per existing code)
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
-
     if (onLongKeyPress) {
       onLongKeyPress('ArrowLeft', clampedDuration, () => {
         orientation = normalizeAngle(orientation - angle);
@@ -55,13 +50,11 @@ function createWheel(callbacks) {
       if (callback) callback();
     }
   };
-
   const normalizeAngle = (angle) => {
     angle = angle % 360;
     if (angle < 0) angle += 360;
     return angle;
   };
-
   return {
     getOrientation,
     setOrientation,
@@ -69,7 +62,6 @@ function createWheel(callbacks) {
     reset: () => { orientation = 0; }
   };
 }
-
 
   // === TRANSITION GRAPH ===
   /**
@@ -86,14 +78,14 @@ function createWheel(callbacks) {
  * Solution: Learn from actual transitions (100% accurate for learned nodes)
  */
 
-export class TransitionGraph {
+class TransitionGraph {
   constructor() {
     // location -> Set<connectedLocations>
     this.connections = new Map();
-    
+
     // "loc1->loc2" -> Array<{fromYaw, toYaw, timestamp}>
     this.transitions = new Map();
-    
+
     // Statistics
     this.stats = {
       totalTransitions: 0,
@@ -110,18 +102,18 @@ export class TransitionGraph {
    */
   record(fromLoc, toLoc, fromYaw, toYaw) {
     if (!fromLoc || !toLoc || fromLoc === toLoc) return;
-    
+
     // Record connection
     if (!this.connections.has(fromLoc)) {
       this.connections.set(fromLoc, new Set());
     }
     const wasNew = !this.connections.get(fromLoc).has(toLoc);
     this.connections.get(fromLoc).add(toLoc);
-    
+
     if (wasNew) {
       this.stats.uniqueConnections++;
     }
-    
+
     // Record transition details
     const key = `${fromLoc}->${toLoc}`;
     if (!this.transitions.has(key)) {
@@ -132,7 +124,7 @@ export class TransitionGraph {
       toYaw,
       timestamp: Date.now()
     });
-    
+
     this.stats.totalTransitions++;
   }
 
@@ -153,13 +145,13 @@ export class TransitionGraph {
    */
   findEscape(currentLocation, visitedUrls) {
     const connections = this.getConnections(currentLocation);
-    
+
     for (const connected of connections) {
       if (!visitedUrls.has(connected)) {
         return connected;  // Found unvisited escape!
       }
     }
-    
+
     return null;  // All learned connections are visited
   }
 
@@ -172,9 +164,9 @@ export class TransitionGraph {
   getYawCorrection(fromLoc, toLoc) {
     const key = `${fromLoc}->${toLoc}`;
     const transitions = this.transitions.get(key);
-    
+
     if (!transitions || transitions.length === 0) return null;
-    
+
     const avgYaw = transitions.reduce((sum, t) => sum + t.toYaw, 0) / transitions.length;
     return avgYaw;
   }
@@ -197,7 +189,7 @@ export class TransitionGraph {
   getBidirectionalPairs() {
     const pairs = [];
     const seen = new Set();
-    
+
     for (const [from, connections] of this.connections) {
       for (const to of connections) {
         const key = [from, to].sort().join('|');
@@ -207,7 +199,7 @@ export class TransitionGraph {
         }
       }
     }
-    
+
     return pairs;
   }
 
@@ -218,22 +210,22 @@ export class TransitionGraph {
   analyzeYawDeltas() {
     const pairs = this.getBidirectionalPairs();
     const deltas = [];
-    
+
     for (const { a, b } of pairs) {
       const forward = this.getYawCorrection(a, b);
       const reverse = this.getYawCorrection(b, a);
-      
+
       if (forward !== null && reverse !== null) {
         let delta = Math.abs(forward - reverse);
         if (delta > 180) delta = 360 - delta;
         deltas.push(delta);
       }
     }
-    
+
     if (deltas.length === 0) {
       return { count: 0, avg: null, min: null, max: null };
     }
-    
+
     return {
       count: deltas.length,
       avg: deltas.reduce((a, b) => a + b, 0) / deltas.length,
@@ -251,7 +243,7 @@ export class TransitionGraph {
       '190-210': 0,
       'other': 0
     };
-    
+
     deltas.forEach(d => {
       if (d >= 150 && d < 170) buckets['150-170']++;
       else if (d >= 170 && d < 180) buckets['170-180']++;
@@ -259,7 +251,7 @@ export class TransitionGraph {
       else if (d >= 190 && d < 210) buckets['190-210']++;
       else buckets.other++;
     });
-    
+
     return buckets;
   }
 
@@ -272,7 +264,7 @@ export class TransitionGraph {
     const avgDegree = degrees.length > 0 
       ? degrees.reduce((a, b) => a + b, 0) / degrees.length 
       : 0;
-    
+
     return {
       ...this.stats,
       locations: this.connections.size,
@@ -309,19 +301,19 @@ export class TransitionGraph {
    */
   fromJSON(data) {
     this.clear();
-    
+
     if (data.connections) {
       for (const [loc, connections] of data.connections) {
         this.connections.set(loc, new Set(connections));
       }
     }
-    
+
     if (data.transitions) {
       for (const [key, transitions] of data.transitions) {
         this.transitions.set(key, transitions);
       }
     }
-    
+
     if (data.stats) {
       this.stats = data.stats;
     }
@@ -388,14 +380,14 @@ function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005
 
   const [lat, lng] = parts.map(Number);
   const yawRad = orientation * Math.PI / 180;
-  
+
   // Approximate lat/lng offset based on yaw (simplified projection)
   const dLat = Math.cos(yawRad) * stepDistance;
   const dLng = Math.sin(yawRad) * stepDistance / Math.cos(lat * Math.PI / 180);
-  
+
   const nextLat = (lat + dLat).toFixed(6);
   const nextLng = (lng + dLng).toFixed(6);
-  
+
   return `${nextLat},${nextLng}`;
 }
 
@@ -406,17 +398,17 @@ function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005
  */
 function calculateEntropy(visitedUrls, currentLocation, orientation) {
   const scanAngles = [0, 60, -60, 120, -120, 180];
-  
+
   const visitCounts = scanAngles.map(angle => {
     const testOrientation = normalizeAngle(orientation + angle);
     const testLocation = predictNextLocation(currentLocation, testOrientation);
     if (!testLocation) return 0;
     return visitedUrls.get(testLocation) || 0;
   });
-  
+
   const avgVisits = visitCounts.reduce((a, b) => a + b, 0) / visitCounts.length;
   const variance = visitCounts.reduce((sum, v) => sum + Math.pow(v - avgVisits, 2), 0) / visitCounts.length;
-  
+
   return { avgVisits, variance, visitCounts };
 }
 
@@ -476,13 +468,13 @@ function createExplorationAlgorithm(cfg) {
     // When all directions are equally "hot", switch to random exploration
     if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
       const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
-      
+
       // Detect low entropy: all directions similarly visited
       const isLowEntropy = entropy.variance < 3 && entropy.avgVisits > 3;
-      
+
       if (isLowEntropy) {
         lowEntropyCounter++;
-        
+
         // After 3+ ticks of low entropy, trigger random exploration
         if (lowEntropyCounter >= 3) {
           lowEntropyMode = true;
@@ -494,10 +486,10 @@ function createExplorationAlgorithm(cfg) {
         lowEntropyMode = false;
         lowEntropyCounter = 0;
       }
-      
+
       extendedStuckCount = 0;
       lastSearchAngle = 0;
-      
+
       const scanAngles = [0, 60, -60, 120, -120, 180, -180];
       let bestScore = Infinity;
       let bestAngle = 0;
@@ -632,18 +624,18 @@ function createSurgicalAlgorithm(cfg) {
         const currentParts = currentLocation.split(',');
         const currentLat = parseFloat(currentParts[0]);
         const currentLng = parseFloat(currentParts[1]);
-        
+
         // Calculate angle to target
         const dLat = targetLat - currentLat;
         const dLng = targetLng - currentLng;
         let targetAngle = Math.atan2(dLng, dLat) * 180 / Math.PI;
         if (targetAngle < 0) targetAngle += 360;
-        
+
         // Calculate turn angle from current orientation
         let turnAngle = targetAngle - orientation;
         if (turnAngle < 0) turnAngle += 360;
         if (turnAngle > 360) turnAngle -= 360;
-        
+
         // Prefer turning over going straight if angle is significant
         if (turnAngle > 10 && turnAngle < 350) {
           console.log(`🗺️ SURGEON: Using learned connection to escape`);
@@ -666,13 +658,13 @@ function createSurgicalAlgorithm(cfg) {
     // PRIORITY 2: Entropy-Based Escape (linear territory)
     if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
       const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
-      
+
       // Surgeon uses LOWER threshold - escapes linear traps earlier
       const isLowEntropy = entropy.variance < 5 && entropy.avgVisits > 2;
-      
+
       if (isLowEntropy) {
         consecutiveTurns++;
-        
+
         // After 2+ ticks of low entropy, Surgeon takes action (faster than Explorer)
         if (consecutiveTurns >= 2) {
           const randomAngle = Math.floor(Math.random() * 360);
@@ -752,8 +744,6 @@ const createDefaultAlgorithm = createExplorationAlgorithm;
  * but uses the new Traversal/Wheel architecture.
  */
 
-
-
 function createProactiveAvoidance(cfg, callbacks) {
   const algorithm = createDefaultAlgorithm(cfg);
   return {
@@ -790,7 +780,11 @@ function createNavigationController(cfg, callbacks) {
   };
 }
 
-
+const __default_export = {
+  createProactiveAvoidance,
+  createUnstuckNavigation,
+  createNavigationController
+};
 
 
   // === CORE ENGINE ===
@@ -809,9 +803,14 @@ function createNavigationController(cfg, callbacks) {
  * Edit src/core/traversal.js - NOT this file
  */
 
-
-
-
+import {
+  createExplorationAlgorithm,
+  createHunterAlgorithm,
+  createSurgicalAlgorithm,
+  createDefaultAlgorithm,
+  extractYawFromUrl,
+  extractLocationFromUrl
+} from './traversal.js';
 
 const VERSION = '4.2.0-EXP';
 
@@ -849,7 +848,7 @@ function createEngine(config = {}) {
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Map(); // location -> count
   let breadcrumbs = []; // last 100 locations
-  
+
   // Transition graph for learning actual connectivity
   const transitionGraph = createTransitionGraph();
   let lastRecordedLocation = null;
@@ -1128,7 +1127,7 @@ function createEngine(config = {}) {
       steps++;
       recordStep();
     }
-    
+
     console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}`);
   };
 
@@ -1212,7 +1211,7 @@ function createEngine(config = {}) {
     getNavigation: () => null,
     getNavigationState: () => ({}),
     setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; },
-    
+
     // Transition Graph API (for learning actual connectivity)
     getTransitionGraph: () => transitionGraph,
     getTransitionStats: () => transitionGraph.getStats(),
@@ -1225,14 +1224,12 @@ function createEngine(config = {}) {
   /**
  * Input Handlers - Keyboard and Mouse Event Simulation
  */
-
 const KEY_CODES = {
   ArrowUp: { keyCode: 38, code: 'ArrowUp' },
   ArrowLeft: { keyCode: 37, code: 'ArrowLeft' },
   ArrowDown: { keyCode: 40, code: 'ArrowDown' },
   ArrowRight: { keyCode: 39, code: 'ArrowRight' }
 };
-
 /**
  * Find the best target element for Street View events
  */
@@ -1243,7 +1240,6 @@ function findStreetViewTarget() {
     document.querySelector('[class*="streetview"]') ||
     document.documentElement;
 }
-
 /**
  * Simulate keyboard event (keydown -> keypress -> keyup)
  * @param {string} key - Key to simulate (e.g., 'ArrowUp')
@@ -1251,7 +1247,6 @@ function findStreetViewTarget() {
  */
 function simulateKeyPress(key, target = null) {
   const { keyCode, code } = KEY_CODES[key] || { keyCode: 0, code: key };
-
   const eventOptions = {
     key,
     code,
@@ -1266,9 +1261,7 @@ function simulateKeyPress(key, target = null) {
     metaKey: false,
     shiftKey: false
   };
-
   const targetEl = target || findStreetViewTarget();
-
   // Full key event sequence for maximum compatibility
   targetEl.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
   targetEl.dispatchEvent(new KeyboardEvent('keypress', eventOptions));
@@ -1276,7 +1269,6 @@ function simulateKeyPress(key, target = null) {
     targetEl.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
   }, 50);
 }
-
 /**
  * Simulate long-press keyboard event (keydown -> hold -> keyup)
  * Used for turning (e.g., hold ArrowLeft for 30° turn)
@@ -1287,7 +1279,6 @@ function simulateKeyPress(key, target = null) {
  */
 function simulateLongKeyPress(key, duration, callback, target = null) {
   const { keyCode, code } = KEY_CODES[key] || { keyCode: 0, code: key };
-
   const eventOptions = {
     key,
     code,
@@ -1302,19 +1293,15 @@ function simulateLongKeyPress(key, duration, callback, target = null) {
     metaKey: false,
     shiftKey: false
   };
-
   const targetEl = target || findStreetViewTarget();
-
   // Key down
   targetEl.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
-  
   // Hold for duration, then release
   setTimeout(() => {
     targetEl.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
     if (callback) callback();
   }, duration);
 }
-
 /**
  * Simulate mouse click at coordinates
  * @param {number} x - X coordinate
@@ -1330,13 +1317,10 @@ function simulateClick(x, y, showMarker = true) {
     screenX: x,
     screenY: y
   };
-
   const target = document.elementFromPoint(x, y) || document.body;
-
   target.dispatchEvent(new MouseEvent('mousedown', eventOptions));
   target.dispatchEvent(new MouseEvent('mouseup', eventOptions));
   target.dispatchEvent(new MouseEvent('click', eventOptions));
-
   // Visual feedback marker
   if (showMarker) {
     const marker = document.createElement('div');
@@ -1362,29 +1346,24 @@ function simulateClick(x, y, showMarker = true) {
     }, 50);
   }
 }
-
 /**
  * Set up user interaction listeners
  * @returns {Object} Cleanup function
  */
 function setupInteractionListeners(callbacks = {}) {
   const { onUserMouseDown, onUserMouseUp } = callbacks;
-
   const mouseDownHandler = (e) => {
     if (e.isTrusted && onUserMouseDown) {
       onUserMouseDown(true);
     }
   };
-
   const mouseUpHandler = (e) => {
     if (e.isTrusted && onUserMouseUp) {
       onUserMouseUp(false);
     }
   };
-
   document.addEventListener('mousedown', mouseDownHandler, true);
   document.addEventListener('mouseup', mouseUpHandler, true);
-
   return {
     cleanup: () => {
       document.removeEventListener('mousedown', mouseDownHandler, true);
@@ -1392,7 +1371,6 @@ function setupInteractionListeners(callbacks = {}) {
     }
   };
 }
-
 
   // === UI CONTROLLER ===
   /**
@@ -1417,11 +1395,11 @@ function createControlPanel(engine, options = {}) {
   let minimizeBtn = null;
   let mainContent = null;
   let isMinimized = false;
-  
+
   // Session logs storage
   const sessionLogs = [];
   const originalConsoleLog = console.log;
-  
+
   // Intercept console.log to capture logs
   console.log = function(...args) {
     const timestamp = new Date().toISOString();
@@ -1441,17 +1419,17 @@ function createControlPanel(engine, options = {}) {
     // Header with minimize button
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;';
-    
+
     const title = document.createElement('div');
     title.innerText = `🤪 DRUNK WALKER v${version}`;
     title.style.fontSize = '12px';
     title.style.fontWeight = 'bold';
-    
+
     minimizeBtn = document.createElement('button');
     minimizeBtn.innerText = '−';
     minimizeBtn.style.cssText = 'background:none;border:1px solid #0f0;color:#0f0;cursor:pointer;padding:0 5px;font-weight:bold;font-size:14px;';
     minimizeBtn.onclick = toggleMinimize;
-    
+
     header.appendChild(title);
     header.appendChild(minimizeBtn);
     container.appendChild(header);
@@ -1471,7 +1449,7 @@ function createControlPanel(engine, options = {}) {
     // Main Content wrapper (Toggleable)
     mainContent = document.createElement('div');
     mainContent.id = 'dw-main-content';
-    
+
     // Remaining Stats
     const stats = document.createElement('div');
     stats.style.margin = '5px 0';
@@ -1491,7 +1469,7 @@ function createControlPanel(engine, options = {}) {
     const modeBtn = document.createElement('button');
     modeBtn.innerText = '🔪 SWITCH TO SURGEON';
     modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #f60;font-size:10px;cursor:pointer;';
-    
+
     // Set initial button state based on engine config
     const initialMode = engine.getConfig().mode;
     if (initialMode === 'SURGEON') {
@@ -1511,7 +1489,7 @@ function createControlPanel(engine, options = {}) {
 
       engine.setMode(newMode);
       modeValEl.innerText = newMode;
-      
+
       // Update button text/style (Shows NEXT mode)
       if (newMode === 'EXPLORER') {
         modeBtn.innerText = '🏹 SWITCH TO HUNTER';
@@ -1550,8 +1528,8 @@ function createControlPanel(engine, options = {}) {
 
     // Path export button (Download only)
     const exportDiv = document.createElement('div');
-    exportDiv.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
-    
+Div.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
+
     // Download path JSON button
     const downloadPathBtn = document.createElement('button');
     downloadPathBtn.innerText = '💾 Download Path';
@@ -1577,14 +1555,13 @@ function createControlPanel(engine, options = {}) {
         downloadPathBtn.innerText = '💾 Download Path';
       }, 2000);
     };
-    
-    exportDiv.appendChild(downloadPathBtn);
+Div.appendChild(downloadPathBtn);
     mainContent.appendChild(exportDiv);
 
     // Download logs button
     const logsDiv = document.createElement('div');
     logsDiv.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
-    
+
     downloadLogsBtn = document.createElement('button');
     downloadLogsBtn.innerText = '📄 Download Logs';
     downloadLogsBtn.style.cssText = 'width:100%;padding:6px;background:#ff6600;color:#fff;border:none;font-weight:bold;cursor:pointer;border-radius:4px;font-size:10px;';
@@ -1593,7 +1570,7 @@ function createControlPanel(engine, options = {}) {
         alert('No logs recorded yet. Start walking to generate logs!');
         return;
       }
-      
+
       const logContent = sessionLogs.join('\n');
       const blob = new Blob([logContent], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
@@ -1604,13 +1581,13 @@ function createControlPanel(engine, options = {}) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       downloadLogsBtn.innerText = '✓ Downloaded!';
       setTimeout(() => {
         downloadLogsBtn.innerText = '📄 Download Logs';
       }, 2000);
     };
-    
+
     logsDiv.appendChild(downloadLogsBtn);
     mainContent.appendChild(logsDiv);
 
@@ -1625,7 +1602,7 @@ function createControlPanel(engine, options = {}) {
       input.onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         const reader = new FileReader();
         reader.onload = (event) => {
           try {
@@ -1633,13 +1610,13 @@ function createControlPanel(engine, options = {}) {
             if (!Array.isArray(walkPath) || walkPath.length === 0) {
               throw new Error('Invalid walk path format');
             }
-            
+
             // Validate path structure
             const firstStep = walkPath[0];
             if (!firstStep.url && !firstStep.location) {
               throw new Error('Invalid path entries');
             }
-            
+
             // Restore walk path
             engine.setWalkPath(walkPath);
 
@@ -1651,7 +1628,7 @@ function createControlPanel(engine, options = {}) {
             if (lastStep.url) {
               window.location.href = lastStep.url;
             }
-            
+
             console.log(`🤪 DRUNK WALKER: Restored walk with ${walkPath.length} steps`);
             alert(`✓ Walk restored!\n\n${walkPath.length} steps loaded\nNavigating to last position...`);
           } catch (err) {
@@ -1681,7 +1658,7 @@ function createControlPanel(engine, options = {}) {
 
     container.appendChild(mainContent);
     document.body.appendChild(container);
-    
+
     // Ensure features are enabled by default as requested
     if (onPathCollectionToggle) onPathCollectionToggle(true);
     engine.setSelfAvoiding(true);
@@ -1765,11 +1742,6 @@ function createControlPanel(engine, options = {}) {
  * Drunk Walker - Main Entry Point
  * Combines core engine, input handlers, and UI
  */
-
-
-
-
-
 // Allow restart by clearing previous instance
 if (window.DRUNK_WALKER_ACTIVE) {
   console.log('🤪 Drunk Walker: Restarting...');
@@ -1777,11 +1749,8 @@ if (window.DRUNK_WALKER_ACTIVE) {
     try { window.DRUNK_WALKER.stop(); } catch(e) {}
   }
 }
-
 window.DRUNK_WALKER_ACTIVE = true;
-
 console.log(`🤪 DRUNK WALKER v${VERSION} Loaded.`);
-
 // Wait for DOM to be ready before initializing
 const initialize = () => {
   try {
@@ -1796,14 +1765,12 @@ const initialize = () => {
     } catch (e) {
       console.log('🤪 No saved session found');
     }
-
     // Create engine with default config (keyboard mode ON, unstuck enabled)
     const engine = createEngine({
       pace: savedState?.pace || 2000,
       kbOn: true,      // Keyboard mode is DEFAULT
       expOn: true      // Unstuck algorithm enabled by default
     });
-
     // Restore state if coming from screensaver
     if (savedState) {
       // Restore walk path
@@ -1811,27 +1778,23 @@ const initialize = () => {
         engine.setWalkPath(savedState.walkPath);
         console.log('🤪 Restored', savedState.walkPath.length, 'path points');
       }
-
       // Restore steps count
       if (savedState.steps) {
         engine.setSteps(savedState.steps);
         console.log('🤪 Restored', savedState.steps, 'steps');
       }
     }
-
     // Set up interaction listeners (pause on user drag)
     const { cleanup: cleanupListeners } = setupInteractionListeners({
       onUserMouseDown: (down) => engine.setUserMouseDown(down),
       onUserMouseUp: (down) => engine.setUserMouseDown(down)
     });
-
     // Listen for screensaver initialization messages
     window.addEventListener('message', (event) => {
       if (event.data?.type === 'DRUNK_WALKER_INIT') {
         console.log('🤪 Screensaver window initialized');
       }
     });
-
     // Path collection submit handler
     const submitWalkPath = async (walkPath) => {
       try {
@@ -1840,7 +1803,6 @@ const initialize = () => {
           steps: walkPath.length,
           walkPath: walkPath
         };
-
         // Send to backend (fail silently if unavailable)
         await fetch('/api/submit-walk', {
           method: 'POST',
@@ -1853,7 +1815,6 @@ const initialize = () => {
         console.log('🤪 Walk path submission error:', error.message);
       }
     };
-
     // Create UI - this will autoStart after action handlers are set
     const ui = createControlPanel(engine, {
       version: VERSION,
@@ -1862,7 +1823,6 @@ const initialize = () => {
         engine.setPathCollection(enabled);
       }
     });
-
     // Set up ALL action handlers BEFORE starting
     engine.setActionHandlers({
       keyPress: (key) => {
@@ -1879,18 +1839,14 @@ const initialize = () => {
       statusUpdate: ui.onStatusUpdate,
       walkStop: submitWalkPath
     });
-
     // Initialize UI
     ui.init();
-
     // Now start walking (after everything is set up)
     engine.start();
-
     // Resume screensaver session if needed (already started above)
     if (savedState?.isWalking) {
       console.log('🤪 Screensaver session restored');
     }
-
     // Expose for debugging/console access
     window.DRUNK_WALKER = {
       engine,
@@ -1905,19 +1861,16 @@ const initialize = () => {
         console.log('🤪 Drunk Walker stopped');
       }
     };
-
     console.log('🎮 Type DRUNK_WALKER.stop() to stop manually');
   } catch (error) {
     console.error('🤪 DRUNK WALKER: Initialization failed:', error);
     window.DRUNK_WALKER_ACTIVE = false;
   }
 };
-
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initialize);
 } else {
   initialize();
 }
-
 })();
