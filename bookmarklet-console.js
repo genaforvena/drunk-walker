@@ -358,7 +358,7 @@ const VERSION = '4.2.0-EXP';
 
 const defaultConfig = {
   pace: 2000,
-  mode: 'EXPLORER', // Default mode
+  mode: 'SURGEON', // Default mode
   kbOn: true,      // Keyboard mode ON by default
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
@@ -994,24 +994,35 @@ function createControlPanel(engine, options = {}) {
     const modeLabel = document.createElement('div');
     modeLabel.style.fontSize = '10px';
     modeLabel.style.marginTop = '10px';
-    modeLabel.innerHTML = 'MODE: <span id="dw-mode-val">EXPLORER</span>';
+    modeLabel.innerHTML = 'MODE: <span id="dw-mode-val">SURGEON</span>';
     mainContent.appendChild(modeLabel);
     const modeValEl = modeLabel.querySelector('#dw-mode-val');
 
     const modeBtn = document.createElement('button');
-    modeBtn.innerText = '🏹 SWITCH TO HUNTER';
-    modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #0f0;font-size:10px;cursor:pointer;';
+    modeBtn.innerText = '🔪 SWITCH TO SURGEON';
+    modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #f60;font-size:10px;cursor:pointer;';
+    
+    // Set initial button state based on engine config
+    const initialMode = engine.getConfig().mode;
+    if (initialMode === 'SURGEON') {
+        modeBtn.innerText = '🌍 SWITCH TO EXPLORER';
+        modeBtn.style.borderColor = '#0cf';
+    } else if (initialMode === 'EXPLORER') {
+        modeBtn.innerText = '🏹 SWITCH TO HUNTER';
+        modeBtn.style.borderColor = '#0f0';
+    }
+
     modeBtn.onclick = () => {
       const currentMode = engine.getConfig().mode;
       let newMode;
-      if (currentMode === 'EXPLORER') newMode = 'HUNTER';
-      else if (currentMode === 'HUNTER') newMode = 'SURGEON';
-      else newMode = 'EXPLORER';
+      if (currentMode === 'SURGEON') newMode = 'EXPLORER'; // Cycle SURGEON -> EXPLORER
+      else if (currentMode === 'EXPLORER') newMode = 'HUNTER';
+      else newMode = 'SURGEON'; // HUNTER -> SURGEON
 
       engine.setMode(newMode);
       modeValEl.innerText = newMode;
       
-      // Update button text/style
+      // Update button text/style (Shows NEXT mode)
       if (newMode === 'EXPLORER') {
         modeBtn.innerText = '🏹 SWITCH TO HUNTER';
         modeBtn.style.borderColor = '#0f0';

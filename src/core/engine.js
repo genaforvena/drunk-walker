@@ -23,7 +23,7 @@ export const VERSION = '4.2.0-EXP';
 
 export const defaultConfig = {
   pace: 2000,
-  mode: 'EXPLORER', // Default mode
+  mode: 'SURGEON', // Default mode
   kbOn: true,      // Keyboard mode ON by default
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
