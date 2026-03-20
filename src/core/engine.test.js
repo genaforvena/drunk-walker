@@ -30,7 +30,7 @@ describe('Core Engine', () => {
     });
 
     it('should have correct version', () => {
-      expect(VERSION).toBe('5.1.0-SMART-NODES');
+      expect(VERSION).toBe('5.3.0-STUCK-TYPE');
     });
   });
 

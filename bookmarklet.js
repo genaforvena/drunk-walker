@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.1.0-SMART-NODES - Bundled Build
+// Drunk Walker v5.3.0-STUCK-TYPE - Bundled Build
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -63,375 +63,44 @@ function createWheel(callbacks) {
   };
 }
 
-  // === TRANSITION GRAPH ===
-  /**
- * Transition Graph for Drunk Walker
- * 
- * Learns actual Street View connectivity from observed transitions
- * instead of relying on mathematical prediction
- * 
- * Key Insight: Google Street View yaw drifts along paths
- * - Average yaw delta (A→B vs B→A): 125.8° (not 180°!)
- * - Only 7% of bidirectional pairs have expected 180° delta
- * - Mathematical prediction fails for ~60% of nodes
- * 
- * Solution: Learn from actual transitions (100% accurate for learned nodes)
- */
-
-class TransitionGraph {
-  constructor() {
-    // location -> Set<connectedLocations>
-    this.connections = new Map();
-
-    // "loc1->loc2" -> Array<{fromYaw, toYaw, timestamp}>
-    this.transitions = new Map();
-
-    // Statistics
-    this.stats = {
-      totalTransitions: 0,
-      uniqueConnections: 0
-    };
-  }
-
-  /**
-   * Record a transition from one location to another
-   * @param {string} fromLoc - Starting location "lat,lng"
-   * @param {string} toLoc - Destination location "lat,lng"
-   * @param {number} fromYaw - Yaw at starting location
-   * @param {number} toYaw - Yaw at destination location
-   */
-  record(fromLoc, toLoc, fromYaw, toYaw) {
-    if (!fromLoc || !toLoc || fromLoc === toLoc) return;
-
-    // Record connection
-    if (!this.connections.has(fromLoc)) {
-      this.connections.set(fromLoc, new Set());
-    }
-    const wasNew = !this.connections.get(fromLoc).has(toLoc);
-    this.connections.get(fromLoc).add(toLoc);
-
-    if (wasNew) {
-      this.stats.uniqueConnections++;
-    }
-
-    // Record transition details
-    const key = `${fromLoc}->${toLoc}`;
-    if (!this.transitions.has(key)) {
-      this.transitions.set(key, []);
-    }
-    this.transitions.get(key).push({
-      fromYaw,
-      toYaw,
-      timestamp: Date.now()
-    });
-
-    this.stats.totalTransitions++;
-  }
-
-  /**
-   * Get all connected locations from a given location
-   * @param {string} location - Location "lat,lng"
-   * @returns {Set<string>} Set of connected locations
-   */
-  getConnections(location) {
-    return this.connections.get(location) || new Set();
-  }
-
-  /**
-   * Find an unvisited escape direction from current location
-   * @param {string} currentLocation - Current location "lat,lng"
-   * @param {Map} visitedUrls - Map of visited locations
-   * @returns {string|null} Connected unvisited location or null
-   */
-  findEscape(currentLocation, visitedUrls) {
-    const connections = this.getConnections(currentLocation);
-
-    for (const connected of connections) {
-      if (!visitedUrls.has(connected)) {
-        return connected;  // Found unvisited escape!
-      }
-    }
-
-    return null;  // All learned connections are visited
-  }
-
-  /**
-   * Get the average yaw correction for a transition
-   * @param {string} fromLoc - Starting location
-   * @param {string} toLoc - Destination location
-   * @returns {number|null} Average toYaw or null if no data
-   */
-  getYawCorrection(fromLoc, toLoc) {
-    const key = `${fromLoc}->${toLoc}`;
-    const transitions = this.transitions.get(key);
-
-    if (!transitions || transitions.length === 0) return null;
-
-    const avgYaw = transitions.reduce((sum, t) => sum + t.toYaw, 0) / transitions.length;
-    return avgYaw;
-  }
-
-  /**
-   * Check if a connection exists
-   * @param {string} fromLoc - Starting location
-   * @param {string} toLoc - Destination location
-   * @returns {boolean} True if connection exists
-   */
-  hasConnection(fromLoc, toLoc) {
-    const connections = this.connections.get(fromLoc);
-    return connections ? connections.has(toLoc) : false;
-  }
-
-  /**
-   * Get bidirectional connections (A↔B)
-   * @returns {Array<{a: string, b: string}>} Array of bidirectional pairs
-   */
-  getBidirectionalPairs() {
-    const pairs = [];
-    const seen = new Set();
-
-    for (const [from, connections] of this.connections) {
-      for (const to of connections) {
-        const key = [from, to].sort().join('|');
-        if (!seen.has(key) && this.hasConnection(to, from)) {
-          pairs.push({ a: from, b: to });
-          seen.add(key);
-        }
-      }
-    }
-
-    return pairs;
-  }
-
-  /**
-   * Analyze yaw deltas for bidirectional transitions
-   * @returns {Object} Statistics about yaw deltas
-   */
-  analyzeYawDeltas() {
-    const pairs = this.getBidirectionalPairs();
-    const deltas = [];
-
-    for (const { a, b } of pairs) {
-      const forward = this.getYawCorrection(a, b);
-      const reverse = this.getYawCorrection(b, a);
-
-      if (forward !== null && reverse !== null) {
-        let delta = Math.abs(forward - reverse);
-        if (delta > 180) delta = 360 - delta;
-        deltas.push(delta);
-      }
-    }
-
-    if (deltas.length === 0) {
-      return { count: 0, avg: null, min: null, max: null };
-    }
-
-    return {
-      count: deltas.length,
-      avg: deltas.reduce((a, b) => a + b, 0) / deltas.length,
-      min: Math.min(...deltas),
-      max: Math.max(...deltas),
-      distribution: this._getDistribution(deltas)
-    };
-  }
-
-  _getDistribution(deltas) {
-    const buckets = {
-      '150-170': 0,
-      '170-180': 0,
-      '180-190': 0,
-      '190-210': 0,
-      'other': 0
-    };
-
-    deltas.forEach(d => {
-      if (d >= 150 && d < 170) buckets['150-170']++;
-      else if (d >= 170 && d < 180) buckets['170-180']++;
-      else if (d >= 180 && d < 190) buckets['180-190']++;
-      else if (d >= 190 && d < 210) buckets['190-210']++;
-      else buckets.other++;
-    });
-
-    return buckets;
-  }
-
-  /**
-   * Get graph statistics
-   * @returns {Object} Graph statistics
-   */
-  getStats() {
-    const degrees = Array.from(this.connections.values()).map(c => c.size);
-    const avgDegree = degrees.length > 0 
-      ? degrees.reduce((a, b) => a + b, 0) / degrees.length 
-      : 0;
-
-    return {
-      ...this.stats,
-      locations: this.connections.size,
-      avgDegree: avgDegree.toFixed(2),
-      linearNodes: degrees.filter(d => d === 2).length,
-      branchingNodes: degrees.filter(d => d > 2).length,
-      crossroads: degrees.filter(d => d >= 3).length  // Nodes with 3+ exits
-    };
-  }
-
-  /**
-   * Check if a location is a crossroad (3+ connections)
-   * @param {string} location - Location to check
-   * @returns {boolean} True if crossroad
-   */
-  isCrossroad(location) {
-    const connections = this.connections.get(location);
-    return connections ? connections.size >= 3 : false;
-  }
-
-  /**
-   * Find escape with crossroad prioritization
-   * Prefers paths that lead TO or FROM crossroads (more exploration options)
-   * @param {string} currentLocation - Current location
-   * @param {Map} visitedUrls - Visited locations
-   * @returns {{location: string, isCrossroad: boolean, priority: number}|null}
-   */
-  findEscapeWithPriority(currentLocation, visitedUrls) {
-    const connections = this.getConnections(currentLocation);
-    if (!connections || connections.size === 0) return null;
-
-    const options = [];
-
-    for (const connected of connections) {
-      if (!visitedUrls.has(connected)) {
-        const connectedIsCrossroad = this.isCrossroad(connected);
-        const currentIsCrossroad = this.isCrossroad(currentLocation);
-
-        // Priority scoring:
-        // 3 = Going TO a crossroad from a crossroad (max options)
-        // 2 = Going TO a crossroad (more options ahead)
-        // 1 = Going FROM a crossroad (exploiting known hub)
-        // 0 = Normal path
-        let priority = 0;
-        if (currentIsCrossroad && connectedIsCrossroad) priority = 3;
-        else if (connectedIsCrossroad) priority = 2;
-        else if (currentIsCrossroad) priority = 1;
-
-        options.push({
-          location: connected,
-          isCrossroad: connectedIsCrossroad,
-          priority
-        });
-      }
-    }
-
-    if (options.length === 0) return null;
-
-    // Sort by priority (highest first), then pick best
-    options.sort((a, b) => b.priority - a.priority);
-    return options[0];
-  }
-
-  /**
-   * Clear all data
-   */
-  clear() {
-    this.connections.clear();
-    this.transitions.clear();
-    this.stats = { totalTransitions: 0, uniqueConnections: 0 };
-  }
-
-  /**
-   * Export graph to JSON (for persistence)
-   * @returns {Object} Serializable graph data
-   */
-  toJSON() {
-    return {
-      connections: Array.from(this.connections.entries()).map(([loc, set]) => [loc, Array.from(set)]),
-      transitions: Array.from(this.transitions.entries()),
-      stats: this.stats
-    };
-  }
-
-  /**
-   * Import graph from JSON (from persistence)
-   * @param {Object} data - Serialized graph data
-   */
-  fromJSON(data) {
-    this.clear();
-
-    if (data.connections) {
-      for (const [loc, connections] of data.connections) {
-        this.connections.set(loc, new Set(connections));
-      }
-    }
-
-    if (data.transitions) {
-      for (const [key, transitions] of data.transitions) {
-        this.transitions.set(key, transitions);
-      }
-    }
-
-    if (data.stats) {
-      this.stats = data.stats;
-    }
-  }
-}
-
-/**
- * Create a transition graph instance
- */
-function createTransitionGraph() {
-  return new TransitionGraph();
-}
-
 
   // === TRAVERSAL ALGORITHMS ===
   /**
- * Traversal Algorithms v5.1.0 - Smart Node Exploration
+ * Traversal Algorithms v5.3.0 - Stuck Type Detection
  * 
- * KEY INSIGHT: We can only know a node is "straight" AFTER trying all 6 directions.
- * Until then, every node is a potential crossroad (T-junction, 4-way, etc.)
+ * KEY INSIGHT: Different types of stuck require different escape strategies!
  * 
- * EXPLORATION STRATEGY:
- * 1. Forward pass: Record every node's entry/exit yaws
- * 2. At dead end: Scan ALL 6 directions to confirm
- * 3. Navigate back: Skip "straight" nodes, stop at nodes with untried yaws
- * 4. At each stop: Try ALL 6 directions (don't stop at 2 exits - could be T-shaped!)
+ * STUCK TYPES & RESPONSES:
+ * 1. DEAD_END (hit street end) → Navigate to nearest node with untried yaws
+ * 2. OSCILLATION (A→B→A→B×5) → Random turn (break pattern)
+ * 3. LINEAR_TRAP (bouncing, low entropy) → Search perpendicular to preferred yaw
+ * 4. LOOP (returning to old breadcrumb) → Navigate away from loop origin
+ * 5. ALL_HOT (all directions equal) → Random escape
  * 
- * NODE CLASSIFICATION (only after trying all 6 yaws):
- * - STRAIGHT: 2 exits, ~180° apart (continue walking)
- * - CROSSROAD: 3+ exits (exploration opportunity)
- * - DEAD_END: 1 exit (mark and escape)
- * - UNKNOWN: <6 yaws tried (potential crossroad - STOP HERE!)
+ * DETECTION WINDOWS:
+ * - Oscillation: 20 steps (was 6)
+ * - Breadcrumbs: 200 steps (was 100)
+ * - Loop detection: 50 steps back (was 10)
  */
 
-/**
- * Normalizes angle to 0-359
- */
 function normalizeAngle(angle) {
   angle = angle % 360;
   if (angle < 0) angle += 360;
   return angle;
 }
 
-/**
- * Calculate yaw difference between two angles (0-180°)
- */
 function yawDifference(yaw1, yaw2) {
   let diff = Math.abs(normalizeAngle(yaw1) - normalizeAngle(yaw2));
   if (diff > 180) diff = 360 - diff;
   return diff;
 }
 
-/**
- * Extract yaw from Google Street View URL
- */
 function extractYawFromUrl(url) {
   if (!url) return null;
   const match = url.match(/yaw%3D([0-9.]+)/);
   return match ? parseFloat(match[1]) : null;
 }
 
-/**
- * Extract location from Google Street View URL
- */
 function extractLocationFromUrl(url) {
   if (!url) return null;
   const hashMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
@@ -441,52 +110,175 @@ function extractLocationFromUrl(url) {
   return null;
 }
 
-/**
- * Predict next location given current location, orientation, and step distance
- */
 function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005) {
   if (!currentLocation || typeof currentLocation !== 'string') return null;
   const parts = currentLocation.split(',');
   if (parts.length < 2) return currentLocation;
-
   const [lat, lng] = parts.map(Number);
   const yawRad = orientation * Math.PI / 180;
-
   const dLat = Math.cos(yawRad) * stepDistance;
   const dLng = Math.sin(yawRad) * stepDistance / Math.cos(lat * Math.PI / 180);
-
-  const nextLat = (lat + dLat).toFixed(6);
-  const nextLng = (lng + dLng).toFixed(6);
-
-  return `${nextLat},${nextLng}`;
+  return `${(lat + dLat).toFixed(6)},${(lng + dLng).toFixed(6)}`;
 }
 
-/**
- * Calculate entropy of visited locations in scan directions
- */
 function calculateEntropy(visitedUrls, currentLocation, orientation) {
   const scanAngles = [0, 60, -60, 120, -120, 180];
-
   const visitCounts = scanAngles.map(angle => {
     const testOrientation = normalizeAngle(orientation + angle);
     const testLocation = predictNextLocation(currentLocation, testOrientation);
     if (!testLocation) return 0;
     return visitedUrls.get(testLocation) || 0;
   });
-
   const avgVisits = visitCounts.reduce((a, b) => a + b, 0) / visitCounts.length;
   const variance = visitCounts.reduce((sum, v) => sum + Math.pow(v - avgVisits, 2), 0) / visitCounts.length;
-
   return { avgVisits, variance, visitCounts };
 }
 
 /**
+ * STUCK TYPE DETECTOR
+ * Analyzes the situation and returns the type of stuck + recommended action
+ */
+class StuckDetector {
+  constructor() {
+    this.oscillationWindow = 20;  // Was 6 - need to detect longer patterns!
+    this.breadcrumbLength = 200;   // Was 100 - longer memory
+    this.loopDetectionDepth = 50;  // Was 10 - detect older loops
+  }
+
+  /**
+   * Analyze current situation and return stuck type
+   */
+  analyze(context) {
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
+
+    // Not stuck yet - no analysis needed
+    if (stuckCount < 3) {
+      return { type: 'NOT_STUCK' };
+    }
+
+    // Check for each type of stuck (in priority order)
+
+    // 1. OSCILLATION - A→B→A→B pattern (need 5+ cycles = 20 steps)
+    const oscillation = this.detectOscillation(breadcrumbs);
+    if (oscillation.detected) {
+      return {
+        type: 'OSCILLATION',
+        confidence: oscillation.confidence,
+        action: 'RANDOM_ESCAPE',
+        details: `Pattern: ${oscillation.pattern}`
+      };
+    }
+
+    // 2. LOOP - Returning to old breadcrumb
+    const loop = this.detectLoop(breadcrumbs, currentLocation);
+    if (loop.detected) {
+      return {
+        type: 'LOOP',
+        confidence: loop.confidence,
+        action: 'NAVIGATE_AWAY',
+        details: `Back to step -${loop.stepsAgo}`
+      };
+    }
+
+    // 3. LINEAR_TRAP - Low entropy, bouncing
+    const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
+    const isLinearTrap = entropy.variance < 3 && entropy.avgVisits > 5;
+    if (isLinearTrap) {
+      return {
+        type: 'LINEAR_TRAP',
+        confidence: 0.8,
+        action: 'PERPENDICULAR_SEARCH',
+        details: `var=${entropy.variance.toFixed(2)}, avg=${entropy.avgVisits.toFixed(1)}`
+      };
+    }
+
+    // 4. ALL_HOT - All directions equally visited
+    const allHot = entropy.variance < 2 && entropy.avgVisits > 10;
+    if (allHot) {
+      return {
+        type: 'ALL_HOT',
+        confidence: 0.9,
+        action: 'RANDOM_ESCAPE',
+        details: `All directions hot (avg=${entropy.avgVisits.toFixed(1)})`
+      };
+    }
+
+    // 5. DEAD_END - Default for stuckCount >= 3
+    return {
+      type: 'DEAD_END',
+      confidence: 0.7,
+      action: 'NAVIGATE_TO_UNTRIED',
+      details: `stuckCount=${stuckCount}`
+    };
+  }
+
+  /**
+   * Detect oscillation pattern (A→B→A→B×5)
+   */
+  detectOscillation(breadcrumbs) {
+    if (breadcrumbs.length < this.oscillationWindow) {
+      return { detected: false };
+    }
+
+    const recent = breadcrumbs.slice(-this.oscillationWindow);
+
+    // Check for A→B→A→B pattern (at least 5 cycles)
+    const A = recent[recent.length - 1];
+    const B = recent[recent.length - 2];
+
+    if (!A || !B || A === B) return { detected: false };
+
+    let cycles = 0;
+    for (let i = recent.length - 1; i >= 1; i -= 2) {
+      if (recent[i] === A && recent[i-1] === B) {
+        cycles++;
+      } else {
+        break;
+      }
+    }
+
+    if (cycles >= 5) {
+      return {
+        detected: true,
+        confidence: cycles / 10,  // 5 cycles = 0.5, 10 cycles = 1.0
+        pattern: `${A.substring(0,10)}→${B.substring(0,10)}`
+      };
+    }
+
+    return { detected: false };
+  }
+
+  /**
+   * Detect loop (returning to old breadcrumb)
+   */
+  detectLoop(breadcrumbs, currentLocation) {
+    if (!currentLocation || breadcrumbs.length < 10) {
+      return { detected: false };
+    }
+
+    // Look for current location in breadcrumbs (skip recent 10 to avoid false positives)
+    const searchStart = Math.max(0, breadcrumbs.length - this.breadcrumbLength);
+    const searchEnd = breadcrumbs.length - 10;  // Skip recent 10
+
+    for (let i = searchEnd; i >= searchStart; i--) {
+      if (breadcrumbs[i] === currentLocation) {
+        const stepsAgo = breadcrumbs.length - i;
+        if (stepsAgo >= this.loopDetectionDepth) {
+          return {
+            detected: true,
+            confidence: Math.min(1.0, stepsAgo / 100),
+            stepsAgo
+          };
+        }
+      }
+    }
+
+    return { detected: false };
+  }
+}
+
+/**
  * NODE INFO CLASS
- * Stores metadata about each visited location
- * 
- * CRITICAL: Node type is ONLY determined after trying all 6 directions!
- * - Before 6 tries: Node is "UNKNOWN" (treat as potential crossroad)
- * - After 6 tries: Classify as STRAIGHT, CROSSROAD, or DEAD_END
  */
 class NodeInfo {
   constructor(location, lat, lng, step) {
@@ -495,114 +287,62 @@ class NodeInfo {
     this.lng = lng;
     this.firstVisitStep = step;
     this.lastVisitStep = step;
-
-    // Yaw tracking
-    this.triedYaws = new Set();      // All yaws we've attempted
-    this.successfulYaws = new Set(); // Yaws that resulted in movement
-    this.connections = new Map();    // yaw → targetLocation
-
-    // Node classification (ONLY valid after trying all 6 yaws)
+    this.triedYaws = new Set();
+    this.successfulYaws = new Set();
+    this.connections = new Map();
     this.isStraight = false;
     this.isCrossroad = false;
     this.isDeadEnd = false;
     this.isFullyExplored = false;
   }
 
-  /**
-   * Record a yaw attempt
-   * @param {number} yaw - The yaw we tried
-   * @param {boolean} success - Did we move?
-   * @param {string|null} targetLocation - Where did we go?
-   */
   recordAttempt(yaw, success, targetLocation = null) {
     this.triedYaws.add(normalizeAngle(yaw));
     this.lastVisitStep = Date.now();
-
     if (success && targetLocation) {
       this.successfulYaws.add(normalizeAngle(yaw));
       this.connections.set(normalizeAngle(yaw), targetLocation);
     }
-
     this.updateType();
   }
 
-  /**
-   * Update node classification based on tried yaws
-   * ONLY classifies after all 6 directions have been tried
-   */
   updateType() {
-    // Can't classify until we've tried all 6 directions
-    if (this.triedYaws.size < 6) {
-      return;
-    }
-
+    if (this.triedYaws.size < 6) return;
     this.isFullyExplored = true;
     const exitCount = this.connections.size;
-
     if (exitCount === 1) {
       this.isDeadEnd = true;
     } else if (exitCount === 2) {
-      // Check if exits are ~180° apart (straight path)
       const yaws = Array.from(this.successfulYaws);
       if (yaws.length === 2) {
-        const diff = yawDifference(yaws[0], yaws[1]);
-        this.isStraight = diff > 150;  // ~180° ± 30° tolerance
+        this.isStraight = yawDifference(yaws[0], yaws[1]) > 150;
       }
     } else if (exitCount >= 3) {
       this.isCrossroad = true;
     }
   }
 
-  /**
-   * Check if this node has untried directions
-   * @returns {boolean} True if we should STOP here and scan
-   */
-  hasUntriedYaws() {
-    return this.triedYaws.size < 6;
-  }
+  hasUntriedYaws() { return this.triedYaws.size < 6; }
 
-  /**
-   * Get next untried yaw
-   * @returns {number|null} Next yaw to try, or null if all tried
-   */
   getNextUntriedYaw() {
-    const allYaws = [0, 60, 120, 180, 240, 300];
-    for (const yaw of allYaws) {
-      if (!this.triedYaws.has(yaw)) {
-        return yaw;
-      }
+    for (const yaw of [0, 60, 120, 180, 240, 300]) {
+      if (!this.triedYaws.has(yaw)) return yaw;
     }
     return null;
   }
 
-  /**
-   * Get all connected locations
-   */
-  getConnections() {
-    return Array.from(this.connections.values());
-  }
-
-  /**
-   * Get exit count (how many directions worked)
-   */
-  getExitCount() {
-    return this.connections.size;
-  }
+  getExitCount() { return this.connections.size; }
 }
 
 /**
  * ENHANCED TRANSITION GRAPH
- * Augments the basic connection graph with node metadata
  */
 class EnhancedTransitionGraph {
   constructor() {
-    this.nodes = new Map();  // location → NodeInfo
-    this.connections = new Map();  // location → Set<location> (backward compat)
+    this.nodes = new Map();
+    this.connections = new Map();
   }
 
-  /**
-   * Get or create node info
-   */
   getOrCreate(location, lat, lng, step = 0) {
     if (!this.nodes.has(location)) {
       this.nodes.set(location, new NodeInfo(location, lat, lng, step));
@@ -611,71 +351,34 @@ class EnhancedTransitionGraph {
     return this.nodes.get(location);
   }
 
-  /**
-   * Get node info
-   */
-  get(location) {
-    return this.nodes.get(location);
-  }
+  get(location) { return this.nodes.get(location); }
 
-  /**
-   * Record movement from one location to another
-   */
   recordMovement(fromLoc, toLoc, fromYaw, toYaw, step) {
-    const fromNode = this.getOrCreate(fromLoc, 
-      parseFloat(fromLoc.split(',')[0]), 
-      parseFloat(fromLoc.split(',')[1]), 
-      step
-    );
-    const toNode = this.getOrCreate(toLoc,
-      parseFloat(toLoc.split(',')[0]),
-      parseFloat(toLoc.split(',')[1]),
-      step
-    );
-
-    // Record successful exit from fromNode
+    const fromNode = this.getOrCreate(fromLoc, parseFloat(fromLoc.split(',')[0]), parseFloat(fromLoc.split(',')[1]), step);
+    const toNode = this.getOrCreate(toLoc, parseFloat(toLoc.split(',')[0]), parseFloat(toLoc.split(',')[1]), step);
     fromNode.recordAttempt(fromYaw, true, toLoc);
-
-    // Record entry to toNode
     toNode.entryYaw = toYaw;
-
-    // Update backward compatibility connections
     if (!this.connections.get(fromLoc).has(toLoc)) {
       this.connections.get(fromLoc).add(toLoc);
     }
   }
 
-  /**
-   * Record failed movement attempt
-   */
   recordFailedAttempt(location, yaw, step) {
-    const node = this.getOrCreate(location,
-      parseFloat(location.split(',')[0]),
-      parseFloat(location.split(',')[1]),
-      step
-    );
+    const node = this.getOrCreate(location, parseFloat(location.split(',')[0]), parseFloat(location.split(',')[1]), step);
     node.recordAttempt(yaw, false, null);
   }
 
-  /**
-   * Find nearest node with untried yaws (potential crossroad)
-   * @param {string} currentLocation - Starting point
-   * @param {Array<string>} pathBack - Path back to start
-   * @returns {NodeInfo|null} Nearest unexplored node
-   */
-  findNearestUnexploredNode(currentLocation, pathBack) {
-    for (const loc of pathBack) {
+  findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs) {
+    for (let i = breadcrumbs.length - 1; i >= 0; i--) {
+      const loc = breadcrumbs[i];
       const node = this.nodes.get(loc);
-      if (node && !node.isFullyExplored && node.hasUntriedYaws()) {
-        return node;
+      if (node && node.hasUntriedYaws() && loc !== currentLocation) {
+        return { node, location: loc, index: i };
       }
     }
     return null;
   }
 
-  /**
-   * Get statistics
-   */
   getStats() {
     const nodes = Array.from(this.nodes.values());
     return {
@@ -688,140 +391,180 @@ class EnhancedTransitionGraph {
     };
   }
 
-  /**
-   * Backward compatibility - get connections for location
-   */
-  getConnections(location) {
-    return this.connections.get(location) || new Set();
-  }
+  getConnections(location) { return this.connections.get(location) || new Set(); }
+  isCrossroad(location) { const node = this.nodes.get(location); return node ? node.isCrossroad : false; }
 
-  /**
-   * Check if location is a crossroad
-   */
-  isCrossroad(location) {
-    const node = this.nodes.get(location);
-    return node ? node.isCrossroad : false;
-  }
-
-  /**
-   * Find escape with priority (backward compatibility)
-   */
   findEscapeWithPriority(currentLocation, visitedUrls) {
     const connections = this.getConnections(currentLocation);
     if (!connections || connections.size === 0) return null;
-
     const options = [];
-
     for (const connected of connections) {
       if (!visitedUrls.has(connected)) {
         const connectedNode = this.nodes.get(connected);
         const currentNode = this.nodes.get(currentLocation);
         const connectedIsCrossroad = connectedNode ? connectedNode.isCrossroad : false;
         const currentIsCrossroad = currentNode ? currentNode.isCrossroad : false;
-
         let priority = 0;
         if (currentIsCrossroad && connectedIsCrossroad) priority = 3;
         else if (connectedIsCrossroad) priority = 2;
         else if (currentIsCrossroad) priority = 1;
-
-        options.push({
-          location: connected,
-          isCrossroad: connectedIsCrossroad,
-          priority,
-          yaw: currentNode ? currentNode.connections.get(connected) : null
-        });
+        options.push({ location: connected, isCrossroad: connectedIsCrossroad, priority });
       }
     }
-
     if (options.length === 0) return null;
-
     options.sort((a, b) => b.priority - a.priority);
     return options[0];
   }
 }
 
 /**
- * UNIFIED ALGORITHM v5.1.0 - Smart Node Exploration
+ * UNIFIED ALGORITHM v5.3.0 - Stuck Type Detection
  * 
- * Combines direction preference with smart node exploration:
- * - Tries ALL 6 directions at each node (don't stop at 2!)
- * - Classifies nodes only after full exploration
- * - Skips "straight" nodes when navigating back
- * - Stops at nodes with untried yaws (potential crossroads)
+ * Based on stuck type, pick appropriate escape strategy:
+ * - OSCILLATION → Random turn
+ * - LOOP → Navigate away
+ * - LINEAR_TRAP → Perpendicular search
+ * - ALL_HOT → Random escape
+ * - DEAD_END → Navigate to untried yaw
  */
 function createUnifiedAlgorithm(cfg) {
-  const panicThreshold = cfg.panicThreshold || 3;
+  const panicThreshold = cfg.panicThreshold || 10;
   let preferredYaw = null;
   let lastSearchAngle = 0;
-  let extendedStuckCount = 0;
   let consecutiveTurns = 0;
+  let navigationTarget = null;
 
-  // Enhanced graph with node metadata
+  const detector = new StuckDetector();
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
-    const { 
-      stuckCount, 
-      currentLocation, 
-      visitedUrls, 
-      breadcrumbs, 
-      orientation,
-      transitionGraph 
-    } = context;
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
 
-    // Initialize preferred yaw from current orientation
-    if (!preferredYaw) {
-      preferredYaw = orientation;
-    }
-
-    // Get or create current node info
-    if (!currentLocation) {
-      return { turn: false };
-    }
+    if (!preferredYaw) preferredYaw = orientation;
+    if (!currentLocation) return { turn: false };
 
     const currentParts = currentLocation.split(',').map(Number);
-    const currentNode = enhancedGraph.getOrCreate(
-      currentLocation, 
-      currentParts[0], 
-      currentParts[1]
-    );
+    const currentNode = enhancedGraph.getOrCreate(currentLocation, currentParts[0], currentParts[1]);
 
-    // PRIORITY 0: Oscillation Detection (A->B->A->B pattern)
-    if (cfg.expOn && stuckCount === 0 && breadcrumbs.length >= 6) {
-      const recent = breadcrumbs.slice(-6);
-      if (recent[0] === recent[4] && recent[1] === recent[5] && recent[0] !== recent[1]) {
-        console.log("🔄 OSCILLATION DETECTED! Breaking cycle with random turn");
-        consecutiveTurns = 0;
+    // ═══════════════════════════════════════════════════════════
+    // PRIORITY 0: SMART NODE EXPLORATION (At node with untried yaws)
+    // ═══════════════════════════════════════════════════════════
+    if (currentNode.hasUntriedYaws()) {
+      const nextYaw = currentNode.getNextUntriedYaw();
+      if (nextYaw !== null) {
+        const turnAngle = yawDifference(orientation, nextYaw);
+        if (turnAngle > 5 && turnAngle < 355) {
+          console.log(`🔍 Smart Node: trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
+          navigationTarget = null;
+          return { turn: true, angle: turnAngle };
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PRIORITY 0b: NAVIGATION MODE (Going to node with untried yaws)
+    // ═══════════════════════════════════════════════════════════
+    if (navigationTarget) {
+      if (currentLocation === navigationTarget.location) {
+        const turnAngle = yawDifference(orientation, navigationTarget.targetYaw);
+        if (turnAngle > 5 && turnAngle < 355) {
+          console.log(`🎯 Reached target! Turning to ${navigationTarget.targetYaw}°`);
+          navigationTarget = null;
+          return { turn: true, angle: turnAngle };
+        }
+        navigationTarget = null;
+        return { turn: false };
+      }
+
+      const targetParts = navigationTarget.location.split(',').map(Number);
+      const dLat = targetParts[0] - currentParts[0];
+      const dLng = targetParts[1] - currentParts[1];
+      let yawToTarget = Math.atan2(dLng, dLat) * 180 / Math.PI;
+      if (yawToTarget < 0) yawToTarget += 360;
+
+      const turnAngle = yawDifference(orientation, yawToTarget);
+      if (turnAngle < 30) {
+        console.log(`🧭 Navigating to ${navigationTarget.location.substring(0, 15)}...`);
+        return { turn: false };
+      } else {
+        return { turn: true, angle: turnAngle };
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // STUCK TYPE DETECTION & RESPONSE
+    // ═══════════════════════════════════════════════════════════
+    if (stuckCount >= 3) {
+      const stuckAnalysis = detector.analyze(context);
+      console.log(`🔍 Stuck Type: ${stuckAnalysis.type} (${stuckAnalysis.details})`);
+
+      switch (stuckAnalysis.action) {
+        // OSCILLATION → Random escape
+        case 'RANDOM_ESCAPE':
+          consecutiveTurns = 0;
+          return { turn: true, angle: Math.floor(Math.random() * 360) };
+
+        // LOOP → Navigate away from loop origin
+        case 'NAVIGATE_AWAY':
+          // Turn 180° to escape loop
+          consecutiveTurns = 0;
+          return { turn: true, angle: 180 };
+
+        // LINEAR_TRAP → Search perpendicular to preferred yaw
+        case 'PERPENDICULAR_SEARCH':
+          const perpYaw = normalizeAngle(preferredYaw + 90);
+          const turnToPerp = yawDifference(orientation, perpYaw);
+          preferredYaw = perpYaw;  // Update preferred direction
+          return { turn: true, angle: turnToPerp };
+
+        // DEAD_END → Navigate to nearest node with untried yaws
+        case 'NAVIGATE_TO_UNTRIED':
+          const targetInfo = enhancedGraph.findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs);
+          if (targetInfo && targetInfo.node.hasUntriedYaws()) {
+            const targetYaw = targetInfo.node.getNextUntriedYaw();
+            if (targetYaw !== null) {
+              navigationTarget = { location: targetInfo.location, targetYaw };
+              console.log(`🧭 Navigating to untried yaw at ${targetInfo.location.substring(0, 15)}...`);
+              // Will be handled by navigation mode on next tick
+              return { turn: false };
+            }
+          }
+          // Fallback to systematic search if no untried nodes
+          break;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PRIORITY 1: TRANSITION GRAPH + DIRECTION
+    // ═══════════════════════════════════════════════════════════
+    const escapeOption = enhancedGraph.findEscapeWithPriority(currentLocation, visitedUrls);
+    if (escapeOption) {
+      const parts = escapeOption.location.split(',');
+      const dLat = parseFloat(parts[0]) - currentParts[0];
+      const dLng = parseFloat(parts[1]) - currentParts[1];
+      let targetYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+      if (targetYaw < 0) targetYaw += 360;
+
+      const directionDiff = yawDifference(targetYaw, preferredYaw);
+      if (directionDiff > 10 && directionDiff < 90) {
+        preferredYaw = normalizeAngle(preferredYaw + (directionDiff * 0.3));
+      }
+
+      const turnAngle = yawDifference(orientation, targetYaw);
+      if (turnAngle > 10 && turnAngle < 350) {
+        return { turn: true, angle: turnAngle };
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PRIORITY 2: SYSTEMATIC SEARCH (LAST RESORT, stuck >= 10)
+    // ═══════════════════════════════════════════════════════════
+    if (stuckCount >= panicThreshold) {
+      let searchIncrement = 60;
+      if (stuckCount >= 15) searchIncrement = 30;
+      if (stuckCount >= 25) {
         return { turn: true, angle: Math.floor(Math.random() * 360) };
       }
-    }
-
-    // PRIORITY 1: Early Loop Detection (returning to recent breadcrumb)
-    if (cfg.expOn && currentLocation && stuckCount === 0) {
-      const recentBreadcrumbIndex = breadcrumbs.slice(-10).indexOf(currentLocation);
-      if (recentBreadcrumbIndex !== -1 && recentBreadcrumbIndex < 8) {
-        console.log(`🔄 LOOP DETECTED (back to step -${10 - recentBreadcrumbIndex})! 180° escape`);
-        consecutiveTurns = 0;
-        return { turn: true, angle: 180 };
-      }
-    }
-
-    // PRIORITY 2: Systematic Search (Stuck Recovery)
-    // This triggers when we've been stuck for multiple ticks
-    if (stuckCount >= panicThreshold) {
-      extendedStuckCount = stuckCount;
-      consecutiveTurns = 0;
-
-      let searchIncrement = 60;
-      if (stuckCount >= 10) {
-        searchIncrement = 30;  // Fine-grained search
-      }
-      if (stuckCount >= 20) {
-        const randomAngle = Math.floor(Math.random() * 360);
-        console.log(`🎲 Extended stuck (${stuckCount}), random escape: ${randomAngle}°`);
-        return { turn: true, angle: randomAngle };
-      }
-
       if (stuckCount === panicThreshold) {
         lastSearchAngle = searchIncrement;
       } else {
@@ -831,111 +574,30 @@ function createUnifiedAlgorithm(cfg) {
       return { turn: true, angle: lastSearchAngle };
     }
 
-    // PRIORITY 3: Entropy-Based Escape (linear territory)
-    if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
-      const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
-      const isLowEntropy = entropy.variance < 5 && entropy.avgVisits > 2;
-
-      if (isLowEntropy) {
-        consecutiveTurns++;
-        if (consecutiveTurns >= 2) {
-          const randomAngle = Math.floor(Math.random() * 360);
-          console.log(`🎲 LOW ENTROPY (var=${entropy.variance.toFixed(2)}), random escape: ${randomAngle}°`);
-          consecutiveTurns = 0;
-          return { turn: true, angle: randomAngle };
-        }
-      } else {
-        consecutiveTurns = 0;
+    // ═══════════════════════════════════════════════════════════
+    // PRIORITY 3: WEIGHTED EXPLORATION (Fallback)
+    // ═══════════════════════════════════════════════════════════
+    const scanAngles = [0, 60, -60, 120, -120, 180, -180];
+    let bestScore = Infinity;
+    let bestAngle = 0;
+    for (const angle of scanAngles) {
+      const testOrientation = normalizeAngle(orientation + angle);
+      const testLocation = predictNextLocation(currentLocation, testOrientation);
+      if (!testLocation) continue;
+      const visitCount = visitedUrls.get(testLocation) || 0;
+      let breadcrumbPenalty = 0;
+      breadcrumbs.forEach((bc, index) => {
+        if (bc === testLocation) breadcrumbPenalty += (100 - index * 5);
+      });
+      const directionScore = yawDifference(testOrientation, preferredYaw) / 180;
+      const score = (visitCount * 10 * 0.5) + (directionScore * 0.3) + (breadcrumbPenalty * 0.2) + (angle === 0 ? -0.1 : 0);
+      if (score < bestScore) {
+        bestScore = score;
+        bestAngle = angle;
       }
     }
-
-    // PRIORITY 4: Smart Node Exploration
-    // If current node has untried yaws, try them ALL (don't stop at 2!)
-    if (cfg.expOn && cfg.selfAvoiding && currentNode.hasUntriedYaws()) {
-      const nextYaw = currentNode.getNextUntriedYaw();
-      if (nextYaw !== null) {
-        const turnAngle = yawDifference(orientation, nextYaw);
-        if (turnAngle > 5 && turnAngle < 355) {
-          console.log(`🔍 Scanning node: trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
-          return { turn: true, angle: turnAngle };
-        }
-      }
-    }
-
-    // PRIORITY 5: Transition Graph with Crossroad + Direction Priority
-    if (cfg.expOn && cfg.selfAvoiding && currentLocation) {
-      const escapeOption = enhancedGraph.findEscapeWithPriority(currentLocation, visitedUrls);
-
-      if (escapeOption) {
-        const learnedEscape = escapeOption.location;
-        const parts = learnedEscape.split(',');
-        const targetLat = parseFloat(parts[0]);
-        const targetLng = parseFloat(parts[1]);
-        const currentLat = parseFloat(currentParts[0]);
-        const currentLng = parseFloat(currentParts[1]);
-
-        const dLat = targetLat - currentLat;
-        const dLng = targetLng - currentLng;
-        let targetYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
-        if (targetYaw < 0) targetYaw += 360;
-
-        const directionDiff = yawDifference(targetYaw, preferredYaw);
-        const crossroadScore = (3 - escapeOption.priority) / 3;
-        const directionScore = directionDiff / 180;
-        const combinedScore = (directionScore * 0.7) + (crossroadScore * 0.3);
-
-        if (combinedScore < 0.7 || escapeOption.priority >= 2) {
-          if (directionDiff > 10 && directionDiff < 90) {
-            preferredYaw = normalizeAngle(preferredYaw + (directionDiff * 0.3));
-          }
-
-          const turnAngle = yawDifference(orientation, targetYaw);
-          if (turnAngle > 10 && turnAngle < 350) {
-            if (escapeOption.priority > 0) {
-              console.log(`🗺️ Crossroad priority ${escapeOption.priority} escape (dir diff: ${directionDiff.toFixed(0)}°)`);
-            }
-            return { turn: true, angle: turnAngle };
-          }
-        }
-      }
-    }
-
-    // PRIORITY 6: Weighted Exploration with Direction Preference (fallback)
-    if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
-      consecutiveTurns = 0;
-
-      const scanAngles = [0, 60, -60, 120, -120, 180, -180];
-      let bestScore = Infinity;
-      let bestAngle = 0;
-
-      for (const angle of scanAngles) {
-        const testOrientation = normalizeAngle(orientation + angle);
-        const testLocation = predictNextLocation(currentLocation, testOrientation);
-        if (!testLocation) continue;
-
-        const visitCount = visitedUrls.get(testLocation) || 0;
-        let breadcrumbPenalty = 0;
-        breadcrumbs.forEach((bc, index) => {
-          if (bc === testLocation) breadcrumbPenalty += (100 - index * 5);
-        });
-
-        const predictedYaw = testOrientation;
-        const directionDiff = yawDifference(predictedYaw, preferredYaw);
-        const directionScore = directionDiff / 180;
-
-        const heatmapScore = visitCount * 10;
-        const forwardBias = (angle === 0) ? -0.1 : 0;
-        const score = (heatmapScore * 0.5) + (directionScore * 0.3) + (breadcrumbPenalty * 0.2) + forwardBias;
-
-        if (score < bestScore) {
-          bestScore = score;
-          bestAngle = angle;
-        }
-      }
-
-      if (bestAngle !== 0) {
-        return { turn: true, angle: Math.abs(bestAngle) };
-      }
+    if (bestAngle !== 0) {
+      return { turn: true, angle: Math.abs(bestAngle) };
     }
 
     return { turn: false };
@@ -943,14 +605,19 @@ function createUnifiedAlgorithm(cfg) {
 
   return { 
     decide,
-    enhancedGraph  // Expose for recording movements
+    enhancedGraph,
+    activateNavigationToUntriedYaw: (location, targetYaw) => {
+      navigationTarget = { location, targetYaw };
+      console.log(`🧭 Activating navigation to ${location.substring(0, 15)}... (yaw: ${targetYaw}°)`);
+    },
+    clearNavigationTarget: () => { navigationTarget = null; },
+    findNearestNodeWithUntriedYaws: (currentLocation, breadcrumbs) => {
+      return enhancedGraph.findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs);
+    }
   };
 }
 
-// Default export for backward compatibility
 const createDefaultAlgorithm = createUnifiedAlgorithm;
-
-// Backward compatibility aliases
 const createExplorationAlgorithm = createUnifiedAlgorithm;
 const createSurgicalAlgorithm = createUnifiedAlgorithm;
 const createHunterAlgorithm = createUnifiedAlgorithm;
@@ -1010,31 +677,26 @@ const __default_export = {
   // State management, tick timing, path recording
   // TO CHANGE ENGINE: Edit src/core/engine.js
   /**
- * Drunk Walker Core Engine
- * Independent navigation logic - works without UI
+ * Drunk Walker Core Engine v5.3.0-STUCK-TYPE
  * 
  * ARCHITECTURE:
- * - Engine: State management, tick timing, path recording (this file)
- * - Wheel: Orientation management (in src/core/wheel.js)
- * - Traversal: Decision-making logic (in src/core/traversal.js)
- * 
- * TO CHANGE NAVIGATION BEHAVIOR:
- * Edit src/core/traversal.js - NOT this file
+ * - Engine: State management, tick timing, path recording
+ * - Wheel: Orientation management
+ * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.1.0-SMART-NODES';
+const VERSION = '5.3.0-STUCK-TYPE';
 
 const defaultConfig = {
   pace: 2000,
-  kbOn: true,      // Keyboard mode ON by default
-  expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
-  panicThreshold: 3,
+  kbOn: true,
+  panicThreshold: 10,
   radius: 50,
-  targetX: 0.4,    // 40% of screen width (left of center)
-  targetY: 0.8,    // 80% of screen height (lower than center)
-  turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
-  collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: true  // Self-avoiding walk ENABLED by default (opt-out)
+  targetX: 0.4,
+  targetY: 0.8,
+  turnDuration: 600,
+  collectPath: true,
+  selfAvoiding: true
 };
 
 function createEngine(config = {}) {
@@ -1050,66 +712,42 @@ function createEngine(config = {}) {
   let isDrawing = false;
   let isBusy = false;
 
-  // Path collection (opt-in)
+  // Path collection
   let walkPath = [];
   let isPathCollectionEnabled = cfg.collectPath;
 
-  // Visited nodes memory for self-avoiding walk
-  let visitedUrls = new Map(); // location -> count
-  let breadcrumbs = []; // last 100 locations
+  // Visited nodes memory
+  let visitedUrls = new Map();
+  let breadcrumbs = [];
 
   // Track previous location for movement recording
   let previousLocation = null;
   let previousYaw = null;
 
-  // Transition graph for learning actual connectivity
-  const transitionGraph = createTransitionGraph();
-  let lastRecordedLocation = null;
-  let lastRecordedYaw = null;
-
-  // Action callbacks (to be provided by caller)
+  // Action callbacks
   let onKeyPress = null;
   let onMouseClick = null;
   let onStatusUpdate = null;
   let onLongKeyPress = null;
   let onWalkStop = null;
 
-  // Extract location from Street View URL
   const extractLocation = (url) => {
     try {
-      const urlObj = new URL(url);
-      const hash = urlObj.hash || urlObj.pathname;
-      const match = hash.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (match) {
-        return `${match[1]},${match[2]}`;
-      }
-      const placeMatch = urlObj.searchParams.get('place_id');
-      if (placeMatch) {
-        return `place:${placeMatch}`;
-      }
-      return urlObj.pathname + urlObj.hash;
-    } catch (e) {
-      return url;
-    }
+      const hashMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (hashMatch) return `${hashMatch[1]},${hashMatch[2]}`;
+    } catch (e) {}
+    return null;
   };
 
-  // Components
-  const wheel = createWheel({
-    onLongKeyPress: (key, duration, callback) => {
-      if (onLongKeyPress) onLongKeyPress(key, duration, callback);
-      else if (callback) callback();
-    }
-  });
+  const wheel = createWheel({ onLongKeyPress });
 
   let algorithm = createDefaultAlgorithm(cfg);
 
-  // State getters
   const getStatus = () => status;
   const getSteps = () => steps;
   const getStuckCount = () => stuckCount;
   const isNavigating = () => status === 'WALKING';
 
-  // Configuration setters
   const setPace = (newPace) => {
     cfg.pace = newPace;
     if (intervalId && status === 'WALKING') {
@@ -1119,144 +757,75 @@ function createEngine(config = {}) {
   };
   const setTurnDuration = (newDuration) => { cfg.turnDuration = newDuration; };
   const setKeyboardMode = (on) => { cfg.kbOn = on; };
-  const setExperimentalMode = (on) => { cfg.expOn = on; };
-  const setPolygon = (points) => { poly = points; };
-  const setPathCollection = (enabled) => {
-    isPathCollectionEnabled = enabled;
-    cfg.collectPath = enabled;
-    if (!enabled) walkPath = [];
-  };
-  const setWalkPath = (path) => { walkPath = path ? [...path] : []; };
-  const setSteps = (count) => { steps = count; };
-  const getWalkPath = () => [...walkPath];
+  const setPolygon = (newPoly) => { poly = newPoly || []; };
+  const setPathCollection = (enabled) => { isPathCollectionEnabled = enabled; };
+  const setWalkPath = (path) => { walkPath = path || []; };
+  const setSteps = (newSteps) => { steps = newSteps; };
+  const getWalkPath = () => walkPath;
   const clearWalkPath = () => { walkPath = []; };
-
-  const recordStep = () => {
-    if (isPathCollectionEnabled) {
-      const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
-      const location = extractLocation(currentUrl);
-
-      // Always record the step event for analysis
-      walkPath.push({
-        url: currentUrl,
-        currentYaw: Math.round(wheel.getOrientation())
-      });
-
-      // ORIENTATION RECALIBRATION
-      // Extract actual yaw from URL and sync internal orientation to prevent drift
-      const actualYaw = extractYawFromUrl(currentUrl);
-      if (actualYaw !== null) {
-        wheel.setOrientation(actualYaw);
-      }
-
-      // TRANSITION GRAPH LEARNING
-      // Record actual connectivity from observed transitions
-      if (lastRecordedLocation && location !== lastRecordedLocation) {
-        transitionGraph.record(
-          lastRecordedLocation,
-          location,
-          lastRecordedYaw,
-          actualYaw
-        );
-      }
-      lastRecordedLocation = location;
-      lastRecordedYaw = actualYaw;
-
-      // MEMORY UPDATE LOGIC
-      // Only update Breadcrumbs and Heatmap if we actually MOVED to a new location.
-      // This prevents "Amnesia via Hyper-Focus" where spinning in place 20 times
-      // would flush the breadcrumb buffer and make the bot forget where it came from.
-      const prevLocation = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : null;
-
-      if (cfg.selfAvoiding && location !== prevLocation) {
-        const count = visitedUrls.get(location) || 0;
-        visitedUrls.set(location, count + 1);
-
-        breadcrumbs.push(location);
-        if (breadcrumbs.length > 100) breadcrumbs.shift();
-      }
-    }
-  };
-
-  const isUrlVisited = (location) => visitedUrls.has(location);
-  const clearVisitedUrls = () => { visitedUrls.clear(); breadcrumbs = []; };
   const getVisitedCount = () => visitedUrls.size;
+  const clearVisitedUrls = () => { visitedUrls.clear(); breadcrumbs = []; };
+  const isUrlVisited = (url) => visitedUrls.has(extractLocation(url));
   const getCurrentYaw = () => wheel.getOrientation();
-  const resetCurrentYaw = () => { wheel.reset(); };
-  const getCumulativeTurnAngle = getCurrentYaw;
-  const resetCumulativeTurnAngle = resetCurrentYaw;
+  const resetCurrentYaw = () => wheel.setOrientation(0);
+  let cumulativeTurnAngle = 0;
+  const getCumulativeTurnAngle = () => cumulativeTurnAngle;
+  const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
 
   const restoreVisitedFromPath = (path) => {
     visitedUrls.clear();
     breadcrumbs = [];
-    path.forEach(step => {
-      let loc = step.location;
-      if (!loc && step.url) {
-        loc = extractLocation(step.url);
-      }
+    for (const step of path) {
+      const loc = extractLocation(step.url);
       if (loc) {
-        const count = visitedUrls.get(loc) || 0;
-        visitedUrls.set(loc, count + 1);
-
+        visitedUrls.set(loc, (visitedUrls.get(loc) || 0) + 1);
         breadcrumbs.push(loc);
-        if (breadcrumbs.length > 100) breadcrumbs.shift();
       }
-    });
-  };
-
-  const setUserMouseDown = (down) => { isUserMouseDown = down; };
-  const setIsDrawing = (drawing) => { isDrawing = drawing; };
-
-  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress, walkStop }) => {
-    onKeyPress = keyPress;
-    onMouseClick = mouseClick;
-    onStatusUpdate = statusUpdate;
-    onLongKeyPress = longKeyPress;
-    onWalkStop = walkStop;
-  };
-
-  const updateStuckDetection = () => {
-    if (!cfg.expOn) {
-      stuckCount = 0;
-      return;
     }
+  };
 
+  const setUserMouseDown = (val) => { isUserMouseDown = val; };
+  const setIsDrawing = (val) => { isDrawing = val; };
+  const setActionHandlers = (handlers) => {
+    onKeyPress = handlers.keyPress || null;
+    onMouseClick = handlers.mouseClick || null;
+    onStatusUpdate = handlers.statusUpdate || null;
+    onLongKeyPress = handlers.longKeyPress || null;
+    onWalkStop = handlers.walkStop || null;
+    // Recreate wheel with new onLongKeyPress
+    wheel.callbacks = { onLongKeyPress };
+  };
+
+  const recordStep = () => {
+    if (!isPathCollectionEnabled) return;
     const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
-    if (currentUrl === lastUrl) {
-      stuckCount++;
-    } else {
-      lastUrl = currentUrl;
-      stuckCount = 0;
+    const currentLocation = extractLocation(currentUrl);
+    walkPath.push({ url: currentUrl, timestamp: Date.now() });
+    if (currentLocation) {
+      visitedUrls.set(currentLocation, (visitedUrls.get(currentLocation) || 0) + 1);
+      breadcrumbs.push(currentLocation);
+      if (breadcrumbs.length > 200) breadcrumbs.shift();  // Keep last 200 for loop detection
     }
-  };
-
-  const getStatusText = () => {
-    if (!cfg.expOn || stuckCount === 0) return 'WALKING';
-    if (stuckCount >= cfg.panicThreshold) return `PANIC! (STUCK ${stuckCount})`;
-    return `STUCK (${stuckCount})`;
   };
 
   const calculateClickTarget = () => {
-    const cw = typeof window !== 'undefined' ? window.innerWidth : 1000;
-    const ch = typeof window !== 'undefined' ? window.innerHeight : 1000;
+    const cw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const ch = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    const tx = cfg.targetX * cw;
+    const ty = cfg.targetY * ch;
+    return { x: tx, y: ty };
+  };
 
-    if (poly.length > 2) {
-      const minX = Math.min(...poly.map(p => p.x));
-      const maxX = Math.max(...poly.map(p => p.x));
-      const minY = Math.min(...poly.map(p => p.y));
-      const maxY = Math.max(...poly.map(p => p.y));
+  const calculateTarget = () => {
+    const cw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const ch = typeof window !== 'undefined' ? window.innerHeight : 1080;
 
-      let tx, ty, attempts = 0;
-      do {
-        tx = minX + Math.random() * (maxX - minX);
-        ty = minY + Math.random() * (maxY - minY);
-        attempts++;
-      } while (!inPoly({ x: tx, y: ty }, poly) && attempts < 100);
-
-      return { x: tx, y: ty };
+    if (poly.length > 0 && isDrawing) {
+      const last = poly[poly.length - 1];
+      return { x: last.x * cw, y: last.y * ch };
     }
 
-    const radius = cfg.expOn && stuckCount >= cfg.panicThreshold
+    const radius = stuckCount >= cfg.panicThreshold
       ? cfg.radius * Math.pow(1.5, stuckCount - cfg.panicThreshold + 1)
       : cfg.radius;
 
@@ -1267,55 +836,48 @@ function createEngine(config = {}) {
     };
   };
 
-  const inPoly = (p, vs) => {
-    let inside = false;
-    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-      const xi = vs[i].x, yi = vs[i].y;
-      const xj = vs[j].x, yj = vs[j].y;
-      const intersect = ((yi > p.y) !== (yj > p.y)) &&
-        (p.x < (xj - xi) * (p.y - yi) / (yj - yi) + xi);
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  };
-
   const tick = () => {
-    if (isUserMouseDown || isDrawing) return;
+    if (isUserMouseDown || isDrawing || isBusy || status !== 'WALKING') return;
 
-    updateStuckDetection();
-
-    if (onStatusUpdate) {
-      onStatusUpdate(getStatusText(), steps, stuckCount);
-    }
-
-    if (isBusy) {
-      // Skip decision and movement, but still count the step as "busy"
-      steps++;
-      recordStep();
-      return;
-    }
-
-    const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
+    const prevUrl = lastUrl;
+    lastUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
+    const currentUrl = lastUrl;
     const currentLocation = extractLocation(currentUrl);
 
-    // Get algorithm decision
+    // Detect if we're actually stuck (URL hasn't changed)
+    if (prevUrl === currentUrl && currentUrl !== '') {
+      stuckCount++;
+    } else {
+      stuckCount = 0;
+    }
+
+    // If stuck, activate navigation to nearest node with untried yaws
+    if (stuckCount >= 3 && previousLocation && currentLocation === previousLocation) {
+      if (algorithm.findNearestNodeWithUntriedYaws && algorithm.activateNavigationToUntriedYaw) {
+        const targetInfo = algorithm.findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs);
+        if (targetInfo && targetInfo.node.hasUntriedYaws()) {
+          const targetYaw = targetInfo.node.getNextUntriedYaw();
+          if (targetYaw !== null) {
+            algorithm.activateNavigationToUntriedYaw(targetInfo.location, targetYaw);
+          }
+        }
+      }
+    }
+
     const context = {
       url: currentUrl,
       location: currentLocation,
       visitedUrls,
       breadcrumbs,
       stuckCount,
-      orientation: wheel.getOrientation(),
-      transitionGraph  // Pass transition graph for learned navigation
+      orientation: wheel.getOrientation()
     };
 
     const decision = algorithm.decide(context);
 
     if (decision.turn) {
-      // Turn BEFORE pressing ArrowUp
       isBusy = true;
       wheel.turnLeft(decision.angle || 60, () => {
-        // Continue with ArrowUp after turn finishes
         if (cfg.kbOn) {
           if (onKeyPress) onKeyPress('ArrowUp');
         } else {
@@ -1326,8 +888,8 @@ function createEngine(config = {}) {
       });
       steps++;
       recordStep();
+      cumulativeTurnAngle += decision.angle || 60;
     } else {
-      // Normal movement - record in enhanced graph if we moved
       if (cfg.kbOn) {
         if (onKeyPress) onKeyPress('ArrowUp');
       } else {
@@ -1337,28 +899,24 @@ function createEngine(config = {}) {
       steps++;
       recordStep();
 
-      // Record movement in enhanced graph (if we actually moved)
+      // Record movement in enhanced graph
       const currentYaw = extractYawFromUrl(currentUrl);
       if (previousLocation && currentLocation !== previousLocation && currentYaw !== null) {
-        // We moved to a new location - record in enhanced graph
         if (algorithm.enhancedGraph) {
           algorithm.enhancedGraph.recordMovement(
             previousLocation,
             currentLocation,
-            previousYaw || orientation,
+            previousYaw || wheel.getOrientation(),
             currentYaw,
             steps
           );
         }
       } else if (previousLocation && currentLocation === previousLocation) {
-        // We tried to move but stayed - record failed attempt
         if (algorithm.enhancedGraph) {
-          const yaw = wheel.getOrientation();
-          algorithm.enhancedGraph.recordFailedAttempt(previousLocation, yaw, steps);
+          algorithm.enhancedGraph.recordFailedAttempt(previousLocation, wheel.getOrientation(), steps);
         }
       }
 
-      // Update previous location/yaw for next tick
       previousLocation = currentLocation;
       previousYaw = currentYaw;
     }
@@ -1399,7 +957,6 @@ function createEngine(config = {}) {
     wheel.reset();
     previousLocation = null;
     previousYaw = null;
-    if (transitionGraph) transitionGraph.clear();
   };
 
   return {
@@ -1410,7 +967,6 @@ function createEngine(config = {}) {
     setPace,
     setTurnDuration,
     setKeyboardMode,
-    setExperimentalMode,
     setPolygon,
     setPathCollection,
     setWalkPath,
@@ -1421,7 +977,7 @@ function createEngine(config = {}) {
     getVisitedCount,
     clearVisitedUrls,
     isUrlVisited,
-    getVisitedUrls: () => visitedUrls,  // Expose for map rendering
+    getVisitedUrls: () => visitedUrls,
     getCurrentYaw,
     resetCurrentYaw,
     getCumulativeTurnAngle,
@@ -1435,17 +991,9 @@ function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
-    // Mode selection removed in v5.0.0 - now using unified algorithm
-    // setMode: (mode) => { ... },  // No longer available
-    // Stubs for backward compatibility
     getNavigation: () => null,
     getNavigationState: () => ({}),
-    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; },
-
-    // Transition Graph API (for learning actual connectivity)
-    getTransitionGraph: () => transitionGraph,
-    getTransitionStats: () => transitionGraph.getStats(),
-    analyzeYawDeltas: () => transitionGraph.analyzeYawDeltas()
+    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; }
   };
 }
 

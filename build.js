@@ -75,7 +75,6 @@ function stripModuleSyntax(code) {
 
 // Read all source files (order matters)
 const wheel = fs.readFileSync('src/core/wheel.js', 'utf8');
-const transitionGraph = fs.readFileSync('src/core/transition-graph.js', 'utf8');
 const traversal = fs.readFileSync('src/core/traversal.js', 'utf8');
 const navigation = fs.readFileSync('src/core/navigation.js', 'utf8');
 const engine = fs.readFileSync('src/core/engine.js', 'utf8');
@@ -115,8 +114,6 @@ let bundled = `
   // === WHEEL ===
   ${stripModuleSyntax(wheel)}
 
-  // === TRANSITION GRAPH ===
-  ${stripModuleSyntax(transitionGraph)}
 
   // === TRAVERSAL ALGORITHMS ===
   ${stripModuleSyntax(traversal)}
@@ -180,8 +177,6 @@ void function initDrunkWalker(){
   // === WHEEL ===
   ${stripModuleSyntax(wheel)}
 
-  // === TRANSITION GRAPH ===
-  ${stripModuleSyntax(transitionGraph)}
 
   // === TRAVERSAL ALGORITHMS ===
   ${stripModuleSyntax(traversal)}

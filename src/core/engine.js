@@ -1,14 +1,10 @@
 /**
- * Drunk Walker Core Engine
- * Independent navigation logic - works without UI
+ * Drunk Walker Core Engine v5.3.0-STUCK-TYPE
  * 
  * ARCHITECTURE:
- * - Engine: State management, tick timing, path recording (this file)
- * - Wheel: Orientation management (in src/core/wheel.js)
- * - Traversal: Decision-making logic (in src/core/traversal.js)
- * 
- * TO CHANGE NAVIGATION BEHAVIOR:
- * Edit src/core/traversal.js - NOT this file
+ * - Engine: State management, tick timing, path recording
+ * - Wheel: Orientation management
+ * - Traversal: Decision-making with stuck type detection
  */
 
 import { createWheel } from './wheel.js';
@@ -18,21 +14,19 @@ import {
   extractYawFromUrl,
   extractLocationFromUrl
 } from './traversal.js';
-import { createTransitionGraph } from './transition-graph.js';
 
-export const VERSION = '5.1.0-SMART-NODES';
+export const VERSION = '5.3.0-STUCK-TYPE';
 
 export const defaultConfig = {
   pace: 2000,
-  kbOn: true,      // Keyboard mode ON by default
-  expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
-  panicThreshold: 3,
+  kbOn: true,
+  panicThreshold: 10,
   radius: 50,
-  targetX: 0.4,    // 40% of screen width (left of center)
-  targetY: 0.8,    // 80% of screen height (lower than center)
-  turnDuration: 600,  // ms to hold ArrowLeft for ~60° turn (fixed)
-  collectPath: true,  // Path recording ENABLED by default
-  selfAvoiding: true  // Self-avoiding walk ENABLED by default (opt-out)
+  targetX: 0.4,
+  targetY: 0.8,
+  turnDuration: 600,
+  collectPath: true,
+  selfAvoiding: true
 };
 
 export function createEngine(config = {}) {
@@ -48,66 +42,42 @@ export function createEngine(config = {}) {
   let isDrawing = false;
   let isBusy = false;
 
-  // Path collection (opt-in)
+  // Path collection
   let walkPath = [];
   let isPathCollectionEnabled = cfg.collectPath;
 
-  // Visited nodes memory for self-avoiding walk
-  let visitedUrls = new Map(); // location -> count
-  let breadcrumbs = []; // last 100 locations
-  
+  // Visited nodes memory
+  let visitedUrls = new Map();
+  let breadcrumbs = [];
+
   // Track previous location for movement recording
   let previousLocation = null;
   let previousYaw = null;
-  
-  // Transition graph for learning actual connectivity
-  const transitionGraph = createTransitionGraph();
-  let lastRecordedLocation = null;
-  let lastRecordedYaw = null;
 
-  // Action callbacks (to be provided by caller)
+  // Action callbacks
   let onKeyPress = null;
   let onMouseClick = null;
   let onStatusUpdate = null;
   let onLongKeyPress = null;
   let onWalkStop = null;
 
-  // Extract location from Street View URL
   const extractLocation = (url) => {
     try {
-      const urlObj = new URL(url);
-      const hash = urlObj.hash || urlObj.pathname;
-      const match = hash.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (match) {
-        return `${match[1]},${match[2]}`;
-      }
-      const placeMatch = urlObj.searchParams.get('place_id');
-      if (placeMatch) {
-        return `place:${placeMatch}`;
-      }
-      return urlObj.pathname + urlObj.hash;
-    } catch (e) {
-      return url;
-    }
+      const hashMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (hashMatch) return `${hashMatch[1]},${hashMatch[2]}`;
+    } catch (e) {}
+    return null;
   };
 
-  // Components
-  const wheel = createWheel({
-    onLongKeyPress: (key, duration, callback) => {
-      if (onLongKeyPress) onLongKeyPress(key, duration, callback);
-      else if (callback) callback();
-    }
-  });
+  const wheel = createWheel({ onLongKeyPress });
 
   let algorithm = createDefaultAlgorithm(cfg);
 
-  // State getters
   const getStatus = () => status;
   const getSteps = () => steps;
   const getStuckCount = () => stuckCount;
   const isNavigating = () => status === 'WALKING';
 
-  // Configuration setters
   const setPace = (newPace) => {
     cfg.pace = newPace;
     if (intervalId && status === 'WALKING') {
@@ -117,144 +87,75 @@ export function createEngine(config = {}) {
   };
   const setTurnDuration = (newDuration) => { cfg.turnDuration = newDuration; };
   const setKeyboardMode = (on) => { cfg.kbOn = on; };
-  const setExperimentalMode = (on) => { cfg.expOn = on; };
-  const setPolygon = (points) => { poly = points; };
-  const setPathCollection = (enabled) => {
-    isPathCollectionEnabled = enabled;
-    cfg.collectPath = enabled;
-    if (!enabled) walkPath = [];
-  };
-  const setWalkPath = (path) => { walkPath = path ? [...path] : []; };
-  const setSteps = (count) => { steps = count; };
-  const getWalkPath = () => [...walkPath];
+  const setPolygon = (newPoly) => { poly = newPoly || []; };
+  const setPathCollection = (enabled) => { isPathCollectionEnabled = enabled; };
+  const setWalkPath = (path) => { walkPath = path || []; };
+  const setSteps = (newSteps) => { steps = newSteps; };
+  const getWalkPath = () => walkPath;
   const clearWalkPath = () => { walkPath = []; };
-
-  const recordStep = () => {
-    if (isPathCollectionEnabled) {
-      const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
-      const location = extractLocation(currentUrl);
-
-      // Always record the step event for analysis
-      walkPath.push({
-        url: currentUrl,
-        currentYaw: Math.round(wheel.getOrientation())
-      });
-
-      // ORIENTATION RECALIBRATION
-      // Extract actual yaw from URL and sync internal orientation to prevent drift
-      const actualYaw = extractYawFromUrl(currentUrl);
-      if (actualYaw !== null) {
-        wheel.setOrientation(actualYaw);
-      }
-
-      // TRANSITION GRAPH LEARNING
-      // Record actual connectivity from observed transitions
-      if (lastRecordedLocation && location !== lastRecordedLocation) {
-        transitionGraph.record(
-          lastRecordedLocation,
-          location,
-          lastRecordedYaw,
-          actualYaw
-        );
-      }
-      lastRecordedLocation = location;
-      lastRecordedYaw = actualYaw;
-
-      // MEMORY UPDATE LOGIC
-      // Only update Breadcrumbs and Heatmap if we actually MOVED to a new location.
-      // This prevents "Amnesia via Hyper-Focus" where spinning in place 20 times
-      // would flush the breadcrumb buffer and make the bot forget where it came from.
-      const prevLocation = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : null;
-
-      if (cfg.selfAvoiding && location !== prevLocation) {
-        const count = visitedUrls.get(location) || 0;
-        visitedUrls.set(location, count + 1);
-
-        breadcrumbs.push(location);
-        if (breadcrumbs.length > 100) breadcrumbs.shift();
-      }
-    }
-  };
-
-  const isUrlVisited = (location) => visitedUrls.has(location);
-  const clearVisitedUrls = () => { visitedUrls.clear(); breadcrumbs = []; };
   const getVisitedCount = () => visitedUrls.size;
+  const clearVisitedUrls = () => { visitedUrls.clear(); breadcrumbs = []; };
+  const isUrlVisited = (url) => visitedUrls.has(extractLocation(url));
   const getCurrentYaw = () => wheel.getOrientation();
-  const resetCurrentYaw = () => { wheel.reset(); };
-  const getCumulativeTurnAngle = getCurrentYaw;
-  const resetCumulativeTurnAngle = resetCurrentYaw;
+  const resetCurrentYaw = () => wheel.setOrientation(0);
+  let cumulativeTurnAngle = 0;
+  const getCumulativeTurnAngle = () => cumulativeTurnAngle;
+  const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
 
   const restoreVisitedFromPath = (path) => {
     visitedUrls.clear();
     breadcrumbs = [];
-    path.forEach(step => {
-      let loc = step.location;
-      if (!loc && step.url) {
-        loc = extractLocation(step.url);
-      }
+    for (const step of path) {
+      const loc = extractLocation(step.url);
       if (loc) {
-        const count = visitedUrls.get(loc) || 0;
-        visitedUrls.set(loc, count + 1);
-
+        visitedUrls.set(loc, (visitedUrls.get(loc) || 0) + 1);
         breadcrumbs.push(loc);
-        if (breadcrumbs.length > 100) breadcrumbs.shift();
       }
-    });
-  };
-
-  const setUserMouseDown = (down) => { isUserMouseDown = down; };
-  const setIsDrawing = (drawing) => { isDrawing = drawing; };
-
-  const setActionHandlers = ({ keyPress, mouseClick, statusUpdate, longKeyPress, walkStop }) => {
-    onKeyPress = keyPress;
-    onMouseClick = mouseClick;
-    onStatusUpdate = statusUpdate;
-    onLongKeyPress = longKeyPress;
-    onWalkStop = walkStop;
-  };
-
-  const updateStuckDetection = () => {
-    if (!cfg.expOn) {
-      stuckCount = 0;
-      return;
     }
+  };
 
+  const setUserMouseDown = (val) => { isUserMouseDown = val; };
+  const setIsDrawing = (val) => { isDrawing = val; };
+  const setActionHandlers = (handlers) => {
+    onKeyPress = handlers.keyPress || null;
+    onMouseClick = handlers.mouseClick || null;
+    onStatusUpdate = handlers.statusUpdate || null;
+    onLongKeyPress = handlers.longKeyPress || null;
+    onWalkStop = handlers.walkStop || null;
+    // Recreate wheel with new onLongKeyPress
+    wheel.callbacks = { onLongKeyPress };
+  };
+
+  const recordStep = () => {
+    if (!isPathCollectionEnabled) return;
     const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
-    if (currentUrl === lastUrl) {
-      stuckCount++;
-    } else {
-      lastUrl = currentUrl;
-      stuckCount = 0;
+    const currentLocation = extractLocation(currentUrl);
+    walkPath.push({ url: currentUrl, timestamp: Date.now() });
+    if (currentLocation) {
+      visitedUrls.set(currentLocation, (visitedUrls.get(currentLocation) || 0) + 1);
+      breadcrumbs.push(currentLocation);
+      if (breadcrumbs.length > 200) breadcrumbs.shift();  // Keep last 200 for loop detection
     }
-  };
-
-  const getStatusText = () => {
-    if (!cfg.expOn || stuckCount === 0) return 'WALKING';
-    if (stuckCount >= cfg.panicThreshold) return `PANIC! (STUCK ${stuckCount})`;
-    return `STUCK (${stuckCount})`;
   };
 
   const calculateClickTarget = () => {
-    const cw = typeof window !== 'undefined' ? window.innerWidth : 1000;
-    const ch = typeof window !== 'undefined' ? window.innerHeight : 1000;
+    const cw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const ch = typeof window !== 'undefined' ? window.innerHeight : 1080;
+    const tx = cfg.targetX * cw;
+    const ty = cfg.targetY * ch;
+    return { x: tx, y: ty };
+  };
 
-    if (poly.length > 2) {
-      const minX = Math.min(...poly.map(p => p.x));
-      const maxX = Math.max(...poly.map(p => p.x));
-      const minY = Math.min(...poly.map(p => p.y));
-      const maxY = Math.max(...poly.map(p => p.y));
+  const calculateTarget = () => {
+    const cw = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const ch = typeof window !== 'undefined' ? window.innerHeight : 1080;
 
-      let tx, ty, attempts = 0;
-      do {
-        tx = minX + Math.random() * (maxX - minX);
-        ty = minY + Math.random() * (maxY - minY);
-        attempts++;
-      } while (!inPoly({ x: tx, y: ty }, poly) && attempts < 100);
-
-      return { x: tx, y: ty };
+    if (poly.length > 0 && isDrawing) {
+      const last = poly[poly.length - 1];
+      return { x: last.x * cw, y: last.y * ch };
     }
 
-    const radius = cfg.expOn && stuckCount >= cfg.panicThreshold
+    const radius = stuckCount >= cfg.panicThreshold
       ? cfg.radius * Math.pow(1.5, stuckCount - cfg.panicThreshold + 1)
       : cfg.radius;
 
@@ -265,55 +166,48 @@ export function createEngine(config = {}) {
     };
   };
 
-  const inPoly = (p, vs) => {
-    let inside = false;
-    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-      const xi = vs[i].x, yi = vs[i].y;
-      const xj = vs[j].x, yj = vs[j].y;
-      const intersect = ((yi > p.y) !== (yj > p.y)) &&
-        (p.x < (xj - xi) * (p.y - yi) / (yj - yi) + xi);
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  };
-
   const tick = () => {
-    if (isUserMouseDown || isDrawing) return;
+    if (isUserMouseDown || isDrawing || isBusy || status !== 'WALKING') return;
 
-    updateStuckDetection();
-
-    if (onStatusUpdate) {
-      onStatusUpdate(getStatusText(), steps, stuckCount);
-    }
-
-    if (isBusy) {
-      // Skip decision and movement, but still count the step as "busy"
-      steps++;
-      recordStep();
-      return;
-    }
-
-    const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
+    const prevUrl = lastUrl;
+    lastUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
+    const currentUrl = lastUrl;
     const currentLocation = extractLocation(currentUrl);
 
-    // Get algorithm decision
+    // Detect if we're actually stuck (URL hasn't changed)
+    if (prevUrl === currentUrl && currentUrl !== '') {
+      stuckCount++;
+    } else {
+      stuckCount = 0;
+    }
+
+    // If stuck, activate navigation to nearest node with untried yaws
+    if (stuckCount >= 3 && previousLocation && currentLocation === previousLocation) {
+      if (algorithm.findNearestNodeWithUntriedYaws && algorithm.activateNavigationToUntriedYaw) {
+        const targetInfo = algorithm.findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs);
+        if (targetInfo && targetInfo.node.hasUntriedYaws()) {
+          const targetYaw = targetInfo.node.getNextUntriedYaw();
+          if (targetYaw !== null) {
+            algorithm.activateNavigationToUntriedYaw(targetInfo.location, targetYaw);
+          }
+        }
+      }
+    }
+
     const context = {
       url: currentUrl,
       location: currentLocation,
       visitedUrls,
       breadcrumbs,
       stuckCount,
-      orientation: wheel.getOrientation(),
-      transitionGraph  // Pass transition graph for learned navigation
+      orientation: wheel.getOrientation()
     };
 
     const decision = algorithm.decide(context);
 
     if (decision.turn) {
-      // Turn BEFORE pressing ArrowUp
       isBusy = true;
       wheel.turnLeft(decision.angle || 60, () => {
-        // Continue with ArrowUp after turn finishes
         if (cfg.kbOn) {
           if (onKeyPress) onKeyPress('ArrowUp');
         } else {
@@ -324,8 +218,8 @@ export function createEngine(config = {}) {
       });
       steps++;
       recordStep();
+      cumulativeTurnAngle += decision.angle || 60;
     } else {
-      // Normal movement - record in enhanced graph if we moved
       if (cfg.kbOn) {
         if (onKeyPress) onKeyPress('ArrowUp');
       } else {
@@ -334,29 +228,25 @@ export function createEngine(config = {}) {
       }
       steps++;
       recordStep();
-      
-      // Record movement in enhanced graph (if we actually moved)
+
+      // Record movement in enhanced graph
       const currentYaw = extractYawFromUrl(currentUrl);
       if (previousLocation && currentLocation !== previousLocation && currentYaw !== null) {
-        // We moved to a new location - record in enhanced graph
         if (algorithm.enhancedGraph) {
           algorithm.enhancedGraph.recordMovement(
             previousLocation,
             currentLocation,
-            previousYaw || orientation,
+            previousYaw || wheel.getOrientation(),
             currentYaw,
             steps
           );
         }
       } else if (previousLocation && currentLocation === previousLocation) {
-        // We tried to move but stayed - record failed attempt
         if (algorithm.enhancedGraph) {
-          const yaw = wheel.getOrientation();
-          algorithm.enhancedGraph.recordFailedAttempt(previousLocation, yaw, steps);
+          algorithm.enhancedGraph.recordFailedAttempt(previousLocation, wheel.getOrientation(), steps);
         }
       }
-      
-      // Update previous location/yaw for next tick
+
       previousLocation = currentLocation;
       previousYaw = currentYaw;
     }
@@ -397,7 +287,6 @@ export function createEngine(config = {}) {
     wheel.reset();
     previousLocation = null;
     previousYaw = null;
-    if (transitionGraph) transitionGraph.clear();
   };
 
   return {
@@ -408,7 +297,6 @@ export function createEngine(config = {}) {
     setPace,
     setTurnDuration,
     setKeyboardMode,
-    setExperimentalMode,
     setPolygon,
     setPathCollection,
     setWalkPath,
@@ -419,7 +307,7 @@ export function createEngine(config = {}) {
     getVisitedCount,
     clearVisitedUrls,
     isUrlVisited,
-    getVisitedUrls: () => visitedUrls,  // Expose for map rendering
+    getVisitedUrls: () => visitedUrls,
     getCurrentYaw,
     resetCurrentYaw,
     getCumulativeTurnAngle,
@@ -433,16 +321,8 @@ export function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
-    // Mode selection removed in v5.0.0 - now using unified algorithm
-    // setMode: (mode) => { ... },  // No longer available
-    // Stubs for backward compatibility
     getNavigation: () => null,
     getNavigationState: () => ({}),
-    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; },
-    
-    // Transition Graph API (for learning actual connectivity)
-    getTransitionGraph: () => transitionGraph,
-    getTransitionStats: () => transitionGraph.getStats(),
-    analyzeYawDeltas: () => transitionGraph.analyzeYawDeltas()
+    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; }
   };
 }
