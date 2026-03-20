@@ -1,4 +1,4 @@
-# Walking Algorithm Guide (v4.2.0+)
+# Walking Algorithm Guide (v4.2.0-EXP)
 
 **Comprehensive documentation of the Advanced Traversal Engine**
 
@@ -6,7 +6,7 @@
 
 ## Architecture Overview
 
-The v4.0.0+ architecture decouples state management from decision-making logic, allowing for rapid experimentation with navigation strategies.
+The v4.2.0+ architecture decouples state management from decision-making logic, allowing for rapid experimentation with navigation strategies.
 
 ### 1. The Engine (`engine.js`)
 - **Orchestrator**: Manages the main `tick` loop (pace).
@@ -39,7 +39,7 @@ Instead of a simple visited set, the engine maintains a `Map<Location, VisitCoun
 ### B. Long-Term "Scent" (Breadcrumbs)
 To prevent oscillation and "ping-ponging" between two nearby points:
 
-- The engine stores a rolling buffer of the last 20 locations (`breadcrumbs`).
+- The engine stores a rolling buffer of the last 100 locations (`breadcrumbs`).
 - During the scoring phase, any direction pointing toward a location in the breadcrumb list receives a penalty proportional to how recently that location was visited.
 - This forces the walker to prefer paths that lead *away* from its recent trail.
 

@@ -45,7 +45,7 @@ drunk-walker/
 The central orchestrator. It manages the `setInterval` loop and maintains the global state:
 - **Steps Counter**: Physical probes made.
 - **Heatmap (Map)**: Long-term spatial memory.
-- **Breadcrumbs (Array)**: Short-term rolling buffer (last 20).
+- **Breadcrumbs (Array)**: Short-term rolling buffer (last 100 steps).
 - **Stuck Detection**: Compares current and previous URLs.
 
 ### 2. The Wheel (`src/core/wheel.js`)
@@ -56,9 +56,12 @@ Handles the "Physicality" of the bot.
 
 ### 3. The Traversal (`src/core/traversal.js`)
 The "Pluggable Brain." Every tick, the engine passes the current state to the algorithm, which returns `{ turn: boolean, angle: X }`.
-- **Explorer**: Weighted Heatmap + Breadcrumbs.
-- **Hunter**: Seek dead-ends + 180° Snap-Back.
-- **Surgeon**: Veto movement to visited nodes via projection math.
+
+| Persona | Goal | Logic |
+|---------|------|-------|
+| **Explorer** | Expansion | Weighted Heatmap + Breadcrumbs. Avoids "hot" areas. |
+| **Hunter** | Conflict | Seeks dead-ends. Uses 180° Snap-Back to retreat. |
+| **Surgeon** | Efficiency | Vetoes movement to visited nodes via projection math. |
 
 ---
 
@@ -115,3 +118,15 @@ window.DRUNK_WALKER.engine.setMode('SURGEON') // Swap logic on the fly
 window.DRUNK_WALKER.engine.getWalkPath()      // Export JSON
 window.DRUNK_WALKER.engine.getConfig()       // Read current pace/mode
 ```
+
+---
+
+## Version History
+
+| Version | Key Changes |
+|---------|-------------|
+| **v4.2.0-EXP** | Surgeon mode, Rebranding, Veto logic, Breadcrumb buffer size increased to 100. |
+| **v4.1.0-EXP** | Hunter mode, 180° Snap-Back, Mode cycling. |
+| **v4.0.0-EXP** | Decoupled Architecture (Wheel/Traversal). |
+| **v3.70.0-EXP** | Initial refactor attempt. |
+| **v3.69.0-EXP** | Self-avoiding walk, path merge. |
