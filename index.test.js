@@ -15,7 +15,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should contain the latest version string in bookmarklet.js', () => {
-    expect(bookmarkletContent).toContain('v5.0.0-UNIFIED');
+    expect(bookmarkletContent).toContain('v5.1.0-SMART-NODES');
   });
 
   it('should have keyboard mode enabled by default', () => {

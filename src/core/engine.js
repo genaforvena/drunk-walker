@@ -20,7 +20,7 @@ import {
 } from './traversal.js';
 import { createTransitionGraph } from './transition-graph.js';
 
-export const VERSION = '5.0.0-UNIFIED';
+export const VERSION = '5.1.0-SMART-NODES';
 
 export const defaultConfig = {
   pace: 2000,
@@ -55,6 +55,10 @@ export function createEngine(config = {}) {
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Map(); // location -> count
   let breadcrumbs = []; // last 100 locations
+  
+  // Track previous location for movement recording
+  let previousLocation = null;
+  let previousYaw = null;
   
   // Transition graph for learning actual connectivity
   const transitionGraph = createTransitionGraph();
@@ -316,15 +320,12 @@ export function createEngine(config = {}) {
           const target = calculateClickTarget();
           if (onMouseClick) onMouseClick(target.x, target.y);
         }
-        // Step and record are handled by the main tick or here
-        // Wait, if we set isBusy=true, the current tick should still count as a step
         isBusy = false;
       });
-      // The tick that triggered the turn also counts as a step
       steps++;
       recordStep();
     } else {
-      // Normal movement
+      // Normal movement - record in enhanced graph if we moved
       if (cfg.kbOn) {
         if (onKeyPress) onKeyPress('ArrowUp');
       } else {
@@ -333,8 +334,33 @@ export function createEngine(config = {}) {
       }
       steps++;
       recordStep();
+      
+      // Record movement in enhanced graph (if we actually moved)
+      const currentYaw = extractYawFromUrl(currentUrl);
+      if (previousLocation && currentLocation !== previousLocation && currentYaw !== null) {
+        // We moved to a new location - record in enhanced graph
+        if (algorithm.enhancedGraph) {
+          algorithm.enhancedGraph.recordMovement(
+            previousLocation,
+            currentLocation,
+            previousYaw || orientation,
+            currentYaw,
+            steps
+          );
+        }
+      } else if (previousLocation && currentLocation === previousLocation) {
+        // We tried to move but stayed - record failed attempt
+        if (algorithm.enhancedGraph) {
+          const yaw = wheel.getOrientation();
+          algorithm.enhancedGraph.recordFailedAttempt(previousLocation, yaw, steps);
+        }
+      }
+      
+      // Update previous location/yaw for next tick
+      previousLocation = currentLocation;
+      previousYaw = currentYaw;
     }
-    
+
     console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}`);
   };
 
@@ -369,6 +395,9 @@ export function createEngine(config = {}) {
     lastUrl = '';
     status = 'IDLE';
     wheel.reset();
+    previousLocation = null;
+    previousYaw = null;
+    if (transitionGraph) transitionGraph.clear();
   };
 
   return {

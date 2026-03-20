@@ -45,8 +45,8 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('selfAvoiding:');
   });
   
-  it('should have correct version 5.0.0-UNIFIED', () => {
-    expect(bundleCode).toContain('5.0.0-UNIFIED');
+  it('should have correct version 5.1.0-SMART-NODES', () => {
+    expect(bundleCode).toContain('5.1.0-SMART-NODES');
   });
   
   it('should have engine.start() called in main initialization', () => {
