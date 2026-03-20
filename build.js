@@ -49,9 +49,14 @@ const VERSION = versionMatch ? versionMatch[1] : '0.0.0-DEV';
  * @returns {string} - Code with all ES module syntax removed
  */
 function stripModuleSyntax(code) {
+  // Remove JSDoc comments that reference imports/exports
+  // These become misleading in bundled code
+  code = code.replace(/\/\*\*[\s\S]*?@param[\s\S]*?from\s+['"]\.\//g, '/**');
+  code = code.replace(/\/\*\*[\s\S]*?@returns[\s\S]*?from\s+['"]\.\//g, '/**');
+  
   return code
-    // Remove all import statements (various formats)
-    .replace(/import\s+.*?\s+from\s+['"][^'"]+['"];?/g, '')
+    // Remove all import statements (various formats, including multi-line)
+    .replace(/import\s+[\s\S]*?\s+from\s+['"][^'"]+['"];?/g, '')
     .replace(/import\s+['"][^'"]+['"];?/g, '')  // side-effect imports
     // Remove all export statements (various formats)
     .replace(/export\s+{/g, 'const __export_dummy = {')  // export { a, b }
@@ -62,8 +67,8 @@ function stripModuleSyntax(code) {
     .replace(/export\s+function\s+/g, 'function ')
     .replace(/export\s+class\s+/g, 'class ')
     .replace(/export\s+async\s+function/g, 'async function')
-    // Remove standalone export statements
-    .replace(/^\s*export\s*;?/gm, '')
+    // Remove standalone export/import statements (including in comments)
+    .replace(/^\s*(import|export)\s.*;?/gm, '')
     // Remove empty lines created by stripping
     .replace(/^\s*$/gm, '');
 }

@@ -803,15 +803,6 @@ const __default_export = {
  * Edit src/core/traversal.js - NOT this file
  */
 
-import {
-  createExplorationAlgorithm,
-  createHunterAlgorithm,
-  createSurgicalAlgorithm,
-  createDefaultAlgorithm,
-  extractYawFromUrl,
-  extractLocationFromUrl
-} from './traversal.js';
-
 const VERSION = '4.2.0-EXP';
 
 const defaultConfig = {
@@ -1528,7 +1519,7 @@ function createControlPanel(engine, options = {}) {
 
     // Path export button (Download only)
     const exportDiv = document.createElement('div');
-Div.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
+    exportDiv.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
 
     // Download path JSON button
     const downloadPathBtn = document.createElement('button');
@@ -1555,7 +1546,8 @@ Div.style.cssText = 'display:flex;gap:5px;margin-top:8px;';
         downloadPathBtn.innerText = '💾 Download Path';
       }, 2000);
     };
-Div.appendChild(downloadPathBtn);
+
+    exportDiv.appendChild(downloadPathBtn);
     mainContent.appendChild(exportDiv);
 
     // Download logs button
