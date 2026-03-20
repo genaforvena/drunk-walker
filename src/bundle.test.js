@@ -166,6 +166,48 @@ describe('Bundled Bookmarklet Validation', () => {
       expect(importMatches).toBeNull();
     });
 
+    it('should evaluate without syntax errors (simulates console paste)', () => {
+      // This is the CRITICAL test - actually evaluate the code as browser would
+      // Use vm.runInNewContext to simulate browser console evaluation
+      const vm = require('vm');
+      
+      // Create a sandbox similar to browser console
+      const sandbox = {
+        window: {
+          DRUNK_WALKER_ACTIVE: false,
+          innerWidth: 1920,
+          innerHeight: 1080,
+          location: { href: 'http://localhost/' }
+        },
+        document: {
+          createElement: () => ({ style: {}, classList: { add: () => {} } }),
+          body: { appendChild: () => {} },
+          getElementById: () => null
+        },
+        console: {
+          log: () => {},
+          error: () => {},
+          warn: () => {}
+        },
+        setTimeout: () => {},
+        setInterval: () => {},
+        clearTimeout: () => {},
+        clearInterval: () => {},
+        requestAnimationFrame: (cb) => setTimeout(cb, 16),
+        alert: () => {},
+        confirm: () => true,
+        navigator: { clipboard: { writeText: () => Promise.resolve() } }
+      };
+
+      // Try to evaluate the code - this will throw if there are syntax errors
+      expect(() => {
+        vm.runInNewContext(bookmarkletCode, sandbox, {
+          filename: 'bookmarklet.js',
+          timeout: 5000
+        });
+      }).not.toThrow();
+    });
+
     it('should be under 65KB', () => {
       const sizeKB = bookmarkletCode.length / 1024;
       expect(sizeKB).toBeLessThan(65);
