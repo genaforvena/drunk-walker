@@ -19,7 +19,7 @@ export const VERSION = '5.3.0-STUCK-TYPE';
 export const defaultConfig = {
   pace: 2000,
   kbOn: true,
-  panicThreshold: 10,
+  panicThreshold: 3,
   radius: 50,
   targetX: 0.4,
   targetY: 0.8,
@@ -34,7 +34,7 @@ export function createEngine(config = {}) {
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
-  let lastUrl = typeof window !== 'undefined' ? window.location.href : '';
+  let lastUrl = null;
   let stuckCount = 0;
   let isUserMouseDown = false;
   let poly = [];
@@ -176,17 +176,41 @@ export function createEngine(config = {}) {
   const tick = () => {
     if (isUserMouseDown || isDrawing || isBusy || status !== 'WALKING') return;
 
-    const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
+    const currentYaw = extractYaw(currentUrl);
 
-    // Update stuck count
-    if (currentLocation && previousLocation && currentLocation === previousLocation) {
+    // 1. Stuck detection (URL hasn't changed since last tick)
+    if (lastUrl !== null && currentUrl === lastUrl) {
       stuckCount++;
-    } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
+    } else {
       stuckCount = 0;
     }
 
+    // 2. Record what happened since last tick in the graph
+    if (previousLocation && algorithm.enhancedGraph) {
+      if (currentLocation && currentLocation !== previousLocation) {
+        // Successfully moved to a new bubble
+        algorithm.enhancedGraph.recordMovement(
+          previousLocation,
+          currentLocation,
+          previousYaw !== null ? previousYaw : wheel.getOrientation(),
+          currentYaw || wheel.getOrientation(),
+          steps
+        );
+      } else if (currentLocation === previousLocation && lastUrl !== null) {
+        // Failed to move
+        algorithm.enhancedGraph.recordFailedAttempt(
+          previousLocation,
+          previousYaw !== null ? previousYaw : wheel.getOrientation(),
+          steps
+        );
+      }
+    }
+
+    // 3. Prepare context for decision
     lastUrl = currentUrl;
+    previousLocation = currentLocation;
 
     const context = {
       url: currentUrl,
@@ -202,6 +226,8 @@ export function createEngine(config = {}) {
     if (decision.turn) {
       isBusy = true;
       wheel.turnLeft(decision.angle || 60, () => {
+        // Save the NEW yaw we are pointing at before pressing ArrowUp
+        previousYaw = wheel.getOrientation();
         if (cfg.kbOn) {
           if (onKeyPress) onKeyPress('ArrowUp');
         } else {
@@ -214,6 +240,8 @@ export function createEngine(config = {}) {
       recordStep();
       cumulativeTurnAngle += decision.angle || 60;
     } else {
+      // Save current yaw before pressing ArrowUp
+      previousYaw = wheel.getOrientation();
       if (cfg.kbOn) {
         if (onKeyPress) onKeyPress('ArrowUp');
       } else {
@@ -222,27 +250,6 @@ export function createEngine(config = {}) {
       }
       steps++;
       recordStep();
-
-      // Record movement in enhanced graph
-      const currentYaw = extractYaw(currentUrl);
-      if (previousLocation && currentLocation && currentLocation !== previousLocation) {
-        if (algorithm.enhancedGraph) {
-          algorithm.enhancedGraph.recordMovement(
-            previousLocation,
-            currentLocation,
-            previousYaw || wheel.getOrientation(),
-            currentYaw || wheel.getOrientation(),
-            steps
-          );
-        }
-      } else if (previousLocation && currentLocation === previousLocation) {
-        if (algorithm.enhancedGraph) {
-          algorithm.enhancedGraph.recordFailedAttempt(previousLocation, wheel.getOrientation(), steps);
-        }
-      }
-
-      previousLocation = currentLocation;
-      previousYaw = currentYaw;
     }
 
     // Update status EVERY tick (live numbers)
@@ -250,7 +257,7 @@ export function createEngine(config = {}) {
       onStatusUpdate(status, steps, stuckCount);
     }
 
-    console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}`);
+    console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}, stuck=${stuckCount}`);
   };
 
   const start = () => {
@@ -258,7 +265,7 @@ export function createEngine(config = {}) {
     status = 'WALKING';
     if (steps === 0) {
       stuckCount = 0;
-      lastUrl = typeof window !== 'undefined' ? window.location.href : '';
+      lastUrl = null;
     }
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(tick, cfg.pace);
@@ -281,7 +288,7 @@ export function createEngine(config = {}) {
     stop();
     steps = 0;
     stuckCount = 0;
-    lastUrl = '';
+    lastUrl = null;
     status = 'IDLE';
     wheel.reset();
     previousLocation = null;
