@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.3.0-STUCK-TYPE - CONSOLE VERSION
+// Drunk Walker v5.4.0-STUCK-FIX - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -35,7 +35,6 @@ void function initDrunkWalker(){
  * Manages orientation and turning (only left)
  */
 function createWheel(callbacks) {
-  const { onLongKeyPress } = callbacks;
   let orientation = 0; // 0-359
   const getOrientation = () => orientation;
   const setOrientation = (newOrientation) => {
@@ -45,8 +44,8 @@ function createWheel(callbacks) {
     // Convert angle to duration (10ms per degree as per existing code)
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
-    if (onLongKeyPress) {
-      onLongKeyPress('ArrowLeft', clampedDuration, () => {
+    if (callbacks.onLongKeyPress) {
+      callbacks.onLongKeyPress('ArrowLeft', clampedDuration, () => {
         orientation = normalizeAngle(orientation - angle);
         if (callback) callback();
       });
@@ -93,6 +92,14 @@ function yawDifference(yaw1, yaw2) {
   let diff = Math.abs(normalizeAngle(yaw1) - normalizeAngle(yaw2));
   if (diff > 180) diff = 360 - diff;
   return diff;
+}
+
+/**
+ * Calculate angle to turn LEFT to reach targetYaw from currentYaw
+ */
+function getLeftTurnAngle(currentYaw, targetYaw) {
+  let angle = (normalizeAngle(currentYaw) - normalizeAngle(targetYaw) + 360) % 360;
+  return angle;
 }
 
 function extractYawFromUrl(url) {
@@ -255,9 +262,12 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // MODE DETECTION: Are we returning (retracing) or exploring?
     // ═══════════════════════════════════════════════════════════
-    const hasBeenHereBefore = breadcrumbs.slice(0, -1).includes(currentLocation);
+    // Be careful with breadcrumbs containing same location multiple times due to being stuck
+    const lastDifferentIndex = breadcrumbs.findLastIndex(loc => loc !== currentLocation);
+    const hasBeenHereBefore = lastDifferentIndex !== -1 && breadcrumbs.slice(0, lastDifferentIndex + 1).includes(currentLocation);
+    const isExhausted = !currentNode.hasUntriedYaws();
 
-    if (hasBeenHereBefore && !navigationTarget) {
+    if ((hasBeenHereBefore || isExhausted) && !navigationTarget) {
       // We're retracing! Find nearest crossroad candidate
       isReturning = true;
       const candidate = enhancedGraph.findNearestCrossroadCandidate(currentLocation, breadcrumbs);
@@ -273,7 +283,7 @@ function createUnifiedAlgorithm(cfg) {
           console.log(`🔙 RETURN MODE: Navigating to crossroad candidate (${candidate.distance} steps away)`);
         }
       }
-    } else if (!hasBeenHereBefore) {
+    } else if (!hasBeenHereBefore && !isExhausted) {
       isReturning = false;
     }
 
@@ -283,9 +293,10 @@ function createUnifiedAlgorithm(cfg) {
     if (navigationTarget) {
       if (currentLocation === navigationTarget.location) {
         // Reached target! Turn to face the untried yaw
-        const turnAngle = yawDifference(orientation, navigationTarget.targetYaw);
-        if (turnAngle > 5 && turnAngle < 355) {
+        const diff = yawDifference(orientation, navigationTarget.targetYaw);
+        if (diff > 5 && diff < 355) {
           console.log(`🎯 Reached crossroad! Turning to ${navigationTarget.targetYaw}°`);
+          const turnAngle = getLeftTurnAngle(orientation, navigationTarget.targetYaw);
           navigationTarget = null;
           return { turn: true, angle: turnAngle };
         }
@@ -301,10 +312,11 @@ function createUnifiedAlgorithm(cfg) {
       let yawToTarget = Math.atan2(dLng, dLat) * 180 / Math.PI;
       if (yawToTarget < 0) yawToTarget += 360;
 
-      const turnAngle = yawDifference(orientation, yawToTarget);
-      if (turnAngle < 30) {
+      const diff = yawDifference(orientation, yawToTarget);
+      if (diff < 30) {
         return { turn: false };  // Move forward toward target
       } else {
+        const turnAngle = getLeftTurnAngle(orientation, yawToTarget);
         return { turn: true, angle: turnAngle };  // Turn toward target
       }
     }
@@ -315,9 +327,10 @@ function createUnifiedAlgorithm(cfg) {
     if (currentNode.hasUntriedYaws()) {
       const nextYaw = currentNode.getNextUntriedYaw();
       if (nextYaw !== null) {
-        const turnAngle = yawDifference(orientation, nextYaw);
-        if (turnAngle > 5 && turnAngle < 355) {
+        const diff = yawDifference(orientation, nextYaw);
+        if (diff > 5 && diff < 355) {
           console.log(`🔍 Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
+          const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           return { turn: true, angle: turnAngle };
         }
       }
@@ -424,12 +437,12 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.3.0-STUCK-TYPE';
+const VERSION = '5.4.0-STUCK-FIX';
 
 const defaultConfig = {
   pace: 2000,
   kbOn: true,
-  panicThreshold: 10,
+  panicThreshold: 3,
   radius: 50,
   targetX: 0.4,
   targetY: 0.8,
@@ -444,7 +457,7 @@ function createEngine(config = {}) {
   let status = 'IDLE';
   let steps = 0;
   let intervalId = null;
-  let lastUrl = typeof window !== 'undefined' ? window.location.href : '';
+  let lastUrl = null;
   let stuckCount = 0;
   let isUserMouseDown = false;
   let poly = [];
@@ -476,6 +489,12 @@ function createEngine(config = {}) {
       if (hashMatch) return `${hashMatch[1]},${hashMatch[2]}`;
     } catch (e) {}
     return null;
+  };
+
+  const extractYaw = (url) => {
+    if (!url) return null;
+    const match = url.match(/yaw[=%]3D?([0-9.]+)/i);
+    return match ? parseFloat(match[1]) : null;
   };
 
   const wheel = createWheel({ onLongKeyPress });
@@ -542,7 +561,9 @@ function createEngine(config = {}) {
     walkPath.push({ url: currentUrl, timestamp: Date.now() });
     if (currentLocation) {
       visitedUrls.set(currentLocation, (visitedUrls.get(currentLocation) || 0) + 1);
-      breadcrumbs.push(currentLocation);
+      if (breadcrumbs.length === 0 || breadcrumbs[breadcrumbs.length - 1] !== currentLocation) {
+        breadcrumbs.push(currentLocation);
+      }
       if (breadcrumbs.length > 200) breadcrumbs.shift();  // Keep last 200 for loop detection
     }
   };
@@ -578,17 +599,41 @@ function createEngine(config = {}) {
   const tick = () => {
     if (isUserMouseDown || isDrawing || isBusy || status !== 'WALKING') return;
 
-    const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
+    const currentYaw = extractYaw(currentUrl);
 
-    // Stuck = same location for 3+ ticks in a row
-    if (currentLocation && currentLocation === previousLocation) {
+    // 1. Stuck detection (URL hasn't changed since last tick)
+    if (lastUrl !== null && currentUrl === lastUrl) {
       stuckCount++;
     } else {
       stuckCount = 0;
     }
 
+    // 2. Record what happened since last tick in the graph
+    if (previousLocation && algorithm.enhancedGraph) {
+      if (currentLocation && currentLocation !== previousLocation) {
+        // Successfully moved to a new bubble
+        algorithm.enhancedGraph.recordMovement(
+          previousLocation,
+          currentLocation,
+          previousYaw !== null ? previousYaw : wheel.getOrientation(),
+          currentYaw || wheel.getOrientation(),
+          steps
+        );
+      } else if (currentLocation === previousLocation && lastUrl !== null) {
+        // Failed to move
+        algorithm.enhancedGraph.recordFailedAttempt(
+          previousLocation,
+          previousYaw !== null ? previousYaw : wheel.getOrientation(),
+          steps
+        );
+      }
+    }
+
+    // 3. Prepare context for decision
     lastUrl = currentUrl;
+    previousLocation = currentLocation;
 
     const context = {
       url: currentUrl,
@@ -604,6 +649,8 @@ function createEngine(config = {}) {
     if (decision.turn) {
       isBusy = true;
       wheel.turnLeft(decision.angle || 60, () => {
+        // Save the NEW yaw we are pointing at before pressing ArrowUp
+        previousYaw = wheel.getOrientation();
         if (cfg.kbOn) {
           if (onKeyPress) onKeyPress('ArrowUp');
         } else {
@@ -616,6 +663,8 @@ function createEngine(config = {}) {
       recordStep();
       cumulativeTurnAngle += decision.angle || 60;
     } else {
+      // Save current yaw before pressing ArrowUp
+      previousYaw = wheel.getOrientation();
       if (cfg.kbOn) {
         if (onKeyPress) onKeyPress('ArrowUp');
       } else {
@@ -624,27 +673,6 @@ function createEngine(config = {}) {
       }
       steps++;
       recordStep();
-
-      // Record movement in enhanced graph
-      const currentYaw = extractYawFromUrl(currentUrl);
-      if (previousLocation && currentLocation && currentLocation !== previousLocation && currentYaw !== null) {
-        if (algorithm.enhancedGraph) {
-          algorithm.enhancedGraph.recordMovement(
-            previousLocation,
-            currentLocation,
-            previousYaw || wheel.getOrientation(),
-            currentYaw,
-            steps
-          );
-        }
-      } else if (previousLocation && currentLocation === previousLocation) {
-        if (algorithm.enhancedGraph) {
-          algorithm.enhancedGraph.recordFailedAttempt(previousLocation, wheel.getOrientation(), steps);
-        }
-      }
-
-      previousLocation = currentLocation;
-      previousYaw = currentYaw;
     }
 
     // Update status EVERY tick (live numbers)
@@ -652,7 +680,7 @@ function createEngine(config = {}) {
       onStatusUpdate(status, steps, stuckCount);
     }
 
-    console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}`);
+    console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}, stuck=${stuckCount}`);
   };
 
   const start = () => {
@@ -660,7 +688,7 @@ function createEngine(config = {}) {
     status = 'WALKING';
     if (steps === 0) {
       stuckCount = 0;
-      lastUrl = typeof window !== 'undefined' ? window.location.href : '';
+      lastUrl = null;
     }
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(tick, cfg.pace);
@@ -683,7 +711,7 @@ function createEngine(config = {}) {
     stop();
     steps = 0;
     stuckCount = 0;
-    lastUrl = '';
+    lastUrl = null;
     status = 'IDLE';
     wheel.reset();
     previousLocation = null;

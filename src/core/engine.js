@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.3.0-STUCK-TYPE';
+export const VERSION = '5.4.0-STUCK-FIX';
 
 export const defaultConfig = {
   pace: 2000,
