@@ -13,20 +13,17 @@
 
 import { createWheel } from './wheel.js';
 import {
-  createExplorationAlgorithm,
-  createHunterAlgorithm,
-  createSurgicalAlgorithm,
+  createUnifiedAlgorithm,
   createDefaultAlgorithm,
   extractYawFromUrl,
   extractLocationFromUrl
 } from './traversal.js';
 import { createTransitionGraph } from './transition-graph.js';
 
-export const VERSION = '4.2.0-EXP';
+export const VERSION = '5.0.0-UNIFIED';
 
 export const defaultConfig = {
   pace: 2000,
-  mode: 'SURGEON', // Default mode
   kbOn: true,      // Keyboard mode ON by default
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
@@ -407,17 +404,8 @@ export function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
-    setMode: (mode) => {
-      cfg.mode = mode;
-      if (mode === 'HUNTER') {
-        algorithm = createHunterAlgorithm(cfg);
-      } else if (mode === 'SURGEON') {
-        algorithm = createSurgicalAlgorithm(cfg);
-      } else {
-        algorithm = createExplorationAlgorithm(cfg);
-      }
-      console.log(`🤪 Mode changed to: ${mode}`);
-    },
+    // Mode selection removed in v5.0.0 - now using unified algorithm
+    // setMode: (mode) => { ... },  // No longer available
     // Stubs for backward compatibility
     getNavigation: () => null,
     getNavigationState: () => ({}),

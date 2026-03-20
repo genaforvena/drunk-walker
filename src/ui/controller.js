@@ -83,51 +83,19 @@ export function createControlPanel(engine, options = {}) {
     statusEl = stats.querySelector('#dw-status');
     visitedEl = stats.querySelector('#dw-visited');
 
-    // Mode toggle
-    const modeLabel = document.createElement('div');
-    modeLabel.style.fontSize = '10px';
-    modeLabel.style.marginTop = '10px';
-    modeLabel.innerHTML = 'MODE: <span id="dw-mode-val">SURGEON</span>';
-    mainContent.appendChild(modeLabel);
-    const modeValEl = modeLabel.querySelector('#dw-mode-val');
+    // Direction indicator (replaces mode toggle in v5.0.0)
+    const directionLabel = document.createElement('div');
+    directionLabel.style.fontSize = '10px';
+    directionLabel.style.marginTop = '10px';
+    directionLabel.innerHTML = 'ALGORITHM: <span style="color:#0f0;">UNIFIED v5.0.0</span>';
+    mainContent.appendChild(directionLabel);
 
-    const modeBtn = document.createElement('button');
-    modeBtn.innerText = '🔪 SWITCH TO SURGEON';
-    modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #f60;font-size:10px;cursor:pointer;';
-    
-    // Set initial button state based on engine config
-    const initialMode = engine.getConfig().mode;
-    if (initialMode === 'SURGEON') {
-        modeBtn.innerText = '🌍 SWITCH TO EXPLORER';
-        modeBtn.style.borderColor = '#0cf';
-    } else if (initialMode === 'EXPLORER') {
-        modeBtn.innerText = '🏹 SWITCH TO HUNTER';
-        modeBtn.style.borderColor = '#0f0';
-    }
-
-    modeBtn.onclick = () => {
-      const currentMode = engine.getConfig().mode;
-      let newMode;
-      if (currentMode === 'SURGEON') newMode = 'EXPLORER'; // Cycle SURGEON -> EXPLORER
-      else if (currentMode === 'EXPLORER') newMode = 'HUNTER';
-      else newMode = 'SURGEON'; // HUNTER -> SURGEON
-
-      engine.setMode(newMode);
-      modeValEl.innerText = newMode;
-      
-      // Update button text/style (Shows NEXT mode)
-      if (newMode === 'EXPLORER') {
-        modeBtn.innerText = '🏹 SWITCH TO HUNTER';
-        modeBtn.style.borderColor = '#0f0';
-      } else if (newMode === 'HUNTER') {
-        modeBtn.innerText = '🔪 SWITCH TO SURGEON';
-        modeBtn.style.borderColor = '#f60';
-      } else {
-        modeBtn.innerText = '🌍 SWITCH TO EXPLORER';
-        modeBtn.style.borderColor = '#0cf';
-      }
-    };
-    mainContent.appendChild(modeBtn);
+    const infoText = document.createElement('div');
+    infoText.style.fontSize = '9px';
+    infoText.style.color = '#888';
+    infoText.style.marginTop = '5px';
+    infoText.innerHTML = 'Direction + Heatmap + Crossroads';
+    mainContent.appendChild(infoText);
 
     // Pace control
     const paceLabel = document.createElement('div');

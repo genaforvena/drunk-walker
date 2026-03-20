@@ -30,7 +30,7 @@ describe('Core Engine', () => {
     });
 
     it('should have correct version', () => {
-      expect(VERSION).toBe('4.2.0-EXP');
+      expect(VERSION).toBe('5.0.0-UNIFIED');
     });
   });
 

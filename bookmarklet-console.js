@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v4.2.0-EXP - CONSOLE VERSION
+// Drunk Walker v5.0.0-UNIFIED - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -391,6 +391,12 @@ function createTransitionGraph() {
   /**
  * Traversal algorithms for Drunk Walker
  * This is where decision-making logic lives
+ * 
+ * UNIFIED ALGORITHM (v5.0.0):
+ * Combines direction preference with heatmap avoidance
+ * - Prefers unvisited locations (heatmap)
+ * - Prefers directions aligned with preferred yaw
+ * - Adjusts preferred yaw when blocked or user drags
  */
 
 /**
@@ -400,6 +406,15 @@ function normalizeAngle(angle) {
   angle = angle % 360;
   if (angle < 0) angle += 360;
   return angle;
+}
+
+/**
+ * Calculate yaw difference between two angles (0-180°)
+ */
+function yawDifference(yaw1, yaw2) {
+  let diff = Math.abs(normalizeAngle(yaw1) - normalizeAngle(yaw2));
+  if (diff > 180) diff = 360 - diff;
+  return diff;
 }
 
 /**
@@ -472,35 +487,67 @@ function calculateEntropy(visitedUrls, currentLocation, orientation) {
 }
 
 /**
- * EXPLORATION ALGORITHM (Default)
- * Focus: Heatmap avoidance and Breadcrumb scent
+ * UNIFIED ALGORITHM (v5.0.0)
+ * Combines direction preference with heatmap avoidance and crossroad prioritization
+ * 
+ * Scoring formula:
+ * score = (heatmapScore * 0.5) + (directionScore * 0.3) + (crossroadScore * 0.2)
+ * 
+ * - Lower score = better direction to explore
+ * - heatmapScore: visited count + breadcrumb penalty
+ * - directionScore: yaw difference from preferred direction
+ * - crossroadScore: priority from transition graph (0-3)
  */
-function createExplorationAlgorithm(cfg) {
+function createUnifiedAlgorithm(cfg) {
   const panicThreshold = cfg.panicThreshold || 3;
+  let preferredYaw = null;
   let lastSearchAngle = 0;
   let extendedStuckCount = 0;
   let lowEntropyMode = false;
   let lowEntropyCounter = 0;
+  let consecutiveTurns = 0;
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
+    const { 
+      stuckCount, 
+      currentLocation, 
+      visitedUrls, 
+      breadcrumbs, 
+      orientation,
+      transitionGraph 
+    } = context;
 
-    // PRIORITY 0: Early Loop Detection
-    // If we're returning to a location in recent breadcrumbs, escape immediately
+    // Initialize preferred yaw from current orientation on first call
+    if (!preferredYaw) {
+      preferredYaw = orientation;
+    }
+
+    // PRIORITY 0: Oscillation Detection (A->B->A->B pattern)
+    if (cfg.expOn && stuckCount === 0 && breadcrumbs.length >= 6) {
+      const recent = breadcrumbs.slice(-6);
+      if (recent[0] === recent[4] && recent[1] === recent[5] && recent[0] !== recent[1]) {
+        console.log("🔄 OSCILLATION DETECTED! Breaking cycle with random turn");
+        consecutiveTurns = 0;
+        return { turn: true, angle: Math.floor(Math.random() * 360) };
+      }
+    }
+
+    // PRIORITY 1: Early Loop Detection (returning to recent breadcrumb)
     if (cfg.expOn && currentLocation && stuckCount === 0) {
       const recentBreadcrumbIndex = breadcrumbs.slice(-10).indexOf(currentLocation);
-      if (recentBreadcrumbIndex !== -1) {
-        // We're looping back! Perform 180° snap-back to escape
-        console.log("🔄 LOOP DETECTED! Escaping with 180° turn");
+      if (recentBreadcrumbIndex !== -1 && recentBreadcrumbIndex < 8) {
+        console.log(`🔄 LOOP DETECTED (back to step -${10 - recentBreadcrumbIndex})! 180° escape`);
+        consecutiveTurns = 0;
         return { turn: true, angle: 180 };
       }
     }
 
-    // PRIORITY 1: Systematic Search (Stuck Recovery)
+    // PRIORITY 2: Systematic Search (Stuck Recovery)
     if (cfg.expOn && stuckCount >= panicThreshold) {
       extendedStuckCount = stuckCount;
       lowEntropyMode = false;
       lowEntropyCounter = 0;
+      consecutiveTurns = 0;
 
       // Adaptive search: use smaller angles if stuck for too long
       let searchIncrement = 60;
@@ -510,7 +557,7 @@ function createExplorationAlgorithm(cfg) {
       if (stuckCount >= 20) {
         // Random escape for extended stuck situations
         const randomAngle = Math.floor(Math.random() * 360);
-        console.log(`🎲 Extended stuck (${stuckCount}), trying random angle: ${randomAngle}°`);
+        console.log(`🎲 Extended stuck (${stuckCount}), random escape: ${randomAngle}°`);
         return { turn: true, angle: randomAngle };
       }
 
@@ -523,31 +570,83 @@ function createExplorationAlgorithm(cfg) {
       return { turn: true, angle: lastSearchAngle };
     }
 
-    // PRIORITY 2: Entropy-Based Exploration
-    // When all directions are equally "hot", switch to random exploration
+    // PRIORITY 3: Entropy-Based Escape (linear territory)
     if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
       const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
 
-      // Detect low entropy: all directions similarly visited
-      const isLowEntropy = entropy.variance < 3 && entropy.avgVisits > 3;
+      // Lower threshold - escapes linear traps earlier
+      const isLowEntropy = entropy.variance < 5 && entropy.avgVisits > 2;
 
       if (isLowEntropy) {
-        lowEntropyCounter++;
+        consecutiveTurns++;
 
-        // After 3+ ticks of low entropy, trigger random exploration
-        if (lowEntropyCounter >= 3) {
-          lowEntropyMode = true;
+        // After 2+ ticks of low entropy, take action
+        if (consecutiveTurns >= 2) {
           const randomAngle = Math.floor(Math.random() * 360);
-          console.log(`🎲 LOW ENTROPY (var=${entropy.variance.toFixed(2)}, avg=${entropy.avgVisits.toFixed(1)}), random escape: ${randomAngle}°`);
+          console.log(`🎲 LOW ENTROPY (var=${entropy.variance.toFixed(2)}), random escape: ${randomAngle}°`);
+          consecutiveTurns = 0;
           return { turn: true, angle: randomAngle };
         }
       } else {
-        lowEntropyMode = false;
-        lowEntropyCounter = 0;
+        consecutiveTurns = 0;
       }
+    }
 
+    // PRIORITY 4: Transition Graph with Crossroad + Direction Priority
+    if (cfg.expOn && cfg.selfAvoiding && transitionGraph && currentLocation) {
+      // Use crossroad-prioritized escape
+      const escapeOption = transitionGraph.findEscapeWithPriority(currentLocation, visitedUrls);
+
+      if (escapeOption) {
+        const learnedEscape = escapeOption.location;
+
+        // Calculate yaw to target location
+        const parts = learnedEscape.split(',');
+        const targetLat = parseFloat(parts[0]);
+        const targetLng = parseFloat(parts[1]);
+        const currentParts = currentLocation.split(',');
+        const currentLat = parseFloat(currentParts[0]);
+        const currentLng = parseFloat(currentParts[1]);
+
+        // Calculate angle to target
+        const dLat = targetLat - currentLat;
+        const dLng = targetLng - currentLng;
+        let targetYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (targetYaw < 0) targetYaw += 360;
+
+        // Calculate yaw difference from preferred direction
+        const directionDiff = yawDifference(targetYaw, preferredYaw);
+
+        // Hybrid scoring: combine crossroad priority with direction alignment
+        // Lower score = better option
+        const crossroadScore = (3 - escapeOption.priority) / 3;  // 0-1, lower is better
+        const directionScore = directionDiff / 180;  // 0-1, lower is better (aligned with preferred)
+
+        // Combined score: 70% direction, 30% crossroad priority
+        const combinedScore = (directionScore * 0.7) + (crossroadScore * 0.3);
+
+        // Only use if score is reasonable (not too far from preferred)
+        if (combinedScore < 0.7 || escapeOption.priority >= 2) {
+          // Gently adjust preferred direction toward successful path
+          if (directionDiff > 10 && directionDiff < 90) {
+            preferredYaw = normalizeAngle(preferredYaw + (directionDiff * 0.3));
+          }
+
+          const turnAngle = yawDifference(orientation, targetYaw);
+          if (turnAngle > 10 && turnAngle < 350) {
+            if (escapeOption.priority > 0) {
+              console.log(`🗺️ Crossroad priority ${escapeOption.priority} escape (dir diff: ${directionDiff.toFixed(0)}°)`);
+            }
+            return { turn: true, angle: turnAngle };
+          }
+        }
+      }
+    }
+
+    // PRIORITY 5: Weighted Exploration with Direction Preference (fallback)
+    if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
+      lowEntropyCounter = 0;
       extendedStuckCount = 0;
-      lastSearchAngle = 0;
 
       const scanAngles = [0, 60, -60, 120, -120, 180, -180];
       let bestScore = Infinity;
@@ -558,6 +657,7 @@ function createExplorationAlgorithm(cfg) {
         const testLocation = predictNextLocation(currentLocation, testOrientation);
         if (!testLocation) continue;
 
+        // Heatmap score: visited count + breadcrumb penalty
         const visitCount = visitedUrls.get(testLocation) || 0;
         let breadcrumbPenalty = 0;
         breadcrumbs.forEach((bc, index) => {
@@ -565,8 +665,15 @@ function createExplorationAlgorithm(cfg) {
           if (bc === testLocation) breadcrumbPenalty += (100 - index * 5);
         });
 
+        // Direction score: yaw difference from preferred
+        const predictedYaw = testOrientation;
+        const directionDiff = yawDifference(predictedYaw, preferredYaw);
+        const directionScore = directionDiff / 180;  // 0-1
+
+        // Combined score: 50% heatmap, 30% direction, 20% breadcrumb
+        const heatmapScore = visitCount * 10;
         const forwardBias = (angle === 0) ? -0.1 : 0;
-        const score = (visitCount * 10) + breadcrumbPenalty + forwardBias;
+        const score = (heatmapScore * 0.5) + (directionScore * 0.3) + (breadcrumbPenalty * 0.2) + forwardBias;
 
         if (score < bestScore) {
           bestScore = score;
@@ -585,222 +692,13 @@ function createExplorationAlgorithm(cfg) {
   return { decide };
 }
 
-/**
- * CUL-DE-SAC HUNTER ALGORITHM
- * Focus: Seeking dead-ends and "High Friction" areas
- */
-function createHunterAlgorithm(cfg) {
-  const panicThreshold = cfg.panicThreshold || 3;
-
-  const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
-
-    // PRIORITY 0: Early Loop Detection
-    // If we're returning to a location in recent breadcrumbs, escape immediately
-    if (cfg.expOn && currentLocation && stuckCount === 0) {
-      const recentBreadcrumbIndex = breadcrumbs.slice(-10).indexOf(currentLocation);
-      if (recentBreadcrumbIndex !== -1) {
-        console.log("🔄 HUNTER: LOOP DETECTED! Escaping with 180° turn");
-        return { turn: true, angle: 180 };
-      }
-    }
-
-    // PRIORITY 1: Snap-Back (The Dead-End Escape)
-    // When we hit the panic threshold, we assume we found a dead end.
-    // Instead of a search, we perform a 180 degree snap-back to escape.
-    if (cfg.expOn && stuckCount >= panicThreshold) {
-      console.log("🎯 CUL-DE-SAC HUNTER: Dead-end found! Performing Snap-Back escape.");
-      // 180 degree turn to go back exactly where we came from
-      return { turn: true, angle: 180 };
-    }
-
-    // PRIORITY 2: Curiosity-Based Sampling
-    // The hunter prefers directions that it HASN'T visited yet, but it
-    // doesn't care about the heatmap as much as finding "one-way" nodes.
-    if (cfg.expOn && currentLocation && stuckCount === 0) {
-      // Scan to find how many "exits" are available
-      const scanAngles = [0, 60, 120, 180, 240, 300];
-      let availableExits = 0;
-      let unvisitedAngles = [];
-
-      for (const angle of scanAngles) {
-        const testOrientation = normalizeAngle(orientation + angle);
-        const testLocation = predictNextLocation(currentLocation, testOrientation);
-        if (testLocation && !visitedUrls.has(testLocation)) {
-          unvisitedAngles.push(angle);
-        }
-        if (testLocation) availableExits++;
-      }
-
-      // If only 1 exit is available (and it's probably behind us), 
-      // this is a "High Interest" node.
-      if (availableExits <= 1) {
-        console.log("🔍 CUL-DE-SAC HUNTER: High Interest node detected (1 exit).");
-      }
-
-      // Prefer unvisited directions to keep hunting
-      if (unvisitedAngles.length > 0) {
-        // Pick an unvisited angle that isn't 0
-        const bestAngle = unvisitedAngles.find(a => a !== 0) || 0;
-        if (bestAngle !== 0) {
-          return { turn: true, angle: Math.abs(bestAngle) };
-        }
-      }
-    }
-
-    return { turn: false };
-  };
-
-  return { decide };
-}
-
-/**
- * SURGICAL SURVEYOR ALGORITHM
- * Focus: Maximizing steps/visited ratio.
- * Vetoes probing directions that are already visited.
- * 
- * KEY INSIGHT: Surgeon must escape cycles AGGRESSIVELY because its goal
- * is 1:1 steps/visited ratio. Any retracing is failure.
- */
-function createSurgicalAlgorithm(cfg) {
-  const panicThreshold = cfg.panicThreshold || 3;
-  let extendedStuckCount = 0;
-  let consecutiveTurns = 0;
-  let lastTurnDirection = 0;
-
-  const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation, transitionGraph } = context;
-
-    // PRIORITY 0: Use Learned Transition Graph with Crossroad Priority
-    if (cfg.expOn && cfg.selfAvoiding && transitionGraph && currentLocation) {
-      // Use crossroad-prioritized escape
-      const escapeOption = transitionGraph.findEscapeWithPriority(currentLocation, visitedUrls);
-
-      if (escapeOption) {
-        const learnedEscape = escapeOption.location;
-
-        // Log crossroad priority for debugging
-        if (escapeOption.priority > 0) {
-          console.log(`🗺️ SURGEON: Crossroad priority ${escapeOption.priority} escape`);
-        }
-
-        // Calculate angle to target location
-        const parts = learnedEscape.split(',');
-        const targetLat = parseFloat(parts[0]);
-        const targetLng = parseFloat(parts[1]);
-        const currentParts = currentLocation.split(',');
-        const currentLat = parseFloat(currentParts[0]);
-        const currentLng = parseFloat(currentParts[1]);
-
-        // Calculate angle to target
-        const dLat = targetLat - currentLat;
-        const dLng = targetLng - currentLng;
-        let targetAngle = Math.atan2(dLng, dLat) * 180 / Math.PI;
-        if (targetAngle < 0) targetAngle += 360;
-
-        // Calculate turn angle from current orientation
-        let turnAngle = targetAngle - orientation;
-        if (turnAngle < 0) turnAngle += 360;
-        if (turnAngle > 360) turnAngle -= 360;
-
-        // Prefer turning over going straight if angle is significant
-        if (turnAngle > 10 && turnAngle < 350) {
-          return { turn: true, angle: Math.abs(turnAngle) };
-        }
-      }
-    }
-
-    // PRIORITY 1: Oscillation Detection (BEFORE returning to breadcrumb)
-    if (cfg.expOn && currentLocation && stuckCount === 0) {
-      const recentBreadcrumbIndex = breadcrumbs.slice(-10).indexOf(currentLocation);
-      if (recentBreadcrumbIndex !== -1 && recentBreadcrumbIndex < 8) {
-        // We're returning to a location from 2-8 steps ago - definite loop
-        console.log(`🔄 SURGEON: LOOP DETECTED (back to step -${10 - recentBreadcrumbIndex})! 180° escape`);
-        consecutiveTurns = 0;
-        return { turn: true, angle: 180 };
-      }
-    }
-
-    // PRIORITY 2: Entropy-Based Escape (linear territory)
-    if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
-      const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
-
-      // Surgeon uses LOWER threshold - escapes linear traps earlier
-      const isLowEntropy = entropy.variance < 5 && entropy.avgVisits > 2;
-
-      if (isLowEntropy) {
-        consecutiveTurns++;
-
-        // After 2+ ticks of low entropy, Surgeon takes action (faster than Explorer)
-        if (consecutiveTurns >= 2) {
-          const randomAngle = Math.floor(Math.random() * 360);
-          console.log(`🎲 SURGEON: LOW ENTROPY (var=${entropy.variance.toFixed(2)}), random escape: ${randomAngle}°`);
-          consecutiveTurns = 0;
-          return { turn: true, angle: randomAngle };
-        }
-      } else {
-        consecutiveTurns = 0;
-      }
-    }
-
-    // PRIORITY 3: Standard Surgical Logic (veto visited)
-    const isForwardVisited = currentLocation && visitedUrls.has(predictNextLocation(currentLocation, orientation));
-
-    if (stuckCount > 0 || isForwardVisited) {
-      extendedStuckCount = stuckCount;
-      consecutiveTurns = 0;
-
-      // Extended stuck handling
-      if (stuckCount >= 20) {
-        const randomAngle = Math.floor(Math.random() * 360);
-        console.log(`🎲 SURGEON: Extended stuck (${stuckCount}), random escape: ${randomAngle}°`);
-        return { turn: true, angle: randomAngle };
-      }
-
-      // Scan 360 in 60 increments (or 30 if extended stuck)
-      let scanAngles = [60, -60, 120, -120, 180, 0];
-      if (stuckCount >= 10) {
-        // Fine-grained search with 30° increments
-        scanAngles = [30, -30, 60, -60, 90, -90, 120, -120, 150, -150, 180, 0];
-      }
-
-      for (const angle of scanAngles) {
-        const testOrientation = normalizeAngle(orientation + angle);
-        const testLocation = predictNextLocation(currentLocation, testOrientation);
-
-        // VETO: If we know it's visited, don't even try (don't probe)
-        if (testLocation && visitedUrls.has(testLocation)) continue;
-        if (testLocation && breadcrumbs.includes(testLocation)) continue;
-
-        // Found a potentially "clean" node
-        if (angle === 0) return { turn: false };
-        return { turn: true, angle: Math.abs(angle) };
-      }
-
-      // If everything is visited, fall back to the "coldest" heatmap spot (Explorer logic)
-      let bestScore = Infinity;
-      let bestAngle = 60;
-      for (const angle of [60, -60, 120, -120, 180]) {
-        const testOrientation = normalizeAngle(orientation + angle);
-        const testLocation = predictNextLocation(currentLocation, testOrientation);
-        const score = visitedUrls.get(testLocation) || 0;
-        if (score < bestScore) {
-          bestScore = score;
-          bestAngle = angle;
-        }
-      }
-      return { turn: true, angle: Math.abs(bestAngle) };
-    }
-
-    consecutiveTurns = 0;
-    return { turn: false };
-  };
-
-  return { decide };
-}
-
 // Default export for backward compatibility
-const createDefaultAlgorithm = createExplorationAlgorithm;
+const createDefaultAlgorithm = createUnifiedAlgorithm;
+
+// Backward compatibility aliases (will be removed in future)
+const createExplorationAlgorithm = createUnifiedAlgorithm;
+const createSurgicalAlgorithm = createUnifiedAlgorithm;
+const createHunterAlgorithm = createUnifiedAlgorithm;
 
 
   // === NAVIGATION COMPATIBILITY LAYER ===
@@ -869,11 +767,10 @@ const __default_export = {
  * Edit src/core/traversal.js - NOT this file
  */
 
-const VERSION = '4.2.0-EXP';
+const VERSION = '5.0.0-UNIFIED';
 
 const defaultConfig = {
   pace: 2000,
-  mode: 'SURGEON', // Default mode
   kbOn: true,      // Keyboard mode ON by default
   expOn: true,     // Experimental mode ON by default (enables unstuck algorithm)
   panicThreshold: 3,
@@ -1254,17 +1151,8 @@ function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
-    setMode: (mode) => {
-      cfg.mode = mode;
-      if (mode === 'HUNTER') {
-        algorithm = createHunterAlgorithm(cfg);
-      } else if (mode === 'SURGEON') {
-        algorithm = createSurgicalAlgorithm(cfg);
-      } else {
-        algorithm = createExplorationAlgorithm(cfg);
-      }
-      console.log(`🤪 Mode changed to: ${mode}`);
-    },
+    // Mode selection removed in v5.0.0 - now using unified algorithm
+    // setMode: (mode) => { ... },  // No longer available
     // Stubs for backward compatibility
     getNavigation: () => null,
     getNavigationState: () => ({}),
@@ -1848,51 +1736,19 @@ function createControlPanel(engine, options = {}) {
     statusEl = stats.querySelector('#dw-status');
     visitedEl = stats.querySelector('#dw-visited');
 
-    // Mode toggle
-    const modeLabel = document.createElement('div');
-    modeLabel.style.fontSize = '10px';
-    modeLabel.style.marginTop = '10px';
-    modeLabel.innerHTML = 'MODE: <span id="dw-mode-val">SURGEON</span>';
-    mainContent.appendChild(modeLabel);
-    const modeValEl = modeLabel.querySelector('#dw-mode-val');
+    // Direction indicator (replaces mode toggle in v5.0.0)
+    const directionLabel = document.createElement('div');
+    directionLabel.style.fontSize = '10px';
+    directionLabel.style.marginTop = '10px';
+    directionLabel.innerHTML = 'ALGORITHM: <span style="color:#0f0;">UNIFIED v5.0.0</span>';
+    mainContent.appendChild(directionLabel);
 
-    const modeBtn = document.createElement('button');
-    modeBtn.innerText = '🔪 SWITCH TO SURGEON';
-    modeBtn.style.cssText = 'width:100%;margin-top:5px;padding:4px;background:#444;color:#fff;border:1px solid #f60;font-size:10px;cursor:pointer;';
-
-    // Set initial button state based on engine config
-    const initialMode = engine.getConfig().mode;
-    if (initialMode === 'SURGEON') {
-        modeBtn.innerText = '🌍 SWITCH TO EXPLORER';
-        modeBtn.style.borderColor = '#0cf';
-    } else if (initialMode === 'EXPLORER') {
-        modeBtn.innerText = '🏹 SWITCH TO HUNTER';
-        modeBtn.style.borderColor = '#0f0';
-    }
-
-    modeBtn.onclick = () => {
-      const currentMode = engine.getConfig().mode;
-      let newMode;
-      if (currentMode === 'SURGEON') newMode = 'EXPLORER'; // Cycle SURGEON -> EXPLORER
-      else if (currentMode === 'EXPLORER') newMode = 'HUNTER';
-      else newMode = 'SURGEON'; // HUNTER -> SURGEON
-
-      engine.setMode(newMode);
-      modeValEl.innerText = newMode;
-
-      // Update button text/style (Shows NEXT mode)
-      if (newMode === 'EXPLORER') {
-        modeBtn.innerText = '🏹 SWITCH TO HUNTER';
-        modeBtn.style.borderColor = '#0f0';
-      } else if (newMode === 'HUNTER') {
-        modeBtn.innerText = '🔪 SWITCH TO SURGEON';
-        modeBtn.style.borderColor = '#f60';
-      } else {
-        modeBtn.innerText = '🌍 SWITCH TO EXPLORER';
-        modeBtn.style.borderColor = '#0cf';
-      }
-    };
-    mainContent.appendChild(modeBtn);
+    const infoText = document.createElement('div');
+    infoText.style.fontSize = '9px';
+    infoText.style.color = '#888';
+    infoText.style.marginTop = '5px';
+    infoText.innerHTML = 'Direction + Heatmap + Crossroads';
+    mainContent.appendChild(infoText);
 
     // Pace control
     const paceLabel = document.createElement('div');
