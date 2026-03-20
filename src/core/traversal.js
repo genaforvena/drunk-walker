@@ -281,12 +281,20 @@ export function createSurgicalAlgorithm(cfg) {
   const decide = (context) => {
     const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation, transitionGraph } = context;
 
-    // PRIORITY 0: Use Learned Transition Graph (100% accurate for known connections)
+    // PRIORITY 0: Use Learned Transition Graph with Crossroad Priority
     if (cfg.expOn && cfg.selfAvoiding && transitionGraph && currentLocation) {
-      const learnedEscape = transitionGraph.findEscape(currentLocation, visitedUrls);
-      if (learnedEscape) {
-        // We have a learned connection to an unvisited location!
-        // Calculate angle to that location
+      // Use crossroad-prioritized escape
+      const escapeOption = transitionGraph.findEscapeWithPriority(currentLocation, visitedUrls);
+      
+      if (escapeOption) {
+        const learnedEscape = escapeOption.location;
+        
+        // Log crossroad priority for debugging
+        if (escapeOption.priority > 0) {
+          console.log(`🗺️ SURGEON: Crossroad priority ${escapeOption.priority} escape`);
+        }
+        
+        // Calculate angle to target location
         const parts = learnedEscape.split(',');
         const targetLat = parseFloat(parts[0]);
         const targetLng = parseFloat(parts[1]);
@@ -307,7 +315,6 @@ export function createSurgicalAlgorithm(cfg) {
         
         // Prefer turning over going straight if angle is significant
         if (turnAngle > 10 && turnAngle < 350) {
-          console.log(`🗺️ SURGEON: Using learned connection to escape`);
           return { turn: true, angle: Math.abs(turnAngle) };
         }
       }

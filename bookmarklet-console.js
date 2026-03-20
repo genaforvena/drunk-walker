@@ -274,8 +274,62 @@ class TransitionGraph {
       locations: this.connections.size,
       avgDegree: avgDegree.toFixed(2),
       linearNodes: degrees.filter(d => d === 2).length,
-      branchingNodes: degrees.filter(d => d > 2).length
+      branchingNodes: degrees.filter(d => d > 2).length,
+      crossroads: degrees.filter(d => d >= 3).length  // Nodes with 3+ exits
     };
+  }
+
+  /**
+   * Check if a location is a crossroad (3+ connections)
+   * @param {string} location - Location to check
+   * @returns {boolean} True if crossroad
+   */
+  isCrossroad(location) {
+    const connections = this.connections.get(location);
+    return connections ? connections.size >= 3 : false;
+  }
+
+  /**
+   * Find escape with crossroad prioritization
+   * Prefers paths that lead TO or FROM crossroads (more exploration options)
+   * @param {string} currentLocation - Current location
+   * @param {Map} visitedUrls - Visited locations
+   * @returns {{location: string, isCrossroad: boolean, priority: number}|null}
+   */
+  findEscapeWithPriority(currentLocation, visitedUrls) {
+    const connections = this.getConnections(currentLocation);
+    if (!connections || connections.size === 0) return null;
+
+    const options = [];
+
+    for (const connected of connections) {
+      if (!visitedUrls.has(connected)) {
+        const connectedIsCrossroad = this.isCrossroad(connected);
+        const currentIsCrossroad = this.isCrossroad(currentLocation);
+
+        // Priority scoring:
+        // 3 = Going TO a crossroad from a crossroad (max options)
+        // 2 = Going TO a crossroad (more options ahead)
+        // 1 = Going FROM a crossroad (exploiting known hub)
+        // 0 = Normal path
+        let priority = 0;
+        if (currentIsCrossroad && connectedIsCrossroad) priority = 3;
+        else if (connectedIsCrossroad) priority = 2;
+        else if (currentIsCrossroad) priority = 1;
+
+        options.push({
+          location: connected,
+          isCrossroad: connectedIsCrossroad,
+          priority
+        });
+      }
+    }
+
+    if (options.length === 0) return null;
+
+    // Sort by priority (highest first), then pick best
+    options.sort((a, b) => b.priority - a.priority);
+    return options[0];
   }
 
   /**
@@ -616,12 +670,20 @@ function createSurgicalAlgorithm(cfg) {
   const decide = (context) => {
     const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation, transitionGraph } = context;
 
-    // PRIORITY 0: Use Learned Transition Graph (100% accurate for known connections)
+    // PRIORITY 0: Use Learned Transition Graph with Crossroad Priority
     if (cfg.expOn && cfg.selfAvoiding && transitionGraph && currentLocation) {
-      const learnedEscape = transitionGraph.findEscape(currentLocation, visitedUrls);
-      if (learnedEscape) {
-        // We have a learned connection to an unvisited location!
-        // Calculate angle to that location
+      // Use crossroad-prioritized escape
+      const escapeOption = transitionGraph.findEscapeWithPriority(currentLocation, visitedUrls);
+
+      if (escapeOption) {
+        const learnedEscape = escapeOption.location;
+
+        // Log crossroad priority for debugging
+        if (escapeOption.priority > 0) {
+          console.log(`🗺️ SURGEON: Crossroad priority ${escapeOption.priority} escape`);
+        }
+
+        // Calculate angle to target location
         const parts = learnedEscape.split(',');
         const targetLat = parseFloat(parts[0]);
         const targetLng = parseFloat(parts[1]);
@@ -642,7 +704,6 @@ function createSurgicalAlgorithm(cfg) {
 
         // Prefer turning over going straight if angle is significant
         if (turnAngle > 10 && turnAngle < 350) {
-          console.log(`🗺️ SURGEON: Using learned connection to escape`);
           return { turn: true, angle: Math.abs(turnAngle) };
         }
       }

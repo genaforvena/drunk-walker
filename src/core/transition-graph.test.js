@@ -234,6 +234,102 @@ describe('TransitionGraph', () => {
       expect(graph.hasConnection('A', 'B')).toBe(false);
     });
   });
+  
+  describe('Crossroad Detection', () => {
+    it('should detect crossroads (3+ connections)', () => {
+      const graph = createTransitionGraph();
+      
+      // Create a crossroad: A connects to B, C, D
+      graph.record('A', 'B', 90, 95);
+      graph.record('A', 'C', 180, 185);
+      graph.record('A', 'D', 270, 265);
+      
+      // Linear path: E-F-G
+      graph.record('E', 'F', 90, 95);
+      graph.record('F', 'G', 90, 95);
+      
+      expect(graph.isCrossroad('A')).toBe(true);
+      expect(graph.isCrossroad('E')).toBe(false);
+      expect(graph.isCrossroad('F')).toBe(false);
+      expect(graph.isCrossroad('unknown')).toBe(false);
+    });
+    
+    it('should include crossroad count in stats', () => {
+      const graph = createTransitionGraph();
+      
+      // Create 2 crossroads
+      graph.record('A', 'B', 90, 95);
+      graph.record('A', 'C', 180, 185);
+      graph.record('A', 'D', 270, 265);
+      
+      graph.record('E', 'F', 90, 95);
+      graph.record('E', 'G', 180, 185);
+      graph.record('E', 'H', 270, 265);
+      
+      // Linear path
+      graph.record('X', 'Y', 90, 95);
+      
+      const stats = graph.getStats();
+      
+      expect(stats.crossroads).toBe(2);
+    });
+  });
+  
+  describe('Crossroad-Prioritized Escape', () => {
+    it('should prefer paths TO crossroads', () => {
+      const graph = createTransitionGraph();
+      const visitedUrls = new Map();
+      
+      // Current location S has two exits: A (normal) and B (crossroad)
+      graph.record('S', 'A', 90, 95);
+      graph.record('S', 'B', 180, 185);
+      
+      // B is a crossroad (needs 3+ connections)
+      graph.record('B', 'C', 90, 95);
+      graph.record('B', 'D', 180, 185);
+      graph.record('B', 'E', 270, 265);
+      
+      const escape = graph.findEscapeWithPriority('S', visitedUrls);
+      
+      expect(escape.location).toBe('B');  // Prefer crossroad
+      expect(escape.priority).toBe(2);  // Going TO crossroad
+    });
+    
+    it('should prefer crossroad-to-crossroad paths', () => {
+      const graph = createTransitionGraph();
+      const visitedUrls = new Map();
+      
+      // S is a crossroad (needs 3+ connections)
+      graph.record('S', 'A', 90, 95);
+      graph.record('S', 'B', 180, 185);  // B is also a crossroad
+      graph.record('S', 'X', 270, 265);  // Third connection to make S a crossroad
+      
+      // B is a crossroad (needs 3+ connections)
+      graph.record('B', 'C', 90, 95);
+      graph.record('B', 'D', 180, 185);
+      graph.record('B', 'E', 270, 265);
+      
+      const escape = graph.findEscapeWithPriority('S', visitedUrls);
+      
+      expect(escape.location).toBe('B');
+      expect(escape.priority).toBe(3);  // Crossroad to crossroad
+    });
+    
+    it('should return null if all connections visited', () => {
+      const graph = createTransitionGraph();
+      const visitedUrls = new Map();
+      
+      graph.record('A', 'B', 90, 95);
+      graph.record('A', 'C', 180, 185);
+      
+      visitedUrls.set('B', 1);
+      visitedUrls.set('C', 1);
+      
+      const escape = graph.findEscapeWithPriority('A', visitedUrls);
+      
+      expect(escape).toBe(null);
+    });
+  });
 });
 
 describe('TransitionGraph Integration', () => {
