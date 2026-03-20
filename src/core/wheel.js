@@ -4,7 +4,6 @@
  */
 
 export function createWheel(callbacks) {
-  const { onLongKeyPress } = callbacks;
   let orientation = 0; // 0-359
 
   const getOrientation = () => orientation;
@@ -18,8 +17,8 @@ export function createWheel(callbacks) {
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
 
-    if (onLongKeyPress) {
-      onLongKeyPress('ArrowLeft', clampedDuration, () => {
+    if (callbacks.onLongKeyPress) {
+      callbacks.onLongKeyPress('ArrowLeft', clampedDuration, () => {
         orientation = normalizeAngle(orientation - angle);
         if (callback) callback();
       });

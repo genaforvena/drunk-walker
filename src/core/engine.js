@@ -11,7 +11,6 @@ import { createWheel } from './wheel.js';
 import {
   createUnifiedAlgorithm,
   createDefaultAlgorithm,
-  extractYawFromUrl,
   extractLocationFromUrl
 } from './traversal.js';
 
@@ -67,6 +66,12 @@ export function createEngine(config = {}) {
       if (hashMatch) return `${hashMatch[1]},${hashMatch[2]}`;
     } catch (e) {}
     return null;
+  };
+
+  const extractYaw = (url) => {
+    if (!url) return null;
+    const match = url.match(/yaw[=%]3D?([0-9.]+)/i);
+    return match ? parseFloat(match[1]) : null;
   };
 
   const wheel = createWheel({ onLongKeyPress });
@@ -133,7 +138,9 @@ export function createEngine(config = {}) {
     walkPath.push({ url: currentUrl, timestamp: Date.now() });
     if (currentLocation) {
       visitedUrls.set(currentLocation, (visitedUrls.get(currentLocation) || 0) + 1);
-      breadcrumbs.push(currentLocation);
+      if (breadcrumbs.length === 0 || breadcrumbs[breadcrumbs.length - 1] !== currentLocation) {
+        breadcrumbs.push(currentLocation);
+      }
       if (breadcrumbs.length > 200) breadcrumbs.shift();  // Keep last 200 for loop detection
     }
   };
@@ -172,10 +179,10 @@ export function createEngine(config = {}) {
     const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
     const currentLocation = extractLocation(currentUrl);
 
-    // Stuck = same location for 3+ ticks in a row
-    if (currentLocation && currentLocation === previousLocation) {
+    // Update stuck count
+    if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
-    } else {
+    } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
       stuckCount = 0;
     }
 
@@ -217,14 +224,14 @@ export function createEngine(config = {}) {
       recordStep();
 
       // Record movement in enhanced graph
-      const currentYaw = extractYawFromUrl(currentUrl);
-      if (previousLocation && currentLocation && currentLocation !== previousLocation && currentYaw !== null) {
+      const currentYaw = extractYaw(currentUrl);
+      if (previousLocation && currentLocation && currentLocation !== previousLocation) {
         if (algorithm.enhancedGraph) {
           algorithm.enhancedGraph.recordMovement(
             previousLocation,
             currentLocation,
             previousYaw || wheel.getOrientation(),
-            currentYaw,
+            currentYaw || wheel.getOrientation(),
             steps
           );
         }

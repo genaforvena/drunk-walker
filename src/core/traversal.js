@@ -23,6 +23,14 @@ function yawDifference(yaw1, yaw2) {
   return diff;
 }
 
+/**
+ * Calculate angle to turn LEFT to reach targetYaw from currentYaw
+ */
+function getLeftTurnAngle(currentYaw, targetYaw) {
+  let angle = (normalizeAngle(currentYaw) - normalizeAngle(targetYaw) + 360) % 360;
+  return angle;
+}
+
 export function extractYawFromUrl(url) {
   if (!url) return null;
   const match = url.match(/yaw%3D([0-9.]+)/);
@@ -183,9 +191,12 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // MODE DETECTION: Are we returning (retracing) or exploring?
     // ═══════════════════════════════════════════════════════════
-    const hasBeenHereBefore = breadcrumbs.slice(0, -1).includes(currentLocation);
+    // Be careful with breadcrumbs containing same location multiple times due to being stuck
+    const lastDifferentIndex = breadcrumbs.findLastIndex(loc => loc !== currentLocation);
+    const hasBeenHereBefore = lastDifferentIndex !== -1 && breadcrumbs.slice(0, lastDifferentIndex + 1).includes(currentLocation);
+    const isExhausted = !currentNode.hasUntriedYaws();
     
-    if (hasBeenHereBefore && !navigationTarget) {
+    if ((hasBeenHereBefore || isExhausted) && !navigationTarget) {
       // We're retracing! Find nearest crossroad candidate
       isReturning = true;
       const candidate = enhancedGraph.findNearestCrossroadCandidate(currentLocation, breadcrumbs);
@@ -201,7 +212,7 @@ export function createUnifiedAlgorithm(cfg) {
           console.log(`🔙 RETURN MODE: Navigating to crossroad candidate (${candidate.distance} steps away)`);
         }
       }
-    } else if (!hasBeenHereBefore) {
+    } else if (!hasBeenHereBefore && !isExhausted) {
       isReturning = false;
     }
 
@@ -211,9 +222,10 @@ export function createUnifiedAlgorithm(cfg) {
     if (navigationTarget) {
       if (currentLocation === navigationTarget.location) {
         // Reached target! Turn to face the untried yaw
-        const turnAngle = yawDifference(orientation, navigationTarget.targetYaw);
-        if (turnAngle > 5 && turnAngle < 355) {
+        const diff = yawDifference(orientation, navigationTarget.targetYaw);
+        if (diff > 5 && diff < 355) {
           console.log(`🎯 Reached crossroad! Turning to ${navigationTarget.targetYaw}°`);
+          const turnAngle = getLeftTurnAngle(orientation, navigationTarget.targetYaw);
           navigationTarget = null;
           return { turn: true, angle: turnAngle };
         }
@@ -229,10 +241,11 @@ export function createUnifiedAlgorithm(cfg) {
       let yawToTarget = Math.atan2(dLng, dLat) * 180 / Math.PI;
       if (yawToTarget < 0) yawToTarget += 360;
       
-      const turnAngle = yawDifference(orientation, yawToTarget);
-      if (turnAngle < 30) {
+      const diff = yawDifference(orientation, yawToTarget);
+      if (diff < 30) {
         return { turn: false };  // Move forward toward target
       } else {
+        const turnAngle = getLeftTurnAngle(orientation, yawToTarget);
         return { turn: true, angle: turnAngle };  // Turn toward target
       }
     }
@@ -243,9 +256,10 @@ export function createUnifiedAlgorithm(cfg) {
     if (currentNode.hasUntriedYaws()) {
       const nextYaw = currentNode.getNextUntriedYaw();
       if (nextYaw !== null) {
-        const turnAngle = yawDifference(orientation, nextYaw);
-        if (turnAngle > 5 && turnAngle < 355) {
+        const diff = yawDifference(orientation, nextYaw);
+        if (diff > 5 && diff < 355) {
           console.log(`🔍 Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
+          const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           return { turn: true, angle: turnAngle };
         }
       }
