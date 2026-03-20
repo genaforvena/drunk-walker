@@ -54,7 +54,7 @@ You can swap the bot's "soul" on the fly using the control panel:
 
 - **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Deep dive into the theory (no BS edition)
 - **[ALGORITHM.md](docs/ALGORITHM.md)** — The math behind the three modes
-- **[DEVELOPER.md](docs/DEVELOPER.md)** — How to build and test
+- **[src/README.md](src/README.md)** — Developer guide (How to build and test)
 
 ---
 

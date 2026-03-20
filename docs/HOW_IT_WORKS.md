@@ -68,4 +68,4 @@ Because we turn the camera by holding a key for a specific duration (ms) rather 
 - [ALGORITHM.md](ALGORITHM.md) — Technical math behind the scans
 - [VERSIONS.md](VERSIONS.md) — Version history
 - [THE_TRAVERSAL_PROBLEM.md](THE_TRAVERSAL_PROBLEM.md) — Theoretical deep dive
-- [DEVELOPER.md](DEVELOPER.md) — How to build and extend
+- [src/README.md](../src/README.md) — How to build and extend

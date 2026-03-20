@@ -66,6 +66,7 @@ The primary shareable link is: **[https://genaforvena.github.io/drunk-walker/](h
 - `src/core/traversal.js` — Pluggable Algorithms
 - `src/input/handlers.js` — Event Simulation
 - `src/ui/controller.js` — UI & Mode Cycling
+- `src/README.md` — Developer documentation
 - `bookmarklet.js` — Auto-generated bundle
 - `docs/ALGORITHM.md` — Technical math
 - `docs/THE_TRAVERSAL_PROBLEM.md` — Theoretical deep dive
