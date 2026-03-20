@@ -32,6 +32,7 @@ const VERSION = versionMatch ? versionMatch[1] : '0.0.0-DEV';
 
 // Read all source files (order matters)
 const wheel = fs.readFileSync('src/core/wheel.js', 'utf8');
+const transitionGraph = fs.readFileSync('src/core/transition-graph.js', 'utf8');
 const traversal = fs.readFileSync('src/core/traversal.js', 'utf8');
 const navigation = fs.readFileSync('src/core/navigation.js', 'utf8');
 const engine = fs.readFileSync('src/core/engine.js', 'utf8');
@@ -74,6 +75,13 @@ let bundled = `
     .replace(/export function/g, 'function')
   }
 
+  // === TRANSITION GRAPH ===
+  ${transitionGraph
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
   // === TRAVERSAL ALGORITHMS ===
   ${traversal
     .replace(/export \{[^}]+\};/g, '')
@@ -97,6 +105,7 @@ let bundled = `
     .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
     .replace(/import \{[^}]+\} from ['"]\.\/wheel\.js['"];?/g, '')
     .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
+    .replace(/import \{[^}]+\} from ['"]\.\/transition-graph\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')
@@ -163,6 +172,13 @@ void function initDrunkWalker(){
     .replace(/export function/g, 'function')
   }
 
+  // === TRANSITION GRAPH ===
+  ${transitionGraph
+    .replace(/export \{[^}]+\};/g, '')
+    .replace(/export const/g, 'const')
+    .replace(/export function/g, 'function')
+  }
+
   // === TRAVERSAL ALGORITHMS ===
   ${traversal
     .replace(/export \{[^}]+\};/g, '')
@@ -186,6 +202,7 @@ void function initDrunkWalker(){
     .replace(/import \{[^}]+\} from ['"]\.\/navigation\.js['"];?/g, '')
     .replace(/import \{[^}]+\} from ['"]\.\/wheel\.js['"];?/g, '')
     .replace(/import \{[^}]+\} from ['"]\.\/traversal\.js['"];?/g, '')
+    .replace(/import \{[^}]+\} from ['"]\.\/transition-graph\.js['"];?/g, '')
     .replace(/export \{[^}]+\};/g, '')
     .replace(/export const/g, 'const')
     .replace(/export function/g, 'function')

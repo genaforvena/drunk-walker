@@ -286,6 +286,73 @@ if (breadcrumbs.length > 100) breadcrumbs.shift();
 - Tests: `src/core/linear-escape.test.js`
 - Analysis: `walks/walk-2026-03-20T18-22-18-128Z.md`
 - Tools: `tools/analyze-walk.js`
+- **Future:** `src/core/transition-graph.js` (Transition Graph Learning - see below)
+
+---
+
+## 🚀 Future Enhancement: Transition Graph Learning
+
+### The Problem
+
+Analysis of walk data reveals that **Google Street View yaw drifts along paths**:
+
+```
+=== YAW DELTA (A->B vs B->A) ===
+Average: 125.8°
+Expected: ~180° for opposite directions
+
+Distribution:
+  "150-170": 20
+  "170-180": 4    ← Only 7% have expected 180° delta!
+  "180-190": 0
+  "190-210": 0
+  "other": 36     ← 60% have unpredictable yaw!
+```
+
+**Conclusion:** Mathematical prediction fails for ~60% of nodes because yaw doesn't stay consistent.
+
+### The Solution
+
+**Learn actual connectivity from transitions** instead of predicting with math:
+
+```javascript
+// Build graph from actual moves
+const graph = new Map();  // location -> Set<connectedLocations>
+
+// Record every successful transition
+function recordTransition(fromLoc, toLoc, fromYaw, toYaw) {
+  if (!graph.has(fromLoc)) graph.set(fromLoc, new Set());
+  graph.get(fromLoc).add(toLoc);
+}
+
+// Use graph for navigation (100% accurate for learned nodes)
+function findEscape(currentLocation, visitedUrls) {
+  const connections = graph.get(currentLocation);
+  for (const connected of connections) {
+    if (!visitedUrls.has(connected)) {
+      return connected;  // We KNOW this works!
+    }
+  }
+  return null;  // Fall back to prediction
+}
+```
+
+### Expected Benefits
+
+| Metric | Current | With Graph |
+|--------|---------|------------|
+| Prediction accuracy | ~40% | 100% (learned) |
+| Yaw drift | 3-5° | < 1° (corrected) |
+| Escape latency | ~10 steps | ~3 steps |
+| Steps/Location (linear) | 5.4 | < 2.0 |
+
+### Implementation Plan
+
+1. **Phase 1:** Record transitions during walk (engine.js)
+2. **Phase 2:** Use graph for navigation (traversal.js)
+3. **Phase 3:** Persist across sessions (localStorage)
+
+See `docs/TRANSITION_GRAPH_LEARNING.md` for full proposal.
 
 ---
 

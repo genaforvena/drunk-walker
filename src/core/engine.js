@@ -20,6 +20,7 @@ import {
   extractYawFromUrl,
   extractLocationFromUrl
 } from './traversal.js';
+import { createTransitionGraph } from './transition-graph.js';
 
 export const VERSION = '4.2.0-EXP';
 
@@ -57,6 +58,11 @@ export function createEngine(config = {}) {
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Map(); // location -> count
   let breadcrumbs = []; // last 100 locations
+  
+  // Transition graph for learning actual connectivity
+  const transitionGraph = createTransitionGraph();
+  let lastRecordedLocation = null;
+  let lastRecordedYaw = null;
 
   // Action callbacks (to be provided by caller)
   let onKeyPress = null;
@@ -140,13 +146,26 @@ export function createEngine(config = {}) {
         wheel.setOrientation(actualYaw);
       }
 
+      // TRANSITION GRAPH LEARNING
+      // Record actual connectivity from observed transitions
+      if (lastRecordedLocation && location !== lastRecordedLocation) {
+        transitionGraph.record(
+          lastRecordedLocation,
+          location,
+          lastRecordedYaw,
+          actualYaw
+        );
+      }
+      lastRecordedLocation = location;
+      lastRecordedYaw = actualYaw;
+
       // MEMORY UPDATE LOGIC
       // Only update Breadcrumbs and Heatmap if we actually MOVED to a new location.
       // This prevents "Amnesia via Hyper-Focus" where spinning in place 20 times
       // would flush the breadcrumb buffer and make the bot forget where it came from.
-      const lastRecordedLocation = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : null;
+      const prevLocation = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : null;
 
-      if (cfg.selfAvoiding && location !== lastRecordedLocation) {
+      if (cfg.selfAvoiding && location !== prevLocation) {
         const count = visitedUrls.get(location) || 0;
         visitedUrls.set(location, count + 1);
 
@@ -283,7 +302,8 @@ export function createEngine(config = {}) {
       visitedUrls,
       breadcrumbs,
       stuckCount,
-      orientation: wheel.getOrientation()
+      orientation: wheel.getOrientation(),
+      transitionGraph  // Pass transition graph for learned navigation
     };
 
     const decision = algorithm.decide(context);
@@ -400,6 +420,11 @@ export function createEngine(config = {}) {
     // Stubs for backward compatibility
     getNavigation: () => null,
     getNavigationState: () => ({}),
-    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; }
+    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; },
+    
+    // Transition Graph API (for learning actual connectivity)
+    getTransitionGraph: () => transitionGraph,
+    getTransitionStats: () => transitionGraph.getStats(),
+    analyzeYawDeltas: () => transitionGraph.analyzeYawDeltas()
   };
 }

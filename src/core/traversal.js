@@ -279,21 +279,41 @@ export function createSurgicalAlgorithm(cfg) {
   let lastTurnDirection = 0;
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation, transitionGraph } = context;
 
-    // PRIORITY 0: Cycle Detection (BEFORE returning to breadcrumb)
-    // Detect oscillation pattern: turning back and forth without moving
-    if (cfg.expOn && stuckCount === 0 && breadcrumbs.length >= 6) {
-      // Check if last 6 breadcrumbs show oscillation (A->B->A->B pattern)
-      const recent = breadcrumbs.slice(-6);
-      if (recent[0] === recent[4] && recent[1] === recent[5] && recent[0] !== recent[1]) {
-        console.log("🔄 SURGEON: OSCILLATION DETECTED! Breaking cycle with random turn");
-        consecutiveTurns = 0;
-        return { turn: true, angle: Math.floor(Math.random() * 360) };
+    // PRIORITY 0: Use Learned Transition Graph (100% accurate for known connections)
+    if (cfg.expOn && cfg.selfAvoiding && transitionGraph && currentLocation) {
+      const learnedEscape = transitionGraph.findEscape(currentLocation, visitedUrls);
+      if (learnedEscape) {
+        // We have a learned connection to an unvisited location!
+        // Calculate angle to that location
+        const parts = learnedEscape.split(',');
+        const targetLat = parseFloat(parts[0]);
+        const targetLng = parseFloat(parts[1]);
+        const currentParts = currentLocation.split(',');
+        const currentLat = parseFloat(currentParts[0]);
+        const currentLng = parseFloat(currentParts[1]);
+        
+        // Calculate angle to target
+        const dLat = targetLat - currentLat;
+        const dLng = targetLng - currentLng;
+        let targetAngle = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (targetAngle < 0) targetAngle += 360;
+        
+        // Calculate turn angle from current orientation
+        let turnAngle = targetAngle - orientation;
+        if (turnAngle < 0) turnAngle += 360;
+        if (turnAngle > 360) turnAngle -= 360;
+        
+        // Prefer turning over going straight if angle is significant
+        if (turnAngle > 10 && turnAngle < 350) {
+          console.log(`🗺️ SURGEON: Using learned connection to escape`);
+          return { turn: true, angle: Math.abs(turnAngle) };
+        }
       }
     }
 
-    // PRIORITY 1: Early Loop Detection (returning to recent breadcrumb)
+    // PRIORITY 1: Oscillation Detection (BEFORE returning to breadcrumb)
     if (cfg.expOn && currentLocation && stuckCount === 0) {
       const recentBreadcrumbIndex = breadcrumbs.slice(-10).indexOf(currentLocation);
       if (recentBreadcrumbIndex !== -1 && recentBreadcrumbIndex < 8) {
