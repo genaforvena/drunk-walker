@@ -171,27 +171,15 @@ export function createEngine(config = {}) {
 
     const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
     const currentLocation = extractLocation(currentUrl);
-    const prevLocation = previousLocation;
 
     // Stuck = same location for 3+ ticks in a row
-    if (currentLocation && currentLocation === prevLocation) {
+    if (currentLocation && currentLocation === previousLocation) {
       stuckCount++;
     } else {
       stuckCount = 0;
     }
 
     lastUrl = currentUrl;
-
-    // If stuck >= 3, activate navigation to nearest node with untried yaws
-    if (stuckCount >= 3 && currentLocation && algorithm.findNearestNodeWithUntriedYaws && algorithm.activateNavigationToUntriedYaw) {
-      const targetInfo = algorithm.findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs);
-      if (targetInfo && targetInfo.node.hasUntriedYaws()) {
-        const targetYaw = targetInfo.node.getNextUntriedYaw();
-        if (targetYaw !== null) {
-          algorithm.activateNavigationToUntriedYaw(targetInfo.location, targetYaw);
-        }
-      }
-    }
 
     const context = {
       url: currentUrl,
@@ -230,7 +218,7 @@ export function createEngine(config = {}) {
 
       // Record movement in enhanced graph
       const currentYaw = extractYawFromUrl(currentUrl);
-      if (previousLocation && currentLocation !== previousLocation && currentYaw !== null) {
+      if (previousLocation && currentLocation && currentLocation !== previousLocation && currentYaw !== null) {
         if (algorithm.enhancedGraph) {
           algorithm.enhancedGraph.recordMovement(
             previousLocation,
@@ -248,6 +236,11 @@ export function createEngine(config = {}) {
 
       previousLocation = currentLocation;
       previousYaw = currentYaw;
+    }
+
+    // Update status EVERY tick (live numbers)
+    if (onStatusUpdate) {
+      onStatusUpdate(status, steps, stuckCount);
     }
 
     console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}`);
