@@ -124,11 +124,20 @@ export function createEngine(config = {}) {
     if (isPathCollectionEnabled) {
       const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
       const location = extractLocation(currentUrl);
+      
+      // Always record the step event for analysis
       walkPath.push({
         url: currentUrl,
         currentYaw: Math.round(wheel.getOrientation())
       });
-      if (cfg.selfAvoiding) {
+
+      // MEMORY UPDATE LOGIC
+      // Only update Breadcrumbs and Heatmap if we actually MOVED to a new location.
+      // This prevents "Amnesia via Hyper-Focus" where spinning in place 20 times
+      // would flush the breadcrumb buffer and make the bot forget where it came from.
+      const lastRecordedLocation = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1] : null;
+      
+      if (cfg.selfAvoiding && location !== lastRecordedLocation) {
         const count = visitedUrls.get(location) || 0;
         visitedUrls.set(location, count + 1);
 
