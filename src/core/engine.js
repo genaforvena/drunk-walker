@@ -169,27 +169,26 @@ export function createEngine(config = {}) {
   const tick = () => {
     if (isUserMouseDown || isDrawing || isBusy || status !== 'WALKING') return;
 
-    const prevUrl = lastUrl;
-    lastUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
-    const currentUrl = lastUrl;
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
     const currentLocation = extractLocation(currentUrl);
+    const prevLocation = previousLocation;
 
-    // Detect if we're actually stuck (URL hasn't changed)
-    if (prevUrl === currentUrl && currentUrl !== '') {
+    // Stuck = same location for 3+ ticks in a row
+    if (currentLocation && currentLocation === prevLocation) {
       stuckCount++;
     } else {
       stuckCount = 0;
     }
 
-    // If stuck, activate navigation to nearest node with untried yaws
-    if (stuckCount >= 3 && previousLocation && currentLocation === previousLocation) {
-      if (algorithm.findNearestNodeWithUntriedYaws && algorithm.activateNavigationToUntriedYaw) {
-        const targetInfo = algorithm.findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs);
-        if (targetInfo && targetInfo.node.hasUntriedYaws()) {
-          const targetYaw = targetInfo.node.getNextUntriedYaw();
-          if (targetYaw !== null) {
-            algorithm.activateNavigationToUntriedYaw(targetInfo.location, targetYaw);
-          }
+    lastUrl = currentUrl;
+
+    // If stuck >= 3, activate navigation to nearest node with untried yaws
+    if (stuckCount >= 3 && currentLocation && algorithm.findNearestNodeWithUntriedYaws && algorithm.activateNavigationToUntriedYaw) {
+      const targetInfo = algorithm.findNearestNodeWithUntriedYaws(currentLocation, breadcrumbs);
+      if (targetInfo && targetInfo.node.hasUntriedYaws()) {
+        const targetYaw = targetInfo.node.getNextUntriedYaw();
+        if (targetYaw !== null) {
+          algorithm.activateNavigationToUntriedYaw(targetInfo.location, targetYaw);
         }
       }
     }

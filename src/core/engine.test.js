@@ -125,19 +125,21 @@ describe('Core Engine', () => {
     it('should trigger unstuck sequence in panic mode', () => {
       const keyPressMock = vi.fn();
       const longKeyPressMock = vi.fn();
-      const engine = createEngine({ kbOn: true, expOn: true, panicThreshold: 2 });
+      const engine = createEngine({ kbOn: true, panicThreshold: 2 });
       engine.setActionHandlers({ keyPress: keyPressMock, longKeyPress: longKeyPressMock });
       engine.start();
 
-      // Simulate stuck detection (URL doesn't change)
-      engine.tick();
-      engine.tick();
-      engine.tick();
-      engine.tick();  // Extra tick for systematic search to trigger
+      // Mock a fixed URL to simulate being stuck
+      const url = 'https://maps.google.com/@52.370000,4.900000';
+      vi.stubGlobal('window', { location: { href: url } });
+
+      // Simulate stuck detection (same location)
+      engine.tick();  // stuckCount = 0
+      engine.tick();  // stuckCount = 1
+      engine.tick();  // stuckCount = 2 (panic!)
+      engine.tick();  // systematic search triggers
 
       // At panicThreshold, systematic search should trigger a turn
-      // The turn is handled by wheel.turnLeft which calls longKeyPress
-      // Check that we're in stuck/panic state
       expect(engine.getStuckCount()).toBeGreaterThanOrEqual(2);
     });
   });
@@ -177,50 +179,51 @@ describe('Core Engine', () => {
     });
   });
 
-  describe('Experimental Mode (Stuck Detection)', () => {
-    it('should increment stuck count when URL does not change', () => {
+  describe('Stuck Detection', () => {
+    it('should increment stuck count when at same location', () => {
       const statusMock = vi.fn();
-      // Use panicThreshold=5 so unstuck doesn't trigger during test
-      const engine = createEngine({ expOn: true, panicThreshold: 5 });
+      const engine = createEngine({ panicThreshold: 15 });
       engine.setActionHandlers({ statusUpdate: statusMock });
       engine.start();
 
+      // Mock a fixed URL
+      const url = 'https://maps.google.com/@52.370000,4.900000';
+      vi.stubGlobal('window', { location: { href: url } });
+
+      // First tick - establishes location
       engine.tick();
-      engine.tick();
+      expect(engine.getStuckCount()).toBe(0);  // First tick, not stuck yet
 
-      expect(engine.getStuckCount()).toBe(2);
-    });
-
-    it('should reset stuck count when URL changes', () => {
-      const engine = createEngine({ expOn: true });
-      engine.start();
-
+      // Second tick - same location
       engine.tick();
       expect(engine.getStuckCount()).toBe(1);
 
-      // Simulate URL change
-      history.pushState(null, '', '#new-location');
+      // Third tick - still same location
       engine.tick();
+      expect(engine.getStuckCount()).toBe(2);
+    });
 
+    it('should reset stuck count when location changes', () => {
+      const engine = createEngine({});
+      engine.start();
+
+      // Mock initial URL
+      const url1 = 'https://maps.google.com/@52.370000,4.900000';
+      vi.stubGlobal('window', { location: { href: url1 } });
+
+      engine.tick();
+      engine.tick();
+      expect(engine.getStuckCount()).toBe(1);
+
+      // Change URL
+      const url2 = 'https://maps.google.com/@52.371000,4.901000';
+      vi.stubGlobal('window', { location: { href: url2 } });
+
+      engine.tick();
       expect(engine.getStuckCount()).toBe(0);
     });
 
-    it('should report PANIC status when stuck count exceeds threshold', () => {
-      const statusMock = vi.fn();
-      // Use panicThreshold=5, then tick 5 times to get PANIC without triggering unstuck
-      const engine = createEngine({ expOn: true, panicThreshold: 5 });
-      engine.setActionHandlers({ statusUpdate: statusMock });
-      engine.start();
-
-      engine.tick();
-      engine.tick();
-      engine.tick();
-      engine.tick();
-      engine.tick();
-
-      const lastStatus = statusMock.mock.calls[statusMock.mock.calls.length - 1][0];
-      expect(lastStatus).toContain('PANIC');
-    });
+    // Note: PANIC status removed in v5.3.0 - stuckCount is used internally by algorithm
   });
 
   describe('Configuration Changes', () => {
@@ -236,13 +239,6 @@ describe('Core Engine', () => {
       expect(engine.getConfig().kbOn).toBe(true);
       engine.setKeyboardMode(false);
       expect(engine.getConfig().kbOn).toBe(false);
-    });
-
-    it('should toggle experimental mode', () => {
-      const engine = createEngine({ expOn: false });
-      expect(engine.getConfig().expOn).toBe(false);
-      engine.setExperimentalMode(true);
-      expect(engine.getConfig().expOn).toBe(true);
     });
   });
 

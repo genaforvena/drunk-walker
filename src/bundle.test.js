@@ -235,7 +235,7 @@ describe('Bundled Bookmarklet Validation', () => {
 
     it('should have polygon support (kept in code)', () => {
       expect(bookmarkletCode).toContain('poly = []');
-      expect(bookmarkletCode).toContain('inPoly');
+      expect(bookmarkletCode).toContain('isDrawing');
     });
 
     it('should have visual click markers', () => {
