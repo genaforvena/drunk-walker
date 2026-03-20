@@ -393,6 +393,7 @@ export function createEngine(config = {}) {
     getVisitedCount,
     clearVisitedUrls,
     isUrlVisited,
+    getVisitedUrls: () => visitedUrls,  // Expose for map rendering
     getCurrentYaw,
     resetCurrentYaw,
     getCumulativeTurnAngle,

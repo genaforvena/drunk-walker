@@ -80,6 +80,7 @@ const traversal = fs.readFileSync('src/core/traversal.js', 'utf8');
 const navigation = fs.readFileSync('src/core/navigation.js', 'utf8');
 const engine = fs.readFileSync('src/core/engine.js', 'utf8');
 const handlers = fs.readFileSync('src/input/handlers.js', 'utf8');
+const explorationMap = fs.readFileSync('src/ui/exploration-map.js', 'utf8');
 const controller = fs.readFileSync('src/ui/controller.js', 'utf8');
 const main = fs.readFileSync('src/main.js', 'utf8');
 
@@ -131,6 +132,10 @@ let bundled = `
   // === INPUT HANDLERS ===
   ${stripModuleSyntax(handlers)}
 
+  // === EXPLORATION MAP ===
+  // Real-time mini-map showing explored territory
+  ${stripModuleSyntax(explorationMap)}
+
   // === UI CONTROLLER ===
   ${stripModuleSyntax(controller)}
 
@@ -157,6 +162,7 @@ let consoleFriendly = `
 //   - src/core/engine.js      - Core engine (state, timing, path recording)
 //   - src/input/handlers.js   - Keyboard/mouse events
 //   - src/ui/controller.js    - Control panel UI
+//   - src/ui/exploration-map.js - Exploration map component
 //   - src/main.js             - Entry point
 // ═══════════════════════════════════════════════════════════════════════════════
 // This version is optimized for pasting into browser console
@@ -190,6 +196,10 @@ void function initDrunkWalker(){
 
   // === INPUT HANDLERS ===
   ${stripModuleSyntax(handlers)}
+
+  // === EXPLORATION MAP ===
+  // Real-time mini-map showing explored territory
+  ${stripModuleSyntax(explorationMap)}
 
   // === UI CONTROLLER ===
   ${stripModuleSyntax(controller)}

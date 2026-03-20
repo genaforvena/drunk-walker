@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🤪 Drunk Walker - Walk Visualization</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+    }
+    
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    
+    h1 span { color: #4fc3f7; }
+    
+    .stats-bar {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: rgba(50, 50, 80, 0.8);
+      padding: 15px 25px;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 150px;
+    }
+    
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #4fc3f7;
+    }
+    
+    .stat-label {
+      font-size: 0.9em;
+      color: #aaa;
+      margin-top: 5px;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+    }
+    
+    @media (max-width: 900px) {
+      .main-content { grid-template-columns: 1fr; }
+    }
+    
+    .map-container {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 15px;
+      position: relative;
+    }
+    
+    #mapCanvas {
+      width: 100%;
+      height: 600px;
+      background: #1a1a2e;
+      border-radius: 5px;
+    }
+    
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .panel {
+      background: rgba(50, 50, 80, 0.8);
+      border-radius: 8px;
+      padding: 15px;
+    }
+    
+    .panel h3 {
+      color: #4fc3f7;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+    
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .legend-dot.current { background: #4fc3f7; box-shadow: 0 0 8px #4fc3f7; }
+    .legend-dot.crossroad { background: #ffb74d; }
+    .legend-dot.visited { background: #81c784; }
+    .legend-dot.unvisited { background: #e57373; }
+    .legend-dot.deadend { background: #e57373; border: 2px solid #fff; }
+    
+    .legend-line {
+      width: 30px;
+      height: 3px;
+      background: #666;
+      flex-shrink: 0;
+    }
+    
+    .file-input {
+      width: 100%;
+      padding: 10px;
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 10px;
+      background: #4fc3f7;
+      border: none;
+      border-radius: 5px;
+      color: #1a1a2e;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    button:hover { background: #81d4fa; }
+    
+    .timeline {
+      margin-top: 15px;
+    }
+    
+    .timeline input {
+      width: 100%;
+    }
+    
+    .timeline-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 5px;
+    }
+    
+    #walkInfo {
+      font-size: 0.9em;
+      line-height: 1.6;
+    }
+    
+    #walkInfo p {
+      margin-bottom: 8px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 50px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🤪 <span>DRUNK WALKER</span> - Walk Visualization</h1>
+      <p>Interactive map showing explored territory from walker's perspective</p>
+    </header>
+    
+    <div class="stats-bar" id="statsBar" style="display: none;">
+      <div class="stat-card">
+        <div class="stat-value" id="statSteps">0</div>
+        <div class="stat-label">Total Steps</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statLocations">0</div>
+        <div class="stat-label">Unique Locations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statRatio">0.00</div>
+        <div class="stat-label">Steps/Location</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statCrossroads">0</div>
+        <div class="stat-label">Crossroads</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statDeadEnds">0</div>
+        <div class="stat-label">Dead Ends</div>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="map-container">
+        <canvas id="mapCanvas"></canvas>
+      </div>
+      
+      <div class="sidebar">
+        <div class="panel">
+          <h3>📂 Load Walk</h3>
+          <input type="file" id="fileInput" class="file-input" accept=".json">
+          <p style="font-size: 0.8em; color: #888; margin-top: 10px;">
+            Select a walk JSON file from the walks/ directory
+          </p>
+        </div>
+        
+        <div class="panel">
+          <h3>🎮 Controls</h3>
+          <div class="controls">
+            <button onclick="resetView()">Reset View</button>
+            <button onclick="toggleAnimation()">▶ Play</button>
+          </div>
+          <div class="timeline">
+            <input type="range" id="timelineSlider" min="0" max="100" value="100" disabled>
+            <div class="timeline-labels">
+              <span>Start</span>
+              <span>Current</span>
+              <span>End</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <h3>📍 Legend</h3>
+          <div class="legend-item">
+            <div class="legend-dot current"></div>
+            <span>Current Position</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot crossroad"></div>
+            <span>Crossroad (3+ exits)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot visited"></div>
+            <span>Visited Location</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot deadend"></div>
+            <span>Dead End</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line"></div>
+            <span>Connection</span>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <h3>📊 Walk Info</h3>
+          <div id="walkInfo">
+            <p style="color: #888;">Load a walk file to see details</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // State
+    let walkData = null;
+    let graph = { connections: new Map(), transitions: new Map() };
+    let currentStep = 0;
+    let isAnimating = false;
+    let animationId = null;
+    
+    // Canvas setup
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      if (graph.connections.size > 0) render();
+    }
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    // File input handler
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          walkData = JSON.parse(event.target.result);
+          buildGraph(walkData);
+          document.getElementById('statsBar').style.display = 'flex';
+          document.getElementById('timelineSlider').disabled = false;
+          document.getElementById('timelineSlider').max = walkData.length - 1;
+          updateStats();
+          updateWalkInfo();
+          render();
+        } catch (err) {
+          alert('Error loading walk file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+    
+    // Build transition graph from walk data
+    function buildGraph(data) {
+      graph = { connections: new Map(), transitions: new Map() };
+      
+      for (let i = 0; i < data.length - 1; i++) {
+        const from = extractLocation(data[i].url);
+        const to = extractLocation(data[i + 1].url);
+        
+        if (from && to && from !== to) {
+          if (!graph.connections.has(from)) {
+            graph.connections.set(from, new Set());
+          }
+          graph.connections.get(from).add(to);
+          
+          const key = `${from}->${to}`;
+          if (!graph.transitions.has(key)) {
+            graph.transitions.set(key, []);
+          }
+          graph.transitions.get(key).push({
+            fromYaw: extractYaw(data[i].url),
+            toYaw: extractYaw(data[i + 1].url),
+            step: i
+          });
+        }
+      }
+    }
+    
+    function extractLocation(url) {
+      const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      return match ? `${match[1]},${match[2]}` : null;
+    }
+    
+    function extractYaw(url) {
+      const match = url.match(/yaw%3D([0-9.]+)/);
+      return match ? parseFloat(match[1]) : null;
+    }
+    
+    function isCrossroad(location) {
+      const connections = graph.connections.get(location);
+      return connections ? connections.size >= 3 : false;
+    }
+    
+    function isDeadEnd(location) {
+      const connections = graph.connections.get(location);
+      return connections ? connections.size === 1 : false;
+    }
+    
+    // GPS to screen conversion
+    function gpsToScreen(lat, lng, centerLat, centerLng, width, height, zoom) {
+      const scale = zoom * 10000000;
+      const x = width / 2 + (lng - centerLng) * scale;
+      const y = height / 2 - (lat - centerLat) * scale * 1.5;
+      return { x, y };
+    }
+    
+    // Render the map
+    function render() {
+      if (!walkData || graph.connections.size === 0) return;
+      
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      // Clear
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, width, height);
+      
+      // Get locations up to current step
+      const locations = Array.from(graph.connections.keys());
+      if (locations.length === 0) return;
+      
+      // Calculate bounds
+      let minLat = Infinity, maxLat = -Infinity;
+      let minLng = Infinity, maxLng = -Infinity;
+      
+      locations.forEach(loc => {
+        const [lat, lng] = loc.split(',').map(Number);
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+      });
+      
+      const centerLat = (minLat + maxLat) / 2;
+      const centerLng = (minLng + maxLng) / 2;
+      const latRange = maxLat - minLat || 0.0001;
+      const lngRange = maxLng - minLng || 0.0001;
+      const zoom = Math.min(width / lngRange / 100000, height / latRange / 100000) * 0.8;
+      
+      // Get current location
+      const currentLoc = extractLocation(walkData[Math.min(currentStep, walkData.length - 1)].url);
+      
+      // Draw connections
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 1;
+      
+      locations.forEach(loc => {
+        const connections = graph.connections.get(loc);
+        const [lat1, lng1] = loc.split(',').map(Number);
+        const pos1 = gpsToScreen(lat1, lng1, centerLat, centerLng, width, height, zoom);
+        
+        connections.forEach(conn => {
+          const [lat2, lng2] = conn.split(',').map(Number);
+          const pos2 = gpsToScreen(lat2, lng2, centerLat, centerLng, width, height, zoom);
+          
+          ctx.beginPath();
+          ctx.moveTo(pos1.x, pos1.y);
+          ctx.lineTo(pos2.x, pos2.y);
+          ctx.stroke();
+        });
+      });
+      
+      // Draw nodes
+      locations.forEach(loc => {
+        const [lat, lng] = loc.split(',').map(Number);
+        const pos = gpsToScreen(lat, lng, centerLat, centerLng, width, height, zoom);
+        
+        const isCross = isCrossroad(loc);
+        const isDead = isDeadEnd(loc);
+        const isCurrent = loc === currentLoc;
+        
+        if (isCurrent) {
+          // Current position - pulsing circle
+          ctx.fillStyle = '#4fc3f7';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (isCross) {
+          ctx.fillStyle = '#ffb74d';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (isDead) {
+          ctx.fillStyle = '#e57373';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = '#81c784';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+    
+    function updateStats() {
+      if (!walkData) return;
+      
+      const locations = new Set();
+      walkData.forEach(step => {
+        const loc = extractLocation(step.url);
+        if (loc) locations.add(loc);
+      });
+      
+      const crossroads = Array.from(graph.connections.keys()).filter(isCrossroad).length;
+      const deadEnds = Array.from(graph.connections.keys()).filter(isDeadEnd).length;
+      
+      document.getElementById('statSteps').textContent = walkData.length.toLocaleString();
+      document.getElementById('statLocations').textContent = locations.size.toLocaleString();
+      document.getElementById('statRatio').textContent = (walkData.length / locations.size).toFixed(3);
+      document.getElementById('statCrossroads').textContent = crossroads;
+      document.getElementById('statDeadEnds').textContent = deadEnds;
+    }
+    
+    function updateWalkInfo() {
+      if (!walkData) return;
+      
+      const firstLoc = extractLocation(walkData[0].url);
+      const lastLoc = extractLocation(walkData[walkData.length - 1].url);
+      
+      document.getElementById('walkInfo').innerHTML = `
+        <p><strong>First Location:</strong><br>${firstLoc || 'Unknown'}</p>
+        <p><strong>Last Location:</strong><br>${lastLoc || 'Unknown'}</p>
+        <p><strong>Duration:</strong><br>${walkData.length} steps</p>
+        <p><strong>Efficiency:</strong><br>${(walkData.length / new Set(walkData.map(s => extractLocation(s.url)).filter(l => l)).size).toFixed(2)} steps/location</p>
+      `;
+    }
+    
+    function resetView() {
+      currentStep = walkData ? walkData.length - 1 : 0;
+      document.getElementById('timelineSlider').value = currentStep;
+      render();
+    }
+    
+    function toggleAnimation() {
+      if (!walkData) return;
+      
+      if (isAnimating) {
+        isAnimating = false;
+        clearInterval(animationId);
+        event.target.textContent = '▶ Play';
+      } else {
+        isAnimating = true;
+        currentStep = 0;
+        event.target.textContent = '⏸ Pause';
+        
+        animationId = setInterval(() => {
+          if (currentStep >= walkData.length - 1) {
+            isAnimating = false;
+            clearInterval(animationId);
+            event.target.textContent = '▶ Play';
+            return;
+          }
+          currentStep++;
+          document.getElementById('timelineSlider').value = currentStep;
+          render();
+        }, 50);
+      }
+    }
+    
+    // Timeline slider
+    document.getElementById('timelineSlider').addEventListener('input', (e) => {
+      currentStep = parseInt(e.target.value);
+      render();
+    });
+    
+    // Initial render
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#666';
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Load a walk JSON file to visualize', canvas.width / 2, canvas.height / 2);
+  </script>
+</body>
+</html>

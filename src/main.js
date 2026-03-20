@@ -6,6 +6,7 @@
 import { createEngine, VERSION } from './core/engine.js';
 import { simulateKeyPress, simulateLongKeyPress, simulateClick, setupInteractionListeners, findStreetViewTarget } from './input/handlers.js';
 import { createControlPanel } from './ui/controller.js';
+import { createExplorationMap } from './ui/exploration-map.js';
 
 // Allow restart by clearing previous instance
 if (window.DRUNK_WALKER_ACTIVE) {
@@ -91,6 +92,10 @@ const initialize = () => {
       }
     };
 
+    // Create exploration map
+    const map = createExplorationMap();
+    map.init();
+    
     // Create UI - this will autoStart after action handlers are set
     const ui = createControlPanel(engine, {
       version: VERSION,
@@ -113,7 +118,17 @@ const initialize = () => {
         const target = findStreetViewTarget();
         simulateLongKeyPress(key, duration, callback, target);
       },
-      statusUpdate: ui.onStatusUpdate,
+      statusUpdate: (status, steps, stuckCount) => {
+        ui.onStatusUpdate(status, steps, stuckCount);
+        // Update map periodically (every 10 ticks)
+        if (steps % 10 === 0 && map.isVisible()) {
+          const transitionGraph = engine.getTransitionGraph();
+          const currentLocation = engine.getWalkPath().length > 0 
+            ? engine.getWalkPath()[engine.getWalkPath().length - 1].location 
+            : null;
+          map.render(transitionGraph, currentLocation, engine.getVisitedUrls());
+        }
+      },
       walkStop: submitWalkPath
     });
 
@@ -132,6 +147,7 @@ const initialize = () => {
     window.DRUNK_WALKER = {
       engine,
       ui,
+      map,
       simulateKeyPress,
       simulateClick,
       stop: () => {
