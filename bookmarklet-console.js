@@ -337,21 +337,22 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // STUCK >= 3: Systematic search (blocked, need to turn)
+    // STUCK >= panicThreshold: Systematic search (blocked, need to turn)
     // ═══════════════════════════════════════════════════════════
     if (stuckCount >= panicThreshold) {
+      // ONLY panic if we've already tried all 6 standard directions
+      // or if stuckCount is exceptionally high
       let searchIncrement = 60;
-      if (stuckCount >= 10) searchIncrement = 30;
-      if (stuckCount >= 25) {
+      if (stuckCount >= 15) searchIncrement = 30;
+      if (stuckCount >= 30) {
         return { turn: true, angle: Math.floor(Math.random() * 360) };
       }
-      if (stuckCount === panicThreshold) {
-        lastSearchAngle = searchIncrement;
-      } else {
-        lastSearchAngle = (lastSearchAngle + searchIncrement) % 360;
-        if (lastSearchAngle === 0) lastSearchAngle = searchIncrement;
-      }
-      console.log(`🔒 Stuck ${stuckCount}, turning ${lastSearchAngle}°`);
+
+      // Systematic sweep using 60 degree increments
+      lastSearchAngle = (lastSearchAngle + searchIncrement) % 360;
+      if (lastSearchAngle === 0) lastSearchAngle = searchIncrement;
+
+      console.log(`🔒 Truly Stuck ${stuckCount}, turning ${lastSearchAngle}°`);
       return { turn: true, angle: lastSearchAngle };
     }
 
@@ -442,7 +443,7 @@ const VERSION = '5.4.0-STUCK-FIX';
 const defaultConfig = {
   pace: 2000,
   kbOn: true,
-  panicThreshold: 3,
+  panicThreshold: 10,
   radius: 50,
   targetX: 0.4,
   targetY: 0.8,
@@ -497,7 +498,10 @@ function createEngine(config = {}) {
     return match ? parseFloat(match[1]) : null;
   };
 
-  const wheel = createWheel({ onLongKeyPress });
+  const wheelCallbacks = {
+    onLongKeyPress: null
+  };
+  const wheel = createWheel(wheelCallbacks);
 
   let algorithm = createDefaultAlgorithm(cfg);
 
@@ -550,8 +554,9 @@ function createEngine(config = {}) {
     onStatusUpdate = handlers.statusUpdate || null;
     onLongKeyPress = handlers.longKeyPress || null;
     onWalkStop = handlers.walkStop || null;
-    // Recreate wheel with new onLongKeyPress
-    wheel.callbacks = { onLongKeyPress };
+
+    // Update persistent wheel callbacks
+    wheelCallbacks.onLongKeyPress = onLongKeyPress;
   };
 
   const recordStep = () => {

@@ -19,7 +19,7 @@ export const VERSION = '5.4.0-STUCK-FIX';
 export const defaultConfig = {
   pace: 2000,
   kbOn: true,
-  panicThreshold: 3,
+  panicThreshold: 10,
   radius: 50,
   targetX: 0.4,
   targetY: 0.8,
@@ -74,7 +74,10 @@ export function createEngine(config = {}) {
     return match ? parseFloat(match[1]) : null;
   };
 
-  const wheel = createWheel({ onLongKeyPress });
+  const wheelCallbacks = {
+    onLongKeyPress: null
+  };
+  const wheel = createWheel(wheelCallbacks);
 
   let algorithm = createDefaultAlgorithm(cfg);
 
@@ -127,8 +130,9 @@ export function createEngine(config = {}) {
     onStatusUpdate = handlers.statusUpdate || null;
     onLongKeyPress = handlers.longKeyPress || null;
     onWalkStop = handlers.walkStop || null;
-    // Recreate wheel with new onLongKeyPress
-    wheel.callbacks = { onLongKeyPress };
+    
+    // Update persistent wheel callbacks
+    wheelCallbacks.onLongKeyPress = onLongKeyPress;
   };
 
   const recordStep = () => {
