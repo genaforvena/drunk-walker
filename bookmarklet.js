@@ -385,7 +385,7 @@ function createEngine(config = {}) {
 
   // Visited nodes memory for self-avoiding walk
   let visitedUrls = new Map(); // location -> count
-  let breadcrumbs = []; // last 20 locations
+  let breadcrumbs = []; // last 100 locations
 
   // Action callbacks (to be provided by caller)
   let onKeyPress = null;
@@ -473,7 +473,7 @@ function createEngine(config = {}) {
         visitedUrls.set(location, count + 1);
 
         breadcrumbs.push(location);
-        if (breadcrumbs.length > 20) breadcrumbs.shift();
+        if (breadcrumbs.length > 100) breadcrumbs.shift();
       }
     }
   };
@@ -499,7 +499,7 @@ function createEngine(config = {}) {
         visitedUrls.set(loc, count + 1);
 
         breadcrumbs.push(loc);
-        if (breadcrumbs.length > 20) breadcrumbs.shift();
+        if (breadcrumbs.length > 100) breadcrumbs.shift();
       }
     });
   };
