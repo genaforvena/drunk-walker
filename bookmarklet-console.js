@@ -346,38 +346,78 @@ function createHunterAlgorithm(cfg) {
  * SURGICAL SURVEYOR ALGORITHM
  * Focus: Maximizing steps/visited ratio.
  * Vetoes probing directions that are already visited.
+ * 
+ * KEY INSIGHT: Surgeon must escape cycles AGGRESSIVELY because its goal
+ * is 1:1 steps/visited ratio. Any retracing is failure.
  */
 function createSurgicalAlgorithm(cfg) {
   const panicThreshold = cfg.panicThreshold || 3;
   let extendedStuckCount = 0;
+  let consecutiveTurns = 0;
+  let lastTurnDirection = 0;
 
   const decide = (context) => {
     const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
 
-    // PRIORITY 0: Early Loop Detection
-    // If we're returning to a location in recent breadcrumbs, escape immediately
+    // PRIORITY 0: Cycle Detection (BEFORE returning to breadcrumb)
+    // Detect oscillation pattern: turning back and forth without moving
+    if (cfg.expOn && stuckCount === 0 && breadcrumbs.length >= 6) {
+      // Check if last 6 breadcrumbs show oscillation (A->B->A->B pattern)
+      const recent = breadcrumbs.slice(-6);
+      if (recent[0] === recent[4] && recent[1] === recent[5] && recent[0] !== recent[1]) {
+        console.log("🔄 SURGEON: OSCILLATION DETECTED! Breaking cycle with random turn");
+        consecutiveTurns = 0;
+        return { turn: true, angle: Math.floor(Math.random() * 360) };
+      }
+    }
+
+    // PRIORITY 1: Early Loop Detection (returning to recent breadcrumb)
     if (cfg.expOn && currentLocation && stuckCount === 0) {
       const recentBreadcrumbIndex = breadcrumbs.slice(-10).indexOf(currentLocation);
-      if (recentBreadcrumbIndex !== -1) {
-        console.log("🔄 SURGEON: LOOP DETECTED! Escaping with 180° turn");
+      if (recentBreadcrumbIndex !== -1 && recentBreadcrumbIndex < 8) {
+        // We're returning to a location from 2-8 steps ago - definite loop
+        console.log(`🔄 SURGEON: LOOP DETECTED (back to step -${10 - recentBreadcrumbIndex})! 180° escape`);
+        consecutiveTurns = 0;
         return { turn: true, angle: 180 };
       }
     }
 
-    // The Surgical mode treats EVERY tick as a potential probe.
-    // If stuck OR if forward is visited, it scans for the "cleanest" exit.
+    // PRIORITY 2: Entropy-Based Escape (linear territory)
+    if (cfg.expOn && cfg.selfAvoiding && currentLocation && stuckCount === 0) {
+      const entropy = calculateEntropy(visitedUrls, currentLocation, orientation);
+      
+      // Surgeon uses LOWER threshold - escapes linear traps earlier
+      const isLowEntropy = entropy.variance < 5 && entropy.avgVisits > 2;
+      
+      if (isLowEntropy) {
+        consecutiveTurns++;
+        
+        // After 2+ ticks of low entropy, Surgeon takes action (faster than Explorer)
+        if (consecutiveTurns >= 2) {
+          const randomAngle = Math.floor(Math.random() * 360);
+          console.log(`🎲 SURGEON: LOW ENTROPY (var=${entropy.variance.toFixed(2)}), random escape: ${randomAngle}°`);
+          consecutiveTurns = 0;
+          return { turn: true, angle: randomAngle };
+        }
+      } else {
+        consecutiveTurns = 0;
+      }
+    }
+
+    // PRIORITY 3: Standard Surgical Logic (veto visited)
     const isForwardVisited = currentLocation && visitedUrls.has(predictNextLocation(currentLocation, orientation));
 
     if (stuckCount > 0 || isForwardVisited) {
       extendedStuckCount = stuckCount;
-      
+      consecutiveTurns = 0;
+
       // Extended stuck handling
       if (stuckCount >= 20) {
         const randomAngle = Math.floor(Math.random() * 360);
         console.log(`🎲 SURGEON: Extended stuck (${stuckCount}), random escape: ${randomAngle}°`);
         return { turn: true, angle: randomAngle };
       }
-      
+
       // Scan 360 in 60 increments (or 30 if extended stuck)
       let scanAngles = [60, -60, 120, -120, 180, 0];
       if (stuckCount >= 10) {
@@ -413,6 +453,7 @@ function createSurgicalAlgorithm(cfg) {
       return { turn: true, angle: Math.abs(bestAngle) };
     }
 
+    consecutiveTurns = 0;
     return { turn: false };
   };
 

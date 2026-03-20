@@ -118,11 +118,11 @@ function analyzeWalk(filePath, verbose = true) {
       yawDrifts[Math.floor((yawDrifts.length - 1) * p)]
     );
     
-    const avgDrift = yawDrifts.reduce((sum, d) => sum + d.drift, 0) / yawDrifts.length;
-    const maxDrift = Math.max(...yawDrifts.map(d => d.drift));
+    const avgDriftVal = yawDrifts.reduce((sum, d) => sum + d.drift, 0) / yawDrifts.length;
+    const maxDriftVal = Math.max(...yawDrifts.map(d => d.drift));
     
-    log(`Average drift: ${avgDrift.toFixed(2)}°`);
-    log(`Maximum drift: ${maxDrift.toFixed(2)}°`);
+    log(`Average drift: ${avgDriftVal.toFixed(2)}°`);
+    log(`Maximum drift: ${maxDriftVal.toFixed(2)}°`);
     log('');
     log('Sample points:');
     samples.forEach(s => {
@@ -268,8 +268,8 @@ function analyzeWalk(filePath, verbose = true) {
     uniqueLocations,
     ratio,
     stuckEvents,
-    avgDrift: yawDrifts.length > 0 ? avgDrift : null,
-    maxDrift: yawDrifts.length > 0 ? maxDrift : null,
+    avgDrift: yawDrifts.length > 0 ? avgDriftVal : null,
+    maxDrift: yawDrifts.length > 0 ? maxDriftVal : null,
     avgDegree,
     isOrientationOk,
     isRatioOk,
