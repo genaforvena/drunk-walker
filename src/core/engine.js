@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.4.0-STUCK-FIX';
+export const VERSION = '5.4.1-STUCK-FIX';
 
 export const defaultConfig = {
   pace: 2000,
@@ -184,6 +184,11 @@ export function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
+    // Sync internal orientation with URL if possible (helps logs and logic)
+    if (currentYaw !== null && lastUrl === null) {
+      wheel.setOrientation(currentYaw);
+    }
+
     // 1. Stuck detection (URL hasn't changed since last tick)
     if (lastUrl !== null && currentUrl === lastUrl) {
       stuckCount++;
@@ -213,7 +218,6 @@ export function createEngine(config = {}) {
     }
 
     // 3. Prepare context for decision
-    lastUrl = currentUrl;
     previousLocation = currentLocation;
 
     const context = {
@@ -239,6 +243,8 @@ export function createEngine(config = {}) {
           if (onMouseClick) onMouseClick(target.x, target.y);
         }
         isBusy = false;
+        // Update lastUrl AFTER turn might have changed it (via onKeyPress/navigation)
+        lastUrl = typeof window !== 'undefined' ? window.location.href : currentUrl;
       });
       steps++;
       recordStep();
@@ -254,6 +260,7 @@ export function createEngine(config = {}) {
       }
       steps++;
       recordStep();
+      lastUrl = currentUrl;
     }
 
     // Update status EVERY tick (live numbers)

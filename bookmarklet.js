@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.4.0-STUCK-FIX - Bundled Build
+// Drunk Walker v5.4.1-STUCK-FIX - Bundled Build
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -39,14 +39,19 @@ function createWheel(callbacks) {
     // Convert angle to duration (10ms per degree as per existing code)
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
-    if (callbacks.onLongKeyPress) {
-      callbacks.onLongKeyPress('ArrowLeft', clampedDuration, () => {
-        orientation = normalizeAngle(orientation - angle);
-        if (callback) callback();
-      });
-    } else {
+    let callbackCalled = false;
+    const safeCallback = () => {
+      if (callbackCalled) return;
+      callbackCalled = true;
       orientation = normalizeAngle(orientation - angle);
       if (callback) callback();
+    };
+    if (callbacks.onLongKeyPress) {
+      callbacks.onLongKeyPress('ArrowLeft', clampedDuration, safeCallback);
+      // Safety timeout in case onLongKeyPress doesn't call back
+      setTimeout(safeCallback, clampedDuration + 500);
+    } else {
+      safeCallback();
     }
   };
   const normalizeAngle = (angle) => {
@@ -433,7 +438,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.4.0-STUCK-FIX';
+const VERSION = '5.4.1-STUCK-FIX';
 
 const defaultConfig = {
   pace: 2000,
@@ -603,6 +608,11 @@ function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
+    // Sync internal orientation with URL if possible (helps logs and logic)
+    if (currentYaw !== null && lastUrl === null) {
+      wheel.setOrientation(currentYaw);
+    }
+
     // 1. Stuck detection (URL hasn't changed since last tick)
     if (lastUrl !== null && currentUrl === lastUrl) {
       stuckCount++;
@@ -632,7 +642,6 @@ function createEngine(config = {}) {
     }
 
     // 3. Prepare context for decision
-    lastUrl = currentUrl;
     previousLocation = currentLocation;
 
     const context = {
@@ -658,6 +667,8 @@ function createEngine(config = {}) {
           if (onMouseClick) onMouseClick(target.x, target.y);
         }
         isBusy = false;
+        // Update lastUrl AFTER turn might have changed it (via onKeyPress/navigation)
+        lastUrl = typeof window !== 'undefined' ? window.location.href : currentUrl;
       });
       steps++;
       recordStep();
@@ -673,6 +684,7 @@ function createEngine(config = {}) {
       }
       steps++;
       recordStep();
+      lastUrl = currentUrl;
     }
 
     // Update status EVERY tick (live numbers)

@@ -17,14 +17,20 @@ export function createWheel(callbacks) {
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
 
-    if (callbacks.onLongKeyPress) {
-      callbacks.onLongKeyPress('ArrowLeft', clampedDuration, () => {
-        orientation = normalizeAngle(orientation - angle);
-        if (callback) callback();
-      });
-    } else {
+    let callbackCalled = false;
+    const safeCallback = () => {
+      if (callbackCalled) return;
+      callbackCalled = true;
       orientation = normalizeAngle(orientation - angle);
       if (callback) callback();
+    };
+
+    if (callbacks.onLongKeyPress) {
+      callbacks.onLongKeyPress('ArrowLeft', clampedDuration, safeCallback);
+      // Safety timeout in case onLongKeyPress doesn't call back
+      setTimeout(safeCallback, clampedDuration + 500);
+    } else {
+      safeCallback();
     }
   };
 
