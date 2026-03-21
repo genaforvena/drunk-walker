@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.4.2-HEARTBEAT - CONSOLE VERSION
+// Drunk Walker v5.4.3-HEARTBEAT-FIX - CONSOLE VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -449,7 +449,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.4.2-HEARTBEAT';
+const VERSION = '5.4.3-HEARTBEAT-FIX';
 
 const defaultConfig = {
   pace: 2000,
@@ -619,15 +619,15 @@ function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
-    // 1. Stuck detection (URL hasn't changed since last tick)
-    if (lastUrl !== null && currentUrl === lastUrl) {
+    // 1. Stuck detection (Has location changed since last heartbeat?)
+    if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
-    } else {
+    } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
       stuckCount = 0;
     }
 
-    // 2. Sync orientation with URL if we just started or drifted
-    if (currentYaw !== null && lastUrl === null) {
+    // 2. Always sync orientation with URL to prevent internal drift
+    if (currentYaw !== null) {
       wheel.setOrientation(currentYaw);
     }
 

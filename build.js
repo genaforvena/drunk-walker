@@ -208,6 +208,7 @@ void function initDrunkWalker(){
 
 fs.writeFileSync(outfile, bundled);
 fs.writeFileSync(consoleFile, consoleFriendly);
+fs.writeFileSync('bookmarklet.min.js', bundled); // Ensure minified version is also updated
 
 console.log(`✓ Built ${outfile} (${(bundled.length / 1024).toFixed(1)} KB)`);
 console.log(`✓ Built ${consoleFile} (${(consoleFriendly.length / 1024).toFixed(1)} KB)`);
