@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T21:29:19.930Z
+// Built: 2026-03-21T21:39:59.825Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -876,13 +876,37 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     if (currentNode.hasUntriedYaws()) {
-      const nextYaw = currentNode.getNextUntriedYaw(orientation);
-      console.log(`[DEBUG] FORWARD MODE: nextYaw=${nextYaw}, orientation=${Math.round(orientation)}°`);
+      // Calculate forward bearing (direction of travel from previous node)
+      let forwardBearing = orientation;  // Default to current orientation
+      if (previousLocation) {
+        const prevParts = previousLocation.split(',').map(Number);
+        const currentParts = currentLocation.split(',').map(Number);
+        const dLat = currentParts[0] - prevParts[0];
+        const dLng = currentParts[1] - prevParts[1];
+        forwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (forwardBearing < 0) forwardBearing += 360;
+      }
+
+      // Find untried yaw closest to FORWARD BEARING (not current orientation!)
+      const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+      let bestUntiredYaw = null;
+      let bestDiff = Infinity;
+
+      for (const yaw of untriedYaws) {
+        const diffToForward = yawDifference(forwardBearing, yaw);
+        if (diffToForward < bestDiff) {
+          bestDiff = diffToForward;
+          bestUntiredYaw = yaw;
+        }
+      }
+
+      const nextYaw = bestUntiredYaw;
+      console.log(`[DEBUG] FORWARD MODE: nextYaw=${nextYaw}, forwardBearing=${Math.round(forwardBearing)}°, orientation=${Math.round(orientation)}°`);
       if (nextYaw !== null) {
         const diff = yawDifference(orientation, nextYaw);
         console.log(`[DEBUG] yaw diff=${diff}°`);
         if (diff > 5 && diff < 355) {
-          console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
+          console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6), forward bearing=${Math.round(forwardBearing)}°`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           const turnDirection = getTurnDirection(orientation, nextYaw);
           consecutiveStraightMoves = 0;  // Reset on turn
