@@ -1,31 +1,27 @@
 /**
- * UI Controller - Sleek Modern Control Panel
- * v6.0.0-CYBERPUNK
+ * UI Controller - Floating Buttons
+ * v6.2.0-FLOAT
  */
 
 export function createControlPanel(engine, options = {}) {
   const {
-    version = '6.0.0',
+    version = '6.2.0',
     autoStart = true,
     onPathCollectionToggle = null
   } = options;
 
-  let container = null;
-  let btn = null;
-  let statusEl = null;
   let stepsEl = null;
   let visitedEl = null;
-  let paceSlider = null;
-  let mainContent = null;
-  let isMinimized = false;
-  
+  let paceValEl = null;
+  let startStopBtn = null;
+
   // Session logs storage
   const sessionLogs = [];
   const originalConsoleLog = console.log;
-  
+
   console.log = function(...args) {
     const timestamp = new Date().toISOString();
-    const message = args.map(arg => 
+    const message = args.map(arg =>
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ');
     sessionLogs.push(`[${timestamp}] ${message}`);
@@ -33,525 +29,148 @@ export function createControlPanel(engine, options = {}) {
   };
 
   const CSS = {
-    panel: `
+    btnBase: `
       position: fixed;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 500px;
-      min-width: 350px;
-      max-width: 700px;
-      min-height: 180px;
-      max-height: 600px;
-      background: rgba(18, 18, 20, 0.85);
+      padding: 10px 16px;
+      background: rgba(18, 18, 20, 0.9);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px 20px 0 0;
-      box-shadow:
-        0 -10px 40px -10px rgba(0, 0, 0, 0.8),
-        0 0 0 1px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
       color: #f0f0f0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      font-size: 13px;
-      z-index: 1000000;
-      transition: height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s;
-      overflow: visible;
-      user-select: none;
-      resize: none;
-    `,
-    header: `
-      padding: 12px 20px;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: grab;
-      border-radius: 20px 20px 0 0;
-    `,
-    title: `
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.3px;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    `,
-    badge: `
-      background: rgba(0, 255, 128, 0.15);
-      color: #00ff80;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
-      letter-spacing: 0.5px;
-      border: 1px solid rgba(0, 255, 128, 0.2);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      z-index: 1000000;
     `,
-    content: `
-      padding: 16px 20px 20px 20px;
-    `,
-    grid: `
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    `,
-    statItem: `
+    statBtn: `
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      padding: 10px 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      gap: 2px;
+      min-width: 70px;
     `,
     statLabel: `
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 600;
       color: rgba(255, 255, 255, 0.4);
-      letter-spacing: 0.5px;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     `,
     statValue: `
-      font-size: 20px;
+      font-size: 16px;
       font-weight: 700;
       color: #fff;
       font-feature-settings: "tnum";
-      letter-spacing: -0.5px;
     `,
-    statusRow: `
+    actionBtn: `
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: rgba(0, 255, 128, 0.05);
-      border-radius: 10px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(0, 255, 128, 0.1);
-    `,
-    statusText: `
-      font-size: 12px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    `,
-    stuckIndicator: `
-      font-size: 11px;
-      font-weight: 700;
-      color: #ff4d4d;
-      background: rgba(255, 77, 77, 0.1);
-      padding: 4px 10px;
-      border-radius: 100px;
-      border: 1px solid rgba(255, 77, 77, 0.2);
-      opacity: 0;
-      transition: opacity 0.2s;
-    `,
-    controls: `
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    `,
-    btnMain: `
-      flex: 1;
-      height: 42px;
-      border: none;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      gap: 6px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      position: relative;
-      overflow: hidden;
-    `,
-    btnSecondaryGroup: `
-      display: flex;
-      gap: 8px;
-    `,
-    btnSec: `
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.8);
-      width: 44px;
-      height: 42px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `,
-    sliderWrapper: `
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    `,
-    sliderLabel: `
-      font-size: 10px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
-      text-transform: uppercase;
-      white-space: nowrap;
-    `,
-    slider: `
-      flex: 1;
-      -webkit-appearance: none;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      outline: none;
     `
   };
 
-  const makeDraggable = (element, handle) => {
-    let isDragging = false;
-    let startX, startY, initialLeft, initialTop;
-
-    handle.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      const rect = element.getBoundingClientRect();
-      initialLeft = rect.left;
-      initialTop = rect.top;
-      handle.style.cursor = 'grabbing';
-      element.style.right = 'auto';
-      element.style.bottom = 'auto';
-      element.style.left = `${initialLeft}px`;
-      element.style.top = `${initialTop}px`;
-      element.style.transform = 'scale(1.02)';
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      element.style.left = `${initialLeft + dx}px`;
-      element.style.top = `${initialTop + dy}px`;
-    });
-
-    document.addEventListener('mouseup', () => {
-      if (isDragging) {
-        isDragging = false;
-        handle.style.cursor = 'grab';
-        element.style.transform = 'scale(1)';
-      }
-    });
-  };
-
-  const makeResizable = (element, positions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']) => {
-    const minSize = { width: 350, height: 180 };
-    const maxSize = { width: 700, height: 600 };
-    
-    const createResizeHandle = (position) => {
-      const handle = document.createElement('div');
-      handle.className = 'dw-resize-handle';
-      
-      const styles = {
-        'se': { cursor: 'nwse-resize', bottom: '0', right: '0', width: '20px', height: '20px', borderRadius: '0 0 16px 0' },
-        'sw': { cursor: 'nesw-resize', bottom: '0', left: '0', width: '20px', height: '20px', borderRadius: '16px 0 0 0' },
-        'ne': { cursor: 'nesw-resize', top: '0', right: '0', width: '20px', height: '20px', borderRadius: '0 16px 0 0' },
-        'nw': { cursor: 'nwse-resize', top: '0', left: '0', width: '20px', height: '20px', borderRadius: '16px 0 0 0' },
-        'e': { cursor: 'ew-resize', top: '20px', bottom: '20px', right: '0', width: '8px', height: 'auto' },
-        'w': { cursor: 'ew-resize', top: '20px', bottom: '20px', left: '0', width: '8px', height: 'auto' },
-        'n': { cursor: 'ns-resize', left: '20px', right: '20px', top: '0', height: '8px', width: 'auto' },
-        's': { cursor: 'ns-resize', left: '20px', right: '20px', bottom: '0', height: '8px', width: 'auto' }
-      };
-      
-      const posStyle = styles[position];
-      handle.style.cssText = `
-        position: absolute;
-        z-index: 1000001;
-        background: linear-gradient(${position.includes('e') ? '135deg' : '-45deg'}, transparent 50%, rgba(255,255,255,0.15) 50%);
-        ${posStyle.cursor};
-        ${posStyle.bottom !== undefined ? `bottom: ${posStyle.bottom}` : ''};
-        ${posStyle.top !== undefined ? `top: ${posStyle.top}` : ''};
-        ${posStyle.right !== undefined ? `right: ${posStyle.right}` : ''};
-        ${posStyle.left !== undefined ? `left: ${posStyle.left}` : ''};
-        ${posStyle.width !== undefined ? `width: ${posStyle.width}` : ''};
-        ${posStyle.height !== undefined ? `height: ${posStyle.height}` : ''};
-        ${posStyle.borderRadius !== undefined ? `border-radius: ${posStyle.borderRadius}` : ''};
-        transition: background 0.2s;
-      `;
-      
-      handle.onmouseover = () => handle.style.background = 'rgba(255,255,255,0.25)';
-      handle.onmouseout = () => handle.style.background = `linear-gradient(${position.includes('e') ? '135deg' : '-45deg'}, transparent 50%, rgba(255,255,255,0.15) 50%)`;
-      
-      return handle;
-    };
-
-    const startResize = (e, direction) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const rect = element.getBoundingClientRect();
-      const startWidth = rect.width;
-      const startHeight = rect.height;
-      const startX = e.clientX;
-      const startY = e.clientY;
-      
-      element.style.transition = 'none';
-      
-      const onMouseMove = (e) => {
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        
-        let newWidth = startWidth;
-        let newHeight = startHeight;
-        let newLeft = rect.left;
-        let newTop = rect.top;
-        
-        if (direction.includes('e')) {
-          newWidth = Math.max(minSize.width, Math.min(maxSize.width, startWidth + dx));
-        }
-        if (direction.includes('w')) {
-          newWidth = Math.max(minSize.width, Math.min(maxSize.width, startWidth - dx));
-          newLeft = rect.left + (startWidth - newWidth);
-        }
-        if (direction.includes('s')) {
-          newHeight = Math.max(minSize.height, Math.min(maxSize.height, startHeight + dy));
-        }
-        if (direction.includes('n')) {
-          newHeight = Math.max(minSize.height, Math.min(maxSize.height, startHeight - dy));
-          newTop = rect.top + (startHeight - newHeight);
-        }
-        
-        element.style.width = `${newWidth}px`;
-        element.style.height = `${newHeight}px`;
-        element.style.left = `${newLeft}px`;
-        element.style.top = `${newTop}px`;
-        element.style.right = 'auto';
-        element.style.bottom = 'auto';
-      };
-      
-      const onMouseUp = () => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-        element.style.transition = 'height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s';
-      };
-
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    };
-
-    // Add specified resize handles
-    positions.forEach(pos => {
-      const handle = createResizeHandle(pos);
-      handle.addEventListener('mousedown', (e) => startResize(e, pos));
-      element.appendChild(handle);
-    });
-  };
-
   const createUI = () => {
-    // Remove any existing panel first (safeguard against duplicates)
-    const existingPanel = document.getElementById('dw-modern-panel');
-    if (existingPanel) {
-      console.log('[UI] Removing existing panel before creating new one...');
-      existingPanel.remove();
-    }
-    
-    container = document.createElement('div');
-    container.id = 'dw-modern-panel';
-    container.style.cssText = CSS.panel;
+    // Remove any existing UI elements
+    const existing = document.querySelectorAll('.dw-float-ui');
+    existing.forEach(el => el.remove());
 
-    // Header
-    const header = document.createElement('div');
-    header.style.cssText = CSS.header;
-    header.innerHTML = `
-      <div style="${CSS.title}">
-        <span>🟣</span> DRUNK WALKER
-        <span style="${CSS.badge}">v${version}</span>
-      </div>
-      <button id="dw-min-btn" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px;">
-        <svg width="12" height="2" viewBox="0 0 12 2" fill="currentColor"><rect width="12" height="2" rx="1"/></svg>
-      </button>
+    const positions = {
+      steps: { left: '20px' },
+      visited: { left: '110px' },
+      startStop: { left: '50%', transform: 'translateX(-50%)' },
+      pace: { right: '110px' },
+      savePath: { right: '20px' }
+    };
+
+    // Steps button
+    const stepsBtn = document.createElement('div');
+    stepsBtn.className = 'dw-float-ui';
+    stepsBtn.style.cssText = CSS.btnBase + CSS.statBtn + `left: ${positions.steps.left};`;
+    stepsBtn.innerHTML = `
+      <span style="${CSS.statLabel}">Steps</span>
+      <span id="dw-steps" style="${CSS.statValue}">0</span>
     `;
-    container.appendChild(header);
+    document.body.appendChild(stepsBtn);
+    stepsEl = stepsBtn.querySelector('#dw-steps');
 
-    // Main Content
-    mainContent = document.createElement('div');
-    mainContent.style.cssText = CSS.content;
-
-    // Stats Grid
-    const grid = document.createElement('div');
-    grid.style.cssText = CSS.grid;
-    
-    const createStat = (label, id, val) => `
-      <div style="${CSS.statItem}">
-        <span style="${CSS.statLabel}">${label}</span>
-        <span id="${id}" style="${CSS.statValue}">${val}</span>
-      </div>
+    // Visited button
+    const visitedBtn = document.createElement('div');
+    visitedBtn.className = 'dw-float-ui';
+    visitedBtn.style.cssText = CSS.btnBase + CSS.statBtn + `left: ${positions.visited.left};`;
+    visitedBtn.innerHTML = `
+      <span style="${CSS.statLabel}">Visited</span>
+      <span id="dw-visited" style="${CSS.statValue}">0</span>
     `;
+    document.body.appendChild(visitedBtn);
+    visitedEl = visitedBtn.querySelector('#dw-visited');
 
-    grid.innerHTML = `
-      ${createStat('Steps', 'dw-steps', '0')}
-      ${createStat('Visited', 'dw-visited', '0')}
-    `;
-    mainContent.appendChild(grid);
-
-    stepsEl = mainContent.querySelector('#dw-steps');
-    visitedEl = mainContent.querySelector('#dw-visited');
-
-    // Status Row
-    const statusRow = document.createElement('div');
-    statusRow.style.cssText = CSS.statusRow;
-    statusRow.innerHTML = `
-      <div style="${CSS.statusText}">
-        <div id="dw-status-dot" style="width:6px;height:6px;border-radius:50%;background:#666;"></div>
-        <span id="dw-status-text">IDLE</span>
-      </div>
-    `;
-    mainContent.appendChild(statusRow);
-
-    statusEl = mainContent.querySelector('#dw-status-text');
-
-    // Controls - horizontal layout
-    const controls = document.createElement('div');
-    controls.style.cssText = CSS.controls;
-
-    btn = document.createElement('button');
-    btn.style.cssText = CSS.btnMain + 'background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%); color: #000; box-shadow: 0 4px 12px rgba(255,255,255,0.15);';
-    btn.innerHTML = '<span>▶</span> START';
-    btn.onmouseover = () => btn.style.transform = 'translateY(-1px)';
-    btn.onmouseout = () => btn.style.transform = 'translateY(0)';
-    btn.onclick = () => {
+    // Start/Stop button
+    startStopBtn = document.createElement('button');
+    startStopBtn.className = 'dw-float-ui';
+    startStopBtn.style.cssText = CSS.btnBase + CSS.actionBtn + `left: ${positions.startStop.left};${positions.startStop.transform || ''}`;
+    startStopBtn.innerHTML = '<span>▶</span> START';
+    startStopBtn.onmouseover = () => startStopBtn.style.transform = positions.startStop.transform + ' translateY(-2px)';
+    startStopBtn.onmouseout = () => startStopBtn.style.transform = positions.startStop.transform + ' translateY(0)';
+    startStopBtn.onclick = () => {
       if (engine.isNavigating()) engine.stop();
       else engine.start();
-      updateButton();
+      updateStartStopBtn();
     };
-    controls.appendChild(btn);
+    document.body.appendChild(startStopBtn);
 
-    const secBtns = document.createElement('div');
-    secBtns.style.cssText = CSS.btnSecondaryGroup;
-
-    const dlPath = document.createElement('button');
-    dlPath.innerHTML = '💾';
-    dlPath.title = 'Export Path';
-    dlPath.style.cssText = CSS.btnSec;
-    dlPath.onmouseover = () => dlPath.style.background = 'rgba(255,255,255,0.1)';
-    dlPath.onmouseout = () => dlPath.style.background = 'rgba(255,255,255,0.05)';
-    dlPath.onclick = exportPath;
-
-    const dlLogs = document.createElement('button');
-    dlLogs.innerHTML = '📄';
-    dlLogs.title = 'Export Logs';
-    dlLogs.style.cssText = CSS.btnSec;
-    dlLogs.onmouseover = () => dlLogs.style.background = 'rgba(255,255,255,0.1)';
-    dlLogs.onmouseout = () => dlLogs.style.background = 'rgba(255,255,255,0.05)';
-    dlLogs.onclick = exportLogs;
-
-    secBtns.appendChild(dlPath);
-    secBtns.appendChild(dlLogs);
-    controls.appendChild(secBtns);
-
-    // Slider
-    const sliderWrap = document.createElement('div');
-    sliderWrap.style.cssText = CSS.sliderWrapper;
-    sliderWrap.innerHTML = `
-      <span style="${CSS.sliderLabel}">⏱ Pace</span>
+    // Pace button with slider
+    const paceBtn = document.createElement('div');
+    paceBtn.className = 'dw-float-ui';
+    paceBtn.style.cssText = CSS.btnBase + CSS.statBtn + `right: ${positions.pace.right}; cursor: default;`;
+    paceBtn.innerHTML = `
+      <span style="${CSS.statLabel}">Pace</span>
+      <span id="dw-pace-val" style="${CSS.statValue}">${(engine.getConfig().pace / 1000).toFixed(1)}s</span>
+      <input type="range" min="500" max="5000" step="100" value="${engine.getConfig().pace}"
+        style="width: 80px; margin-top: 4px; -webkit-appearance: none; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none;"
+      />
     `;
-
-    paceSlider = document.createElement('input');
-    paceSlider.type = 'range';
-    paceSlider.min = '500';
-    paceSlider.max = '5000';
-    paceSlider.step = '100';
-    paceSlider.value = engine.getConfig().pace;
-    paceSlider.style.cssText = CSS.slider;
+    const paceSlider = paceBtn.querySelector('input');
     paceSlider.oninput = () => {
-      const val = parseInt(paceSlider.value);
-      paceValEl.innerText = (val/1000).toFixed(1) + 's';
-      engine.setPace(val);
+      paceValEl.innerText = (paceSlider.value / 1000).toFixed(1) + 's';
+      engine.setPace(parseInt(paceSlider.value));
     };
+    document.body.appendChild(paceBtn);
+    paceValEl = paceBtn.querySelector('#dw-pace-val');
 
-    sliderWrap.appendChild(paceSlider);
-    controls.appendChild(sliderWrap);
-
-    mainContent.appendChild(controls);
-    container.appendChild(mainContent);
-    document.body.appendChild(container);
-
-    // Minimize logic
-    header.querySelector('#dw-min-btn').onclick = toggleMinimize;
-    
-    // Make panel draggable
-    makeDraggable(container, header);
-    
-    // Resize from top corners only
-    makeResizable(container, ['nw', 'ne']);
+    // Save Path button
+    const savePathBtn = document.createElement('button');
+    savePathBtn.className = 'dw-float-ui';
+    savePathBtn.style.cssText = CSS.btnBase + CSS.actionBtn + `right: ${positions.savePath.right};`;
+    savePathBtn.innerHTML = '💾 SAVE';
+    savePathBtn.title = 'Export Path';
+    savePathBtn.onmouseover = () => savePathBtn.style.transform = 'translateY(-2px)';
+    savePathBtn.onmouseout = () => savePathBtn.style.transform = 'translateY(0)';
+    savePathBtn.onclick = exportPath;
+    document.body.appendChild(savePathBtn);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
     engine.setSelfAvoiding(true);
   };
 
-  const toggleMinimize = () => {
-    isMinimized = !isMinimized;
-    if (isMinimized) {
-      mainContent.style.display = 'block';
-      // Hide everything except steps and visited
-      const statusRowEl = container.querySelector('[style*="statusRow"]');
-      const controlsEl = container.querySelector('[style*="controls"]');
-
-      if (statusRowEl) statusRowEl.style.display = 'none';
-      if (controlsEl) controlsEl.style.display = 'none';
-
-      container.style.width = '200px';
-      container.style.height = 'auto';
-    } else {
-      mainContent.style.display = 'block';
-      // Show everything
-      const statusRowEl = container.querySelector('[style*="statusRow"]');
-      const controlsEl = container.querySelector('[style*="controls"]');
-
-      if (statusRowEl) statusRowEl.style.display = 'flex';
-      if (controlsEl) controlsEl.style.display = 'flex';
-
-      container.style.width = '500px';
-      container.style.height = 'auto';
-    }
-  };
-
-  const updateButton = () => {
-    if (!btn) return;
-    const dot = document.getElementById('dw-status-dot');
+  const updateStartStopBtn = () => {
+    if (!startStopBtn) return;
     if (engine.isNavigating()) {
-      btn.innerHTML = '<span>⏹</span> STOP';
-      btn.style.background = 'rgba(255, 50, 50, 0.1)';
-      btn.style.color = '#ff4d4d';
-      btn.style.border = '1px solid rgba(255, 50, 50, 0.3)';
-      btn.style.boxShadow = 'none';
-      if (dot) {
-        dot.style.background = '#00ff80';
-        dot.style.boxShadow = '0 0 8px #00ff80';
-      }
+      startStopBtn.innerHTML = '<span>⏹</span> STOP';
+      startStopBtn.style.background = 'rgba(255, 50, 50, 0.15)';
+      startStopBtn.style.color = '#ff6b6b';
+      startStopBtn.style.borderColor = 'rgba(255, 50, 50, 0.3)';
     } else {
-      btn.innerHTML = '<span>▶</span> START';
-      btn.style.background = '#fff';
-      btn.style.color = '#000';
-      btn.style.border = 'none';
-      btn.style.boxShadow = '0 4px 12px rgba(255,255,255,0.2)';
-      if (dot) {
-        dot.style.background = '#666';
-        dot.style.boxShadow = 'none';
-      }
+      startStopBtn.innerHTML = '<span>▶</span> START';
+      startStopBtn.style.background = 'rgba(18, 18, 20, 0.9)';
+      startStopBtn.style.color = '#f0f0f0';
+      startStopBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
     }
   };
 
@@ -562,23 +181,10 @@ export function createControlPanel(engine, options = {}) {
       return;
     }
     const blob = new Blob([JSON.stringify(walkPath, null, 2)], { type: 'application/json' });
-    downloadFile(blob, `dw-path-${Date.now()}.json`);
-  };
-
-  const exportLogs = () => {
-    if (sessionLogs.length === 0) {
-      alert('No logs recorded yet.');
-      return;
-    }
-    const blob = new Blob([sessionLogs.join('\n')], { type: 'text/plain' });
-    downloadFile(blob, `dw-logs-${Date.now()}.txt`);
-  };
-
-  const downloadFile = (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename;
+    a.download = `dw-path-${Date.now()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -586,19 +192,18 @@ export function createControlPanel(engine, options = {}) {
   };
 
   const onStatusUpdate = (statusText, stepCount, stuckCount) => {
-    if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
     if (visitedEl) visitedEl.innerText = engine.getVisitedCount();
-    updateButton();
+    updateStartStopBtn();
   };
 
   const init = () => {
     if (!document.body) return { destroy: () => {} };
     try {
       createUI();
-      updateButton();
+      updateStartStopBtn();
       if (autoStart) engine.start();
-      console.log('🟣 UI Initialized (Cyberpunk Edition)');
+      console.log('🟣 UI Initialized (Floating Buttons)');
       return { destroy };
     } catch (e) {
       console.error('UI Init Failed:', e);
@@ -608,7 +213,7 @@ export function createControlPanel(engine, options = {}) {
 
   const destroy = () => {
     engine.stop();
-    if (container) container.remove();
+    document.querySelectorAll('.dw-float-ui').forEach(el => el.remove());
   };
 
   return { init, destroy, onStatusUpdate };
