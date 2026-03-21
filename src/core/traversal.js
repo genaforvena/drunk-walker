@@ -398,9 +398,9 @@ export function createUnifiedAlgorithm(cfg) {
       // Find the previous node in the breadcrumb trail that leads to target
       const targetIndex = breadcrumbs.lastIndexOf(navigationTarget.location);
       const currentIndex = breadcrumbs.lastIndexOf(currentLocation);
-      
+
       let yawToNavigate = null;
-      
+
       if (targetIndex !== -1 && currentIndex !== -1 && targetIndex < currentIndex) {
         // Navigate to previous breadcrumb (closer to target)
         const previousInPath = breadcrumbs[currentIndex - 1];
@@ -413,7 +413,7 @@ export function createUnifiedAlgorithm(cfg) {
           console.log(`[DEBUG] NAVIGATION: Following breadcrumb to ${previousInPath} (target: ${navigationTarget.location})`);
         }
       }
-      
+
       // Fallback: if breadcrumb navigation failed, use geometric approach
       if (yawToNavigate === null) {
         const targetParts = navigationTarget.location.split(',').map(Number);
@@ -422,6 +422,26 @@ export function createUnifiedAlgorithm(cfg) {
         yawToNavigate = Math.atan2(dLng, dLat) * 180 / Math.PI;
         if (yawToNavigate < 0) yawToNavigate += 360;
         console.log(`[DEBUG] NAVIGATION: Using geometric fallback to ${navigationTarget.location}`);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // 🎯 FORWARD MOMENTUM: If node has untried yaws close to current
+      // orientation, try those FIRST before continuing navigation
+      // This ensures we explore side paths instead of just passing through
+      // ═══════════════════════════════════════════════════════════
+      if (currentNode.hasUntriedYaws()) {
+        // Find untried yaw closest to current orientation (within ±60° = forward hemisphere)
+        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+        for (const untriedYaw of untriedYaws) {
+          const diffToOrientation = yawDifference(orientation, untriedYaw);
+          // If untried yaw is within 60° of current direction, try it!
+          if (diffToOrientation <= 60) {
+            console.log(`🎯 FORWARD MOMENTUM: Untired yaw ${untriedYaw}° is ${diffToOrientation}° from current ${Math.round(orientation)}° - trying first!`);
+            const turnAngle = getLeftTurnAngle(orientation, untriedYaw);
+            const turnDirection = getTurnDirection(orientation, untriedYaw);
+            return { turn: true, angle: turnAngle, direction: turnDirection };
+          }
+        }
       }
 
       const diff = yawDifference(orientation, yawToNavigate);

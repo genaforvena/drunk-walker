@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T18:19:57.667Z
+// Built: 2026-03-21T19:16:05.846Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -517,6 +517,26 @@ function createUnifiedAlgorithm(cfg) {
         yawToNavigate = Math.atan2(dLng, dLat) * 180 / Math.PI;
         if (yawToNavigate < 0) yawToNavigate += 360;
         console.log(`[DEBUG] NAVIGATION: Using geometric fallback to ${navigationTarget.location}`);
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // 🎯 FORWARD MOMENTUM: If node has untried yaws close to current
+      // orientation, try those FIRST before continuing navigation
+      // This ensures we explore side paths instead of just passing through
+      // ═══════════════════════════════════════════════════════════
+      if (currentNode.hasUntriedYaws()) {
+        // Find untried yaw closest to current orientation (within ±60° = forward hemisphere)
+        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+        for (const untriedYaw of untriedYaws) {
+          const diffToOrientation = yawDifference(orientation, untriedYaw);
+          // If untried yaw is within 60° of current direction, try it!
+          if (diffToOrientation <= 60) {
+            console.log(`🎯 FORWARD MOMENTUM: Untired yaw ${untriedYaw}° is ${diffToOrientation}° from current ${Math.round(orientation)}° - trying first!`);
+            const turnAngle = getLeftTurnAngle(orientation, untriedYaw);
+            const turnDirection = getTurnDirection(orientation, untriedYaw);
+            return { turn: true, angle: turnAngle, direction: turnDirection };
+          }
+        }
       }
 
       const diff = yawDifference(orientation, yawToNavigate);
