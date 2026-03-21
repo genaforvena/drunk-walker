@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.9.0-UI-OVERHAUL - BUNDLED BOOKMARKLET
+// Drunk Walker v5.10.0-TURN-FIX - BUNDLED BOOKMARKLET
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -420,7 +420,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.9.0-UI-OVERHAUL';
+const VERSION = '5.10.0-TURN-FIX';
 
 const defaultConfig = {
   pace: 2000,
@@ -757,7 +757,7 @@ const KEY_CODES = {
  */
 function findStreetViewTarget() {
   // Priority order: canvas -> scene viewer -> streetview container -> document
-  return document.querySelector('canvas[width][height]') ||
+  return document.querySelector('canvas') ||
     document.querySelector('.scene-viewer') ||
     document.querySelector('[class*="streetview"]') ||
     document.documentElement;
@@ -776,7 +776,7 @@ function simulateKeyPress(key, target = null) {
     which: keyCode,
     bubbles: true,
     cancelable: true,
-    location: 2,
+    location: 0,
     repeat: false,
     altKey: false,
     ctrlKey: false,
@@ -784,7 +784,7 @@ function simulateKeyPress(key, target = null) {
     shiftKey: false
   };
   const targetEl = target || findStreetViewTarget();
-  // Full key event sequence for maximum compatibility
+  // Full key event sequence
   targetEl.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
   targetEl.dispatchEvent(new KeyboardEvent('keypress', eventOptions));
   setTimeout(() => {
@@ -792,7 +792,7 @@ function simulateKeyPress(key, target = null) {
   }, 50);
 }
 /**
- * Simulate long-press keyboard event (keydown -> hold -> keyup)
+ * Simulate long-press keyboard event (repeated keydown/keypress)
  * Used for turning (e.g., hold ArrowLeft for 30° turn)
  * @param {string} key - Key to simulate (e.g., 'ArrowLeft')
  * @param {number} duration - How long to hold the key (ms)
@@ -801,28 +801,36 @@ function simulateKeyPress(key, target = null) {
  */
 function simulateLongKeyPress(key, duration, callback, target = null) {
   const { keyCode, code } = KEY_CODES[key] || { keyCode: 0, code: key };
-  const eventOptions = {
+  const baseOptions = {
     key,
     code,
     keyCode,
     which: keyCode,
     bubbles: true,
     cancelable: true,
-    location: 2,
-    repeat: false,
+    location: 0,
     altKey: false,
     ctrlKey: false,
     metaKey: false,
     shiftKey: false
   };
   const targetEl = target || findStreetViewTarget();
-  // Key down
-  targetEl.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
-  // Hold for duration, then release
-  setTimeout(() => {
-    targetEl.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
-    if (callback) callback();
-  }, duration);
+  const startTime = Date.now();
+  // Initial Key Down
+  targetEl.dispatchEvent(new KeyboardEvent('keydown', { ...baseOptions, repeat: false }));
+  targetEl.dispatchEvent(new KeyboardEvent('keypress', { ...baseOptions, repeat: false }));
+  // Repeat loop
+  const intervalId = setInterval(() => {
+    if (Date.now() - startTime >= duration) {
+      clearInterval(intervalId);
+      targetEl.dispatchEvent(new KeyboardEvent('keyup', { ...baseOptions, repeat: false }));
+      if (callback) callback();
+    } else {
+      // Repeat events
+      targetEl.dispatchEvent(new KeyboardEvent('keydown', { ...baseOptions, repeat: true }));
+      targetEl.dispatchEvent(new KeyboardEvent('keypress', { ...baseOptions, repeat: true }));
+    }
+  }, 50); // Repeat every 50ms (typical browser repeat rate)
 }
 /**
  * Simulate mouse click at coordinates
