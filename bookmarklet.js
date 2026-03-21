@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.5.1-DECOUPLED-FIX - BUNDLED BOOKMARKLET
+// Drunk Walker v5.6.0-LOCATION-STUCK - BUNDLED BOOKMARKLET
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -426,7 +426,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.5.1-DECOUPLED-FIX';
+const VERSION = '5.6.0-LOCATION-STUCK';
 
 const defaultConfig = {
   pace: 2000,
@@ -596,10 +596,10 @@ function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
-    // 1. Stuck detection (URL based heartbeat)
-    if (lastUrl !== null && currentUrl === lastUrl) {
+    // 1. Stuck detection (Location based heartbeat)
+    if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
-    } else {
+    } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
       stuckCount = 0;
     }
 
@@ -622,7 +622,8 @@ function createEngine(config = {}) {
           currentYaw || wheel.getOrientation(),
           steps
         );
-      } else if (lastUrl !== null && currentUrl === lastUrl) {
+      } else if (currentLocation === previousLocation) {
+        // We are still at the same spot after an ArrowUp press
         algorithm.enhancedGraph.recordFailedAttempt(
           previousLocation,
           previousYaw !== null ? previousYaw : wheel.getOrientation(),

@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.5.1-DECOUPLED-FIX';
+export const VERSION = '5.6.0-LOCATION-STUCK';
 
 export const defaultConfig = {
   pace: 2000,
@@ -184,10 +184,10 @@ export function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
-    // 1. Stuck detection (URL based heartbeat)
-    if (lastUrl !== null && currentUrl === lastUrl) {
+    // 1. Stuck detection (Location based heartbeat)
+    if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
-    } else {
+    } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
       stuckCount = 0;
     }
 
@@ -210,7 +210,8 @@ export function createEngine(config = {}) {
           currentYaw || wheel.getOrientation(),
           steps
         );
-      } else if (lastUrl !== null && currentUrl === lastUrl) {
+      } else if (currentLocation === previousLocation) {
+        // We are still at the same spot after an ArrowUp press
         algorithm.enhancedGraph.recordFailedAttempt(
           previousLocation,
           previousYaw !== null ? previousYaw : wheel.getOrientation(),
