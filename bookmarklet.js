@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T11:28:46.285Z
+// Built: 2026-03-21T15:19:46.487Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -536,6 +536,8 @@ function createEngine(config = {}) {
   // Turn state - prevent oscillation
   let isTurning = false;  // True while executing a turn
   let turnCompleted = false;  // Set to true when turn finishes
+  let ticksSinceTurn = 0;  // Count ticks after turn completes
+  const TURNS_COOLDOWN_TICKS = 3;  // Wait 3 ticks after turn before deciding to turn again
   let awaitingStepResult = false;  // True after turn+step, waiting to see if we moved
 
   // Action callbacks
@@ -671,6 +673,11 @@ function createEngine(config = {}) {
       return;
     }
 
+    // Increment ticks since turn (for cooldown - prevent rapid re-turning)
+    if (ticksSinceTurn < TURNS_COOLDOWN_TICKS + 1) {
+      ticksSinceTurn++;
+    }
+
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
@@ -683,8 +690,9 @@ function createEngine(config = {}) {
       stuckCount++;
       console.log(`[DEBUG] STUCK DETECTED - same location, stuckCount=${stuckCount}`);
     } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
-      console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount`);
+      console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown`);
       stuckCount = 0;
+      ticksSinceTurn = TURNS_COOLDOWN_TICKS;  // Reset cooldown - we moved successfully
     }
 
     // 2. Sync orientation with URL ONLY if it changed since last heartbeat
@@ -748,8 +756,9 @@ function createEngine(config = {}) {
     // - Stationary at a node (not mid-movement)
     // - Not already turning
     // - Not waiting for step result
+    // - Turn cooldown has expired (prevent rapid re-turning before Street View loads)
     // - Either stuck, OR at a known node that needs exploration
-    if (isStationary && !isTurning && !awaitingStepResult) {
+    if (isStationary && !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS) {
       const context = {
         url: currentUrl,
         currentLocation: currentLocation,
@@ -761,13 +770,15 @@ function createEngine(config = {}) {
         isFullyScanned
       };
 
-      console.log('[DEBUG] Calling algorithm.decide()...');
+      console.log(`[DEBUG] ticksSinceTurn=${ticksSinceTurn}, calling algorithm.decide()...`);
       decision = algorithm.decide(context);
       console.log(`[DEBUG] decision=${JSON.stringify(decision)}`);
     } else if (isTurning) {
       console.log('[DEBUG] Skipping decision - already turning');
     } else if (!isStationary) {
       console.log('[DEBUG] Skipping decision - not stationary (moving between nodes)');
+    } else if (ticksSinceTurn < TURNS_COOLDOWN_TICKS) {
+      console.log(`[DEBUG] Skipping decision - turn cooldown active (${ticksSinceTurn}/${TURNS_COOLDOWN_TICKS})`);
     }
 
     // 6. Action: Turn (Independent)
@@ -782,6 +793,7 @@ function createEngine(config = {}) {
         console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
         isTurning = false;
         turnCompleted = true;
+        ticksSinceTurn = 0;  // Reset cooldown - turn just completed
         awaitingStepResult = true;  // Wait for next tick to see if we moved
 
         // After turn completes, update state and trigger next tick
@@ -1461,8 +1473,6 @@ function createControlPanel(engine, options = {}) {
   let statusEl = null;
   let stepsEl = null;
   let visitedEl = null;
-  let stuckEl = null;
-  let paceValEl = null;
   let paceSlider = null;
   let mainContent = null;
   let isMinimized = false;
@@ -1852,17 +1862,11 @@ function createControlPanel(engine, options = {}) {
     grid.innerHTML = `
       ${createStat('Steps', 'dw-steps', '0')}
       ${createStat('Visited', 'dw-visited', '0')}
-      ${createStat('Stuck', 'dw-stuck-count', '0')}
-      ${createStat('Pace', 'dw-pace-display', (engine.getConfig().pace/1000).toFixed(1)+'s')}
-      ${createStat('Turns', 'dw-turns', '0°')}
     `;
     mainContent.appendChild(grid);
 
     stepsEl = mainContent.querySelector('#dw-steps');
     visitedEl = mainContent.querySelector('#dw-visited');
-    paceValEl = mainContent.querySelector('#dw-pace-display');
-    const stuckCountEl = mainContent.querySelector('#dw-stuck-count');
-    const turnsEl = mainContent.querySelector('#dw-turns');
 
     // Status Row
     const statusRow = document.createElement('div');
@@ -1872,12 +1876,10 @@ function createControlPanel(engine, options = {}) {
         <div id="dw-status-dot" style="width:6px;height:6px;border-radius:50%;background:#666;"></div>
         <span id="dw-status-text">IDLE</span>
       </div>
-      <span id="dw-stuck-indicator" style="${CSS.stuckIndicator}">STUCK</span>
     `;
     mainContent.appendChild(statusRow);
 
     statusEl = mainContent.querySelector('#dw-status-text');
-    stuckEl = mainContent.querySelector('#dw-stuck-indicator');
 
     // Controls - horizontal layout
     const controls = document.createElement('div');
@@ -1965,15 +1967,9 @@ function createControlPanel(engine, options = {}) {
       // Hide everything except steps and visited
       const statusRowEl = container.querySelector('[style*="statusRow"]');
       const controlsEl = container.querySelector('[style*="controls"]');
-      const paceStat = container.querySelector('[id="dw-pace-display"]')?.closest('[style*="statItem"]');
-      const stuckStat = container.querySelector('[id="dw-stuck-count"]')?.closest('[style*="statItem"]');
-      const turnsStat = container.querySelector('[id="dw-turns"]')?.closest('[style*="statItem"]');
 
       if (statusRowEl) statusRowEl.style.display = 'none';
       if (controlsEl) controlsEl.style.display = 'none';
-      if (paceStat) paceStat.style.display = 'none';
-      if (stuckStat) stuckStat.style.display = 'none';
-      if (turnsStat) turnsStat.style.display = 'none';
 
       container.style.width = '200px';
       container.style.height = 'auto';
@@ -1982,15 +1978,9 @@ function createControlPanel(engine, options = {}) {
       // Show everything
       const statusRowEl = container.querySelector('[style*="statusRow"]');
       const controlsEl = container.querySelector('[style*="controls"]');
-      const paceStat = container.querySelector('[id="dw-pace-display"]')?.closest('[style*="statItem"]');
-      const stuckStat = container.querySelector('[id="dw-stuck-count"]')?.closest('[style*="statItem"]');
-      const turnsStat = container.querySelector('[id="dw-turns"]')?.closest('[style*="statItem"]');
 
       if (statusRowEl) statusRowEl.style.display = 'flex';
       if (controlsEl) controlsEl.style.display = 'flex';
-      if (paceStat) paceStat.style.display = 'flex';
-      if (stuckStat) stuckStat.style.display = 'flex';
-      if (turnsStat) turnsStat.style.display = 'flex';
 
       container.style.width = '500px';
       container.style.height = 'auto';
@@ -2057,17 +2047,6 @@ function createControlPanel(engine, options = {}) {
     if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
     if (visitedEl) visitedEl.innerText = engine.getVisitedCount();
-    if (stuckCountEl) stuckCountEl.innerText = stuckCount;
-    if (turnsEl) turnsEl.innerText = Math.round(engine.getCumulativeTurnAngle()) + '°';
-
-    if (stuckEl) {
-      if (stuckCount > 0) {
-        stuckEl.style.opacity = '1';
-        stuckEl.innerText = `STUCK ${stuckCount}`;
-      } else {
-        stuckEl.style.opacity = '0';
-      }
-    }
     updateButton();
   };
 

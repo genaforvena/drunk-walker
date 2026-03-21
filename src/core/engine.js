@@ -57,6 +57,8 @@ export function createEngine(config = {}) {
   // Turn state - prevent oscillation
   let isTurning = false;  // True while executing a turn
   let turnCompleted = false;  // Set to true when turn finishes
+  let ticksSinceTurn = 0;  // Count ticks after turn completes
+  const TURNS_COOLDOWN_TICKS = 3;  // Wait 3 ticks after turn before deciding to turn again
   let awaitingStepResult = false;  // True after turn+step, waiting to see if we moved
 
   // Action callbacks
@@ -192,6 +194,11 @@ export function createEngine(config = {}) {
       return;
     }
 
+    // Increment ticks since turn (for cooldown - prevent rapid re-turning)
+    if (ticksSinceTurn < TURNS_COOLDOWN_TICKS + 1) {
+      ticksSinceTurn++;
+    }
+
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
@@ -204,8 +211,9 @@ export function createEngine(config = {}) {
       stuckCount++;
       console.log(`[DEBUG] STUCK DETECTED - same location, stuckCount=${stuckCount}`);
     } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
-      console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount`);
+      console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown`);
       stuckCount = 0;
+      ticksSinceTurn = TURNS_COOLDOWN_TICKS;  // Reset cooldown - we moved successfully
     }
 
     // 2. Sync orientation with URL ONLY if it changed since last heartbeat
@@ -269,8 +277,9 @@ export function createEngine(config = {}) {
     // - Stationary at a node (not mid-movement)
     // - Not already turning
     // - Not waiting for step result
+    // - Turn cooldown has expired (prevent rapid re-turning before Street View loads)
     // - Either stuck, OR at a known node that needs exploration
-    if (isStationary && !isTurning && !awaitingStepResult) {
+    if (isStationary && !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS) {
       const context = {
         url: currentUrl,
         currentLocation: currentLocation,
@@ -282,13 +291,15 @@ export function createEngine(config = {}) {
         isFullyScanned
       };
 
-      console.log('[DEBUG] Calling algorithm.decide()...');
+      console.log(`[DEBUG] ticksSinceTurn=${ticksSinceTurn}, calling algorithm.decide()...`);
       decision = algorithm.decide(context);
       console.log(`[DEBUG] decision=${JSON.stringify(decision)}`);
     } else if (isTurning) {
       console.log('[DEBUG] Skipping decision - already turning');
     } else if (!isStationary) {
       console.log('[DEBUG] Skipping decision - not stationary (moving between nodes)');
+    } else if (ticksSinceTurn < TURNS_COOLDOWN_TICKS) {
+      console.log(`[DEBUG] Skipping decision - turn cooldown active (${ticksSinceTurn}/${TURNS_COOLDOWN_TICKS})`);
     }
 
     // 6. Action: Turn (Independent)
@@ -303,6 +314,7 @@ export function createEngine(config = {}) {
         console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
         isTurning = false;
         turnCompleted = true;
+        ticksSinceTurn = 0;  // Reset cooldown - turn just completed
         awaitingStepResult = true;  // Wait for next tick to see if we moved
 
         // After turn completes, update state and trigger next tick

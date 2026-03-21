@@ -15,8 +15,6 @@ export function createControlPanel(engine, options = {}) {
   let statusEl = null;
   let stepsEl = null;
   let visitedEl = null;
-  let stuckEl = null;
-  let paceValEl = null;
   let paceSlider = null;
   let mainContent = null;
   let isMinimized = false;
@@ -406,17 +404,11 @@ export function createControlPanel(engine, options = {}) {
     grid.innerHTML = `
       ${createStat('Steps', 'dw-steps', '0')}
       ${createStat('Visited', 'dw-visited', '0')}
-      ${createStat('Stuck', 'dw-stuck-count', '0')}
-      ${createStat('Pace', 'dw-pace-display', (engine.getConfig().pace/1000).toFixed(1)+'s')}
-      ${createStat('Turns', 'dw-turns', '0°')}
     `;
     mainContent.appendChild(grid);
 
     stepsEl = mainContent.querySelector('#dw-steps');
     visitedEl = mainContent.querySelector('#dw-visited');
-    paceValEl = mainContent.querySelector('#dw-pace-display');
-    const stuckCountEl = mainContent.querySelector('#dw-stuck-count');
-    const turnsEl = mainContent.querySelector('#dw-turns');
 
     // Status Row
     const statusRow = document.createElement('div');
@@ -426,12 +418,10 @@ export function createControlPanel(engine, options = {}) {
         <div id="dw-status-dot" style="width:6px;height:6px;border-radius:50%;background:#666;"></div>
         <span id="dw-status-text">IDLE</span>
       </div>
-      <span id="dw-stuck-indicator" style="${CSS.stuckIndicator}">STUCK</span>
     `;
     mainContent.appendChild(statusRow);
-    
+
     statusEl = mainContent.querySelector('#dw-status-text');
-    stuckEl = mainContent.querySelector('#dw-stuck-indicator');
 
     // Controls - horizontal layout
     const controls = document.createElement('div');
@@ -519,16 +509,10 @@ export function createControlPanel(engine, options = {}) {
       // Hide everything except steps and visited
       const statusRowEl = container.querySelector('[style*="statusRow"]');
       const controlsEl = container.querySelector('[style*="controls"]');
-      const paceStat = container.querySelector('[id="dw-pace-display"]')?.closest('[style*="statItem"]');
-      const stuckStat = container.querySelector('[id="dw-stuck-count"]')?.closest('[style*="statItem"]');
-      const turnsStat = container.querySelector('[id="dw-turns"]')?.closest('[style*="statItem"]');
-      
+
       if (statusRowEl) statusRowEl.style.display = 'none';
       if (controlsEl) controlsEl.style.display = 'none';
-      if (paceStat) paceStat.style.display = 'none';
-      if (stuckStat) stuckStat.style.display = 'none';
-      if (turnsStat) turnsStat.style.display = 'none';
-      
+
       container.style.width = '200px';
       container.style.height = 'auto';
     } else {
@@ -536,16 +520,10 @@ export function createControlPanel(engine, options = {}) {
       // Show everything
       const statusRowEl = container.querySelector('[style*="statusRow"]');
       const controlsEl = container.querySelector('[style*="controls"]');
-      const paceStat = container.querySelector('[id="dw-pace-display"]')?.closest('[style*="statItem"]');
-      const stuckStat = container.querySelector('[id="dw-stuck-count"]')?.closest('[style*="statItem"]');
-      const turnsStat = container.querySelector('[id="dw-turns"]')?.closest('[style*="statItem"]');
-      
+
       if (statusRowEl) statusRowEl.style.display = 'flex';
       if (controlsEl) controlsEl.style.display = 'flex';
-      if (paceStat) paceStat.style.display = 'flex';
-      if (stuckStat) stuckStat.style.display = 'flex';
-      if (turnsStat) turnsStat.style.display = 'flex';
-      
+
       container.style.width = '500px';
       container.style.height = 'auto';
     }
@@ -611,17 +589,6 @@ export function createControlPanel(engine, options = {}) {
     if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
     if (visitedEl) visitedEl.innerText = engine.getVisitedCount();
-    if (stuckCountEl) stuckCountEl.innerText = stuckCount;
-    if (turnsEl) turnsEl.innerText = Math.round(engine.getCumulativeTurnAngle()) + '°';
-
-    if (stuckEl) {
-      if (stuckCount > 0) {
-        stuckEl.style.opacity = '1';
-        stuckEl.innerText = `STUCK ${stuckCount}`;
-      } else {
-        stuckEl.style.opacity = '0';
-      }
-    }
     updateButton();
   };
 
