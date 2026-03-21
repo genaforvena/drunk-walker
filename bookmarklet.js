@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T09:24:26.685Z
+// Built: 2026-03-21T09:26:03.712Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -1524,7 +1524,7 @@ function createControlPanel(engine, options = {}) {
     header.innerHTML = `
       <div style="${CSS.title}">
         <span>🟣</span> DRUNK WALKER
-        <span style="${CSS.badge}">v${version.split('-')[0]}</span>
+        <span style="${CSS.badge}">v${version}</span>
       </div>
       <button id="dw-min-btn" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px;">
         <svg width="12" height="2" viewBox="0 0 12 2" fill="currentColor"><rect width="12" height="2" rx="1"/></svg>

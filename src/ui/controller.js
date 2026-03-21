@@ -254,7 +254,7 @@ export function createControlPanel(engine, options = {}) {
     header.innerHTML = `
       <div style="${CSS.title}">
         <span>🟣</span> DRUNK WALKER
-        <span style="${CSS.badge}">v${version.split('-')[0]}</span>
+        <span style="${CSS.badge}">v${version}</span>
       </div>
       <button id="dw-min-btn" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px;">
         <svg width="12" height="2" viewBox="0 0 12 2" fill="currentColor"><rect width="12" height="2" rx="1"/></svg>
