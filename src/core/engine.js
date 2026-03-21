@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.6.0-LOCATION-STUCK';
+export const VERSION = '5.7.0-PANIC-MODE';
 
 export const defaultConfig = {
   pace: 2000,
@@ -35,6 +35,7 @@ export function createEngine(config = {}) {
   let steps = 0;
   let intervalId = null;
   let lastUrl = null;
+  let lastUrlYaw = null;
   let stuckCount = 0;
   let isUserMouseDown = false;
   let poly = [];
@@ -191,10 +192,11 @@ export function createEngine(config = {}) {
       stuckCount = 0;
     }
 
-    // 2. Sync orientation with URL ONLY if location changed or we just started
-    // This prevents syncing from stale URL yaw while stuck and turning
-    if (currentYaw !== null && (currentLocation !== previousLocation || lastUrl === null)) {
+    // 2. Sync orientation with URL ONLY if it changed since last heartbeat
+    // Use 1 degree threshold to ignore minor floating point jitter
+    if (currentYaw !== null && (lastUrlYaw === null || Math.abs(currentYaw - lastUrlYaw) > 1.0)) {
       wheel.setOrientation(currentYaw);
+      lastUrlYaw = currentYaw;
     }
 
     // 3. Report heartbeat to console
@@ -234,6 +236,7 @@ export function createEngine(config = {}) {
 
     // 6. Action: Turn (Independent)
     if (decision.turn) {
+      console.log(`🔄 Decision: Turn Left ${decision.angle}°`);
       wheel.turnLeft(decision.angle || 60);
       cumulativeTurnAngle += decision.angle || 60;
     }

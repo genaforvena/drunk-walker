@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.6.0-LOCATION-STUCK - BUNDLED BOOKMARKLET
+// Drunk Walker v5.7.0-PANIC-MODE - BUNDLED BOOKMARKLET
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -315,6 +315,14 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
+    // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
+    // ═══════════════════════════════════════════════════════════
+    if (stuckCount >= panicThreshold) {
+      console.log(`🚨 PANIC! Stuck for ${stuckCount} heartbeats. Mandatory Turn.`);
+      return { turn: true, angle: 60 };
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // FORWARD MODE: At node with untried yaws - try them
     // ═══════════════════════════════════════════════════════════
     if (currentNode.hasUntriedYaws()) {
@@ -330,20 +338,6 @@ function createUnifiedAlgorithm(cfg) {
           return { turn: false };
         }
       }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // STUCK >= panicThreshold: Systematic search (blocked, need to turn)
-    // ═══════════════════════════════════════════════════════════
-    if (stuckCount >= panicThreshold) {
-      let searchIncrement = 60;
-      if (stuckCount >= 15) searchIncrement = 30;
-
-      lastSearchAngle = (lastSearchAngle + searchIncrement) % 360;
-      if (lastSearchAngle === 0) lastSearchAngle = searchIncrement;
-
-      console.log(`🔒 Panic Turn: ${lastSearchAngle}° (stuck ${stuckCount})`);
-      return { turn: true, angle: lastSearchAngle };
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -426,7 +420,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.6.0-LOCATION-STUCK';
+const VERSION = '5.7.0-PANIC-MODE';
 
 const defaultConfig = {
   pace: 2000,
@@ -447,6 +441,7 @@ function createEngine(config = {}) {
   let steps = 0;
   let intervalId = null;
   let lastUrl = null;
+  let lastUrlYaw = null;
   let stuckCount = 0;
   let isUserMouseDown = false;
   let poly = [];
@@ -603,10 +598,11 @@ function createEngine(config = {}) {
       stuckCount = 0;
     }
 
-    // 2. Sync orientation with URL ONLY if location changed or we just started
-    // This prevents syncing from stale URL yaw while stuck and turning
-    if (currentYaw !== null && (currentLocation !== previousLocation || lastUrl === null)) {
+    // 2. Sync orientation with URL ONLY if it changed since last heartbeat
+    // Use 1 degree threshold to ignore minor floating point jitter
+    if (currentYaw !== null && (lastUrlYaw === null || Math.abs(currentYaw - lastUrlYaw) > 1.0)) {
       wheel.setOrientation(currentYaw);
+      lastUrlYaw = currentYaw;
     }
 
     // 3. Report heartbeat to console
@@ -646,6 +642,7 @@ function createEngine(config = {}) {
 
     // 6. Action: Turn (Independent)
     if (decision.turn) {
+      console.log(`🔄 Decision: Turn Left ${decision.angle}°`);
       wheel.turnLeft(decision.angle || 60);
       cumulativeTurnAngle += decision.angle || 60;
     }

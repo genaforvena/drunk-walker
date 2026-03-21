@@ -255,6 +255,14 @@ export function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
+    // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
+    // ═══════════════════════════════════════════════════════════
+    if (stuckCount >= panicThreshold) {
+      console.log(`🚨 PANIC! Stuck for ${stuckCount} heartbeats. Mandatory Turn.`);
+      return { turn: true, angle: 60 };
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // FORWARD MODE: At node with untried yaws - try them
     // ═══════════════════════════════════════════════════════════
     if (currentNode.hasUntriedYaws()) {
@@ -270,20 +278,6 @@ export function createUnifiedAlgorithm(cfg) {
           return { turn: false };
         }
       }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // STUCK >= panicThreshold: Systematic search (blocked, need to turn)
-    // ═══════════════════════════════════════════════════════════
-    if (stuckCount >= panicThreshold) {
-      let searchIncrement = 60;
-      if (stuckCount >= 15) searchIncrement = 30;
-      
-      lastSearchAngle = (lastSearchAngle + searchIncrement) % 360;
-      if (lastSearchAngle === 0) lastSearchAngle = searchIncrement;
-      
-      console.log(`🔒 Panic Turn: ${lastSearchAngle}° (stuck ${stuckCount})`);
-      return { turn: true, angle: lastSearchAngle };
     }
 
     // ═══════════════════════════════════════════════════════════
