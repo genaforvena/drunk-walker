@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v6.0.0-CYBERPUNK - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T09:21:19.244Z
+// Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
+// Built: 2026-03-21T09:24:26.685Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -11,7 +11,7 @@ void function initDrunkWalker(){
   // Main entry point handles restart logic now
   
   // === VERSION ===
-  const VERSION = '6.0.0-CYBERPUNK';
+  const VERSION = '6.1.0-SMART-PANIC';
 
   // === WHEEL ===
   /**
@@ -197,7 +197,8 @@ class EnhancedTransitionGraph {
   }
 
   recordFailedAttempt(location, yaw, step) {
-    const node = this.getOrCreate(location, parseFloat(location.split(',')[0]), parseFloat(location.split(',')[1]), step);
+    const parts = location.split(',');
+    const node = this.getOrCreate(location, parseFloat(parts[0]), parseFloat(parts[1]), step);
     node.recordAttempt(yaw, false, null);
   }
 
@@ -318,8 +319,14 @@ function createUnifiedAlgorithm(cfg) {
     // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
     // ═══════════════════════════════════════════════════════════
     if (stuckCount >= panicThreshold) {
-      console.log(`🚨 PANIC! Stuck for ${stuckCount} heartbeats. Mandatory Turn.`);
-      return { turn: true, angle: 60 };
+      const nextYaw = currentNode.getNextUntriedYaw();
+      if (nextYaw !== null) {
+        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying next yaw ${nextYaw}°`);
+        return { turn: true, angle: getLeftTurnAngle(orientation, nextYaw) };
+      } else {
+        console.log(`🚨 PANIC! Node exhausted. Random escape.`);
+        return { turn: true, angle: 60 + (Math.random() * 60) };
+      }
     }
 
     // ═══════════════════════════════════════════════════════════

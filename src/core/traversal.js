@@ -137,7 +137,8 @@ class EnhancedTransitionGraph {
   }
   
   recordFailedAttempt(location, yaw, step) {
-    const node = this.getOrCreate(location, parseFloat(location.split(',')[0]), parseFloat(location.split(',')[1]), step);
+    const parts = location.split(',');
+    const node = this.getOrCreate(location, parseFloat(parts[0]), parseFloat(parts[1]), step);
     node.recordAttempt(yaw, false, null);
   }
   
@@ -258,8 +259,14 @@ export function createUnifiedAlgorithm(cfg) {
     // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
     // ═══════════════════════════════════════════════════════════
     if (stuckCount >= panicThreshold) {
-      console.log(`🚨 PANIC! Stuck for ${stuckCount} heartbeats. Mandatory Turn.`);
-      return { turn: true, angle: 60 };
+      const nextYaw = currentNode.getNextUntriedYaw();
+      if (nextYaw !== null) {
+        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying next yaw ${nextYaw}°`);
+        return { turn: true, angle: getLeftTurnAngle(orientation, nextYaw) };
+      } else {
+        console.log(`🚨 PANIC! Node exhausted. Random escape.`);
+        return { turn: true, angle: 60 + (Math.random() * 60) };
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
