@@ -53,6 +53,7 @@ export function createEngine(config = {}) {
   // Track previous location for movement recording
   let previousLocation = null;
   let previousYaw = null;
+  let lastDifferentLocation = null;  // Track last location that was different from current
 
   // Turn state - prevent oscillation
   let isTurning = false;  // True while executing a turn
@@ -214,6 +215,10 @@ export function createEngine(config = {}) {
       console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown`);
       stuckCount = 0;
       ticksSinceTurn = TURNS_COOLDOWN_TICKS;  // Reset cooldown - we moved successfully
+      // Track that we just arrived at a different location
+      if (currentLocation !== lastDifferentLocation) {
+        lastDifferentLocation = currentLocation;
+      }
     }
 
     // 2. Sync orientation with URL ONLY if it changed since last heartbeat
@@ -253,12 +258,15 @@ export function createEngine(config = {}) {
     const nodeVisitCount = visitedUrls.get(currentLocation) || 0;
     const isNewNode = nodeVisitCount === 0;
     const isStationary = currentLocation && previousLocation && currentLocation === previousLocation;
+    
+    // Track if we just arrived at this location (first tick after movement)
+    const justArrived = currentLocation && previousLocation && currentLocation !== previousLocation;
 
     // Get node info from graph to check if fully scanned
     const nodeInfo = currentLocation ? algorithm.enhancedGraph.get(currentLocation) : null;
     const isFullyScanned = nodeInfo ? nodeInfo.triedYaws.size >= 6 : false;
 
-    console.log(`[DEBUG] isStationary=${isStationary}, isNewNode=${isNewNode}, nodeVisitCount=${nodeVisitCount}, isFullyScanned=${isFullyScanned}, isTurning=${isTurning}, awaitingStepResult=${awaitingStepResult}`);
+    console.log(`[DEBUG] isStationary=${isStationary}, isNewNode=${isNewNode}, justArrived=${justArrived}, nodeVisitCount=${nodeVisitCount}, isFullyScanned=${isFullyScanned}`);
 
     // Check step result from previous turn+step attempt
     if (awaitingStepResult) {
@@ -274,13 +282,13 @@ export function createEngine(config = {}) {
 
     // Make turn decisions when:
     // 1. Stationary at a node (not mid-movement) - normal case
-    // 2. Just arrived at NEW node - allow yaw correction before continuing
+    // 2. Just arrived at ANY node (new or visited) - allow yaw correction
     // But NOT when:
     // - Already turning
     // - Waiting for step result
     // - Turn cooldown active
     const shouldMakeDecision = !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS &&
-      (isStationary || isNewNode);
+      (isStationary || justArrived);
 
     if (shouldMakeDecision) {
       const context = {
@@ -292,7 +300,8 @@ export function createEngine(config = {}) {
         stuckCount,
         orientation: wheel.getOrientation(),
         isNewNode,
-        isFullyScanned
+        isFullyScanned,
+        justArrived
       };
 
       console.log(`[DEBUG] ticksSinceTurn=${ticksSinceTurn}, calling algorithm.decide()...`);

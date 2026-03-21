@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T16:56:03.542Z
+// Built: 2026-03-21T17:11:13.258Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -329,11 +329,11 @@ function createUnifiedAlgorithm(cfg) {
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, previousLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned } = context;
+    const { stuckCount, currentLocation, previousLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned, justArrived } = context;
 
     console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
     console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
-    console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}`);
+    console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}, justArrived=${justArrived}`);
 
     if (!preferredYaw) preferredYaw = orientation;
     if (!currentLocation) {
@@ -354,16 +354,17 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🧭 YAW CORRECTION: Auto-correct drift using path history
     // ═══════════════════════════════════════════════════════════
-    // For NEW nodes: use last movement (previous → current)
-    // For VISITED nodes: use path history (last 3-5 steps)
+    // For ALL nodes: use last movement (previous → current)
+    // This corrects drift based on actual direction of travel
     let pathYaw = null;
-    if (isNewNode && previousLocation) {
-      // New node: calculate yaw from the movement that brought us here
+    if (previousLocation && previousLocation !== currentLocation) {
+      // Calculate yaw from the movement that brought us here
       pathYaw = calculateYawFromLastMove(previousLocation, currentLocation);
-      console.log(`[DEBUG] YAW CORRECTION (new node): pathYaw from last move = ${pathYaw}°`);
-    } else {
-      // Visited node: use path history
+      console.log(`[DEBUG] YAW CORRECTION: pathYaw from last move = ${pathYaw}° (prev=${previousLocation} → curr=${currentLocation})`);
+    } else if (breadcrumbs.length >= 3) {
+      // Fallback: use path history if no previousLocation available
       pathYaw = calculateYawFromPath(breadcrumbs, currentLocation, 3);
+      console.log(`[DEBUG] YAW CORRECTION: pathYaw from breadcrumbs = ${pathYaw}°`);
     }
 
     const hasCorrectedHere = yawCorrectedNodes.has(currentLocation);
@@ -374,7 +375,7 @@ function createUnifiedAlgorithm(cfg) {
       // Only correct if drift is significant (>10°)
       if (orientationDiff > 10 && orientationDiff < 170) {
         yawCorrectedNodes.add(currentLocation);
-        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation} ${isNewNode ? '(NEW)' : ''}`);
+        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation} ${isNewNode ? '(NEW)' : '(VISITED)'}`);
 
         // Return turn to correct yaw
         const turnAngle = getLeftTurnAngle(orientation, pathYaw);
@@ -704,6 +705,7 @@ function createEngine(config = {}) {
   // Track previous location for movement recording
   let previousLocation = null;
   let previousYaw = null;
+  let lastDifferentLocation = null;  // Track last location that was different from current
 
   // Turn state - prevent oscillation
   let isTurning = false;  // True while executing a turn
@@ -865,6 +867,10 @@ function createEngine(config = {}) {
       console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown`);
       stuckCount = 0;
       ticksSinceTurn = TURNS_COOLDOWN_TICKS;  // Reset cooldown - we moved successfully
+      // Track that we just arrived at a different location
+      if (currentLocation !== lastDifferentLocation) {
+        lastDifferentLocation = currentLocation;
+      }
     }
 
     // 2. Sync orientation with URL ONLY if it changed since last heartbeat
@@ -905,11 +911,14 @@ function createEngine(config = {}) {
     const isNewNode = nodeVisitCount === 0;
     const isStationary = currentLocation && previousLocation && currentLocation === previousLocation;
 
+    // Track if we just arrived at this location (first tick after movement)
+    const justArrived = currentLocation && previousLocation && currentLocation !== previousLocation;
+
     // Get node info from graph to check if fully scanned
     const nodeInfo = currentLocation ? algorithm.enhancedGraph.get(currentLocation) : null;
     const isFullyScanned = nodeInfo ? nodeInfo.triedYaws.size >= 6 : false;
 
-    console.log(`[DEBUG] isStationary=${isStationary}, isNewNode=${isNewNode}, nodeVisitCount=${nodeVisitCount}, isFullyScanned=${isFullyScanned}, isTurning=${isTurning}, awaitingStepResult=${awaitingStepResult}`);
+    console.log(`[DEBUG] isStationary=${isStationary}, isNewNode=${isNewNode}, justArrived=${justArrived}, nodeVisitCount=${nodeVisitCount}, isFullyScanned=${isFullyScanned}`);
 
     // Check step result from previous turn+step attempt
     if (awaitingStepResult) {
@@ -925,13 +934,13 @@ function createEngine(config = {}) {
 
     // Make turn decisions when:
     // 1. Stationary at a node (not mid-movement) - normal case
-    // 2. Just arrived at NEW node - allow yaw correction before continuing
+    // 2. Just arrived at ANY node (new or visited) - allow yaw correction
     // But NOT when:
     // - Already turning
     // - Waiting for step result
     // - Turn cooldown active
     const shouldMakeDecision = !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS &&
-      (isStationary || isNewNode);
+      (isStationary || justArrived);
 
     if (shouldMakeDecision) {
       const context = {
@@ -943,7 +952,8 @@ function createEngine(config = {}) {
         stuckCount,
         orientation: wheel.getOrientation(),
         isNewNode,
-        isFullyScanned
+        isFullyScanned,
+        justArrived
       };
 
       console.log(`[DEBUG] ticksSinceTurn=${ticksSinceTurn}, calling algorithm.decide()...`);

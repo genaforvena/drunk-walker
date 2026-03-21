@@ -269,11 +269,11 @@ export function createUnifiedAlgorithm(cfg) {
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, previousLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned } = context;
+    const { stuckCount, currentLocation, previousLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned, justArrived } = context;
 
     console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
     console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
-    console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}`);
+    console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}, justArrived=${justArrived}`);
 
     if (!preferredYaw) preferredYaw = orientation;
     if (!currentLocation) {
@@ -294,16 +294,17 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🧭 YAW CORRECTION: Auto-correct drift using path history
     // ═══════════════════════════════════════════════════════════
-    // For NEW nodes: use last movement (previous → current)
-    // For VISITED nodes: use path history (last 3-5 steps)
+    // For ALL nodes: use last movement (previous → current)
+    // This corrects drift based on actual direction of travel
     let pathYaw = null;
-    if (isNewNode && previousLocation) {
-      // New node: calculate yaw from the movement that brought us here
+    if (previousLocation && previousLocation !== currentLocation) {
+      // Calculate yaw from the movement that brought us here
       pathYaw = calculateYawFromLastMove(previousLocation, currentLocation);
-      console.log(`[DEBUG] YAW CORRECTION (new node): pathYaw from last move = ${pathYaw}°`);
-    } else {
-      // Visited node: use path history
+      console.log(`[DEBUG] YAW CORRECTION: pathYaw from last move = ${pathYaw}° (prev=${previousLocation} → curr=${currentLocation})`);
+    } else if (breadcrumbs.length >= 3) {
+      // Fallback: use path history if no previousLocation available
       pathYaw = calculateYawFromPath(breadcrumbs, currentLocation, 3);
+      console.log(`[DEBUG] YAW CORRECTION: pathYaw from breadcrumbs = ${pathYaw}°`);
     }
     
     const hasCorrectedHere = yawCorrectedNodes.has(currentLocation);
@@ -314,7 +315,7 @@ export function createUnifiedAlgorithm(cfg) {
       // Only correct if drift is significant (>10°)
       if (orientationDiff > 10 && orientationDiff < 170) {
         yawCorrectedNodes.add(currentLocation);
-        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation} ${isNewNode ? '(NEW)' : ''}`);
+        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation} ${isNewNode ? '(NEW)' : '(VISITED)'}`);
         
         // Return turn to correct yaw
         const turnAngle = getLeftTurnAngle(orientation, pathYaw);
