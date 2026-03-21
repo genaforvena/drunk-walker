@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T15:46:00.084Z
+// Built: 2026-03-21T15:54:36.259Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -1476,12 +1476,12 @@ function createExplorationMap() {
   // === UI CONTROLLER ===
   /**
  * UI Controller - Compact Draggable Panel
- * v6.4.0-DRAGGABLE
+ * v6.5.0-DRAGGABLE-WHOLE
  */
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '6.4.0',
+    version = '6.5.0',
     autoStart = true,
     onPathCollectionToggle = null
   } = options;
@@ -1495,134 +1495,43 @@ function createControlPanel(engine, options = {}) {
   // Session logs storage
   const sessionLogs = [];
 
-  const CSS = {
-    panel: `
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      width: 120px;
-      padding: 10px;
-      background: rgba(18, 18, 20, 0.95);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      z-index: 1000000;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      user-select: none;
-    `,
-    header: `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 4px;
-      cursor: grab;
-    `,
-    statRow: `
-      display: flex;
-      gap: 4px;
-    `,
-    statBox: `
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 4px 6px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 5px;
-      flex: 1;
-    `,
-    statLabel: `
-      font-size: 7px;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-    `,
-    statValue: `
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-    `,
-    actionBtn: `
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      padding: 6px 8px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      color: #f0f0f0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-transform: uppercase;
-    `,
-    btnRow: `
-      display: flex;
-      gap: 4px;
-    `,
-    iconBtn: `
-      padding: 5px 8px;
-      font-size: 13px;
-      flex: 1;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      color: #f0f0f0;
-      cursor: pointer;
-      transition: all 0.2s;
-    `,
-    slider: `
-      width: 100%;
-      -webkit-appearance: none;
-      height: 4px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 2px;
-      outline: none;
-    `,
-    paceLabel: `
-      font-size: 8px;
-      color: rgba(255,255,255,0.5);
-      text-align: center;
-    `
-  };
-
-  const makeDraggable = (element, handle) => {
+  const makeDraggable = (element) => {
     let isDragging = false;
     let startX, startY, initialLeft, initialTop;
 
-    handle.addEventListener('mousedown', (e) => {
+    element.addEventListener('mousedown', (e) => {
+      // Ignore clicks on buttons, inputs, and links
+      if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('input')) {
+        return;
+      }
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
       const rect = element.getBoundingClientRect();
       initialLeft = rect.left;
       initialTop = rect.top;
-      handle.style.cursor = 'grabbing';
+      element.style.cursor = 'grabbing';
       element.style.transition = 'none';
+      element.style.userSelect = 'none';
     });
 
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
+      e.preventDefault();
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       element.style.left = `${initialLeft + dx}px`;
       element.style.top = `${initialTop + dy}px`;
       element.style.bottom = 'auto';
+      element.style.right = 'auto';
     });
 
     document.addEventListener('mouseup', () => {
       if (isDragging) {
         isDragging = false;
-        handle.style.cursor = 'grab';
+        element.style.cursor = 'grab';
         element.style.transition = '';
+        element.style.userSelect = '';
       }
     });
   };
@@ -1632,28 +1541,57 @@ function createControlPanel(engine, options = {}) {
 
     container = document.createElement('div');
     container.className = 'dw-float-ui';
-    container.style.cssText = CSS.panel;
-
-    // Header with drag handle
-    const header = document.createElement('div');
-    header.style.cssText = CSS.header;
-    header.innerHTML = `
-      <span style="font-size: 10px; color: rgba(255,255,255,0.6);">🟣 DW</span>
-      <span style="font-size: 9px; color: rgba(255,255,255,0.3);">⋮⋮</span>
+    container.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 130px;
+      padding: 12px;
+      background: rgba(18, 18, 20, 0.95);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      z-index: 1000000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
     `;
-    container.appendChild(header);
 
     // Stats row
     const statRow = document.createElement('div');
-    statRow.style.cssText = CSS.statRow;
+    statRow.style.cssText = `
+      display: flex;
+      gap: 6px;
+    `;
     statRow.innerHTML = `
-      <div style="${CSS.statBox}">
-        <span style="${CSS.statLabel}">Steps</span>
-        <span id="dw-steps" style="${CSS.statValue}">0</span>
+      <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 6px 8px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 8px;
+        flex: 1;
+      ">
+        <span style="font-size: 7px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px;">Steps</span>
+        <span id="dw-steps" style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">0</span>
       </div>
-      <div style="${CSS.statBox}">
-        <span style="${CSS.statLabel}">Visited</span>
-        <span id="dw-visited" style="${CSS.statValue}">0</span>
+      <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 6px 8px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 8px;
+        flex: 1;
+      ">
+        <span style="font-size: 7px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px;">Visited</span>
+        <span id="dw-visited" style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">0</span>
       </div>
     `;
     container.appendChild(statRow);
@@ -1662,15 +1600,38 @@ function createControlPanel(engine, options = {}) {
 
     // START/STOP button
     startStopBtn = document.createElement('button');
-    startStopBtn.style.cssText = CSS.actionBtn;
+    startStopBtn.style.cssText = `
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: #f0f0f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    `;
     startStopBtn.innerHTML = '<span>▶</span> START';
     startStopBtn.onmouseover = () => {
-      startStopBtn.style.background = 'rgba(255,255,255,0.1)';
+      if (!engine.isNavigating()) {
+        startStopBtn.style.background = 'rgba(255,255,255,0.12)';
+      }
     };
     startStopBtn.onmouseout = () => {
-      startStopBtn.style.background = 'rgba(255,255,255,0.05)';
+      if (!engine.isNavigating()) {
+        startStopBtn.style.background = 'rgba(255,255,255,0.08)';
+      }
     };
-    startStopBtn.onclick = () => {
+    startStopBtn.onclick = (e) => {
+      e.stopPropagation();
       if (engine.isNavigating()) engine.stop();
       else engine.start();
       updateStartStopBtn();
@@ -1679,34 +1640,99 @@ function createControlPanel(engine, options = {}) {
 
     // Save Path / Save Logs row
     const saveRow = document.createElement('div');
-    saveRow.style.cssText = CSS.btnRow;
+    saveRow.style.cssText = `
+      display: flex;
+      gap: 6px;
+    `;
     saveRow.innerHTML = `
-      <button id="dw-save-path" style="${CSS.iconBtn}" title="Save Path">💾 Path</button>
-      <button id="dw-save-logs" style="${CSS.iconBtn}" title="Save Logs">📄 Logs</button>
+      <button id="dw-save-path" style="
+        flex: 1;
+        padding: 6px 10px;
+        font-size: 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 7px;
+        color: #f0f0f0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      ">💾 Path</button>
+      <button id="dw-save-logs" style="
+        flex: 1;
+        padding: 6px 10px;
+        font-size: 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 7px;
+        color: #f0f0f0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      ">📄 Logs</button>
     `;
     container.appendChild(saveRow);
-    saveRow.querySelector('#dw-save-path').onclick = exportPath;
-    saveRow.querySelector('#dw-save-logs').onclick = exportLogs;
+    saveRow.querySelector('#dw-save-path').onclick = (e) => { e.stopPropagation(); exportPath(); };
+    saveRow.querySelector('#dw-save-logs').onclick = (e) => { e.stopPropagation(); exportLogs(); };
 
     // Pace control
     const paceRow = document.createElement('div');
-    paceRow.style.cssText = `display: flex; flex-direction: column; gap: 3px;`;
-    paceRow.innerHTML = `
-      <span style="${CSS.paceLabel}">Pace: <span id="dw-pace-val">${(engine.getConfig().pace / 1000).toFixed(1)}s</span></span>
-      <input type="range" min="500" max="5000" step="100" value="${engine.getConfig().pace}" style="${CSS.slider}" />
+    paceRow.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.08);
     `;
+    paceRow.innerHTML = `
+      <span style="font-size: 8px; color: rgba(255,255,255,0.5); text-align: center;">Pace: <span id="dw-pace-val">${(engine.getConfig().pace / 1000).toFixed(1)}s</span></span>
+      <input type="range" min="500" max="5000" step="100" value="${engine.getConfig().pace}" style="
+        width: 100%;
+        -webkit-appearance: none;
+        height: 4px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+      " />
+    `;
+
+    // Style the slider thumb
+    const sliderStyle = document.createElement('style');
+    sliderStyle.textContent = `
+      .dw-float-ui input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: rgba(255,255,255,0.8);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      .dw-float-ui input[type=range]::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        background: rgba(255,255,255,0.8);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+    `;
+    container.appendChild(sliderStyle);
+
     container.appendChild(paceRow);
     const paceSlider = paceRow.querySelector('input');
     paceValEl = paceRow.querySelector('#dw-pace-val');
-    paceSlider.oninput = () => {
+    paceSlider.oninput = (e) => {
+      e.stopPropagation();
       paceValEl.innerText = (paceSlider.value / 1000).toFixed(1) + 's';
       engine.setPace(parseInt(paceSlider.value));
     };
 
     document.body.appendChild(container);
 
-    // Make draggable
-    makeDraggable(container, header);
+    // Make entire panel draggable
+    makeDraggable(container);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
     engine.setSelfAvoiding(true);
@@ -1716,14 +1742,14 @@ function createControlPanel(engine, options = {}) {
     if (!startStopBtn) return;
     if (engine.isNavigating()) {
       startStopBtn.innerHTML = '<span>⏹</span> STOP';
-      startStopBtn.style.background = 'rgba(255, 80, 80, 0.2)';
+      startStopBtn.style.background = 'rgba(255, 80, 80, 0.25)';
       startStopBtn.style.color = '#ff6b6b';
-      startStopBtn.style.borderColor = 'rgba(255, 80, 80, 0.3)';
+      startStopBtn.style.borderColor = 'rgba(255, 80, 80, 0.4)';
     } else {
       startStopBtn.innerHTML = '<span>▶</span> START';
-      startStopBtn.style.background = 'rgba(255,255,255,0.05)';
+      startStopBtn.style.background = 'rgba(255,255,255,0.08)';
       startStopBtn.style.color = '#f0f0f0';
-      startStopBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+      startStopBtn.style.borderColor = 'rgba(255,255,255,0.12)';
     }
   };
 
@@ -1765,7 +1791,7 @@ function createControlPanel(engine, options = {}) {
       createUI();
       updateStartStopBtn();
       if (autoStart) engine.start();
-      console.log('🟣 UI Initialized (Draggable)');
+      console.log('🟣 UI Initialized (Draggable Panel)');
       return { destroy };
     } catch (e) {
       console.error('UI Init Failed:', e);
