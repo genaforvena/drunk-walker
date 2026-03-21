@@ -14,12 +14,12 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.4.3-HEARTBEAT-FIX';
+export const VERSION = '5.5.0-DECOUPLED-HEARTBEAT';
 
 export const defaultConfig = {
   pace: 2000,
   kbOn: true,
-  panicThreshold: 10,
+  panicThreshold: 3,
   radius: 50,
   targetX: 0.4,
   targetY: 0.8,
@@ -39,7 +39,6 @@ export function createEngine(config = {}) {
   let isUserMouseDown = false;
   let poly = [];
   let isDrawing = false;
-  let isBusy = false;
 
   // Path collection
   let walkPath = [];
@@ -178,28 +177,30 @@ export function createEngine(config = {}) {
   };
 
   const tick = () => {
-    if (isUserMouseDown || isDrawing || isBusy || status !== 'WALKING') return;
+    if (isUserMouseDown || isDrawing || status !== 'WALKING') return;
 
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
-    // 1. Stuck detection (Has location changed since last heartbeat?)
-    if (currentLocation && previousLocation && currentLocation === previousLocation) {
+    // 1. Stuck detection (URL based heartbeat)
+    if (lastUrl !== null && currentUrl === lastUrl) {
       stuckCount++;
-    } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
+    } else {
       stuckCount = 0;
     }
-    
-    // 2. Always sync orientation with URL to prevent internal drift
+
+    // 2. Report heartbeat to console
+    console.log(`💓 HEARTBEAT ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
+
+    // 3. Sync orientation with URL
     if (currentYaw !== null) {
       wheel.setOrientation(currentYaw);
     }
 
-    // 3. Record what happened since last tick in the graph
+    // 4. Record result of PREVIOUS heartbeat in the graph
     if (previousLocation && algorithm.enhancedGraph) {
       if (currentLocation && currentLocation !== previousLocation) {
-        // Successfully moved to a new bubble
         algorithm.enhancedGraph.recordMovement(
           previousLocation,
           currentLocation,
@@ -207,8 +208,7 @@ export function createEngine(config = {}) {
           currentYaw || wheel.getOrientation(),
           steps
         );
-      } else if (currentLocation === previousLocation && lastUrl !== null) {
-        // Failed to move - this is CRITICAL for triedYaws tracking
+      } else if (lastUrl !== null && currentUrl === lastUrl) {
         algorithm.enhancedGraph.recordFailedAttempt(
           previousLocation,
           previousYaw !== null ? previousYaw : wheel.getOrientation(),
@@ -217,7 +217,7 @@ export function createEngine(config = {}) {
       }
     }
 
-    // 4. Prepare context for decision
+    // 5. Decision time
     const context = {
       url: currentUrl,
       location: currentLocation,
@@ -229,43 +229,30 @@ export function createEngine(config = {}) {
 
     const decision = algorithm.decide(context);
 
-    // 5. The Heartbeat Action (Turn? then always Step)
-    isBusy = true;
-    
-    const performStep = () => {
-      // Always perform the step (ArrowUp)
-      previousLocation = currentLocation;
-      previousYaw = wheel.getOrientation();
-      lastUrl = currentUrl; // Store the URL BEFORE the step
-
-      if (cfg.kbOn) {
-        if (onKeyPress) onKeyPress('ArrowUp');
-      } else {
-        const target = calculateClickTarget();
-        if (onMouseClick) onMouseClick(target.x, target.y);
-      }
-
-      steps++;
-      recordStep();
-      isBusy = false;
-    };
-
+    // 6. Action: Turn (Independent)
     if (decision.turn) {
-      console.log(`🔄 Heartbeat: Turning ${decision.angle}° then Stepping`);
-      wheel.turnLeft(decision.angle || 60, () => {
-        cumulativeTurnAngle += decision.angle || 60;
-        performStep();
-      });
-    } else {
-      performStep();
+      wheel.turnLeft(decision.angle || 60);
+      cumulativeTurnAngle += decision.angle || 60;
     }
 
-    // Update status EVERY tick (live numbers)
+    // 7. Action: Always Step (The Heartbeat)
+    previousLocation = currentLocation;
+    previousYaw = wheel.getOrientation(); 
+    lastUrl = currentUrl; 
+
+    if (cfg.kbOn) {
+      if (onKeyPress) onKeyPress('ArrowUp');
+    } else {
+      const target = calculateClickTarget();
+      if (onMouseClick) onMouseClick(target.x, target.y);
+    }
+
+    steps++;
+    recordStep();
+
     if (onStatusUpdate) {
       onStatusUpdate(status, steps, stuckCount);
     }
-
-    console.log(`url=${currentUrl}, yaw=${Math.round(wheel.getOrientation())}, stuck=${stuckCount}`);
   };
 
   const start = () => {

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.4.3-HEARTBEAT-FIX - BUNDLED BOOKMARKLET
+// Drunk Walker v5.5.0-DECOUPLED-HEARTBEAT - BUNDLED BOOKMARKLET
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -25,6 +25,8 @@ function createWheel(callbacks) {
     orientation = normalizeAngle(newOrientation);
   };
   const turnLeft = (angle, callback) => {
+    // Update orientation IMMEDIATELY (intent-based)
+    orientation = normalizeAngle(orientation - angle);
     // Convert angle to duration (10ms per degree as per existing code)
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
@@ -32,7 +34,6 @@ function createWheel(callbacks) {
     const safeCallback = () => {
       if (callbackCalled) return;
       callbackCalled = true;
-      orientation = normalizeAngle(orientation - angle);
       if (callback) callback();
     };
     if (callbacks.onLongKeyPress) {
@@ -430,7 +431,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.4.3-HEARTBEAT-FIX';
+const VERSION = '5.5.0-DECOUPLED-HEARTBEAT';
 
 const defaultConfig = {
   pace: 2000,
@@ -455,7 +456,6 @@ function createEngine(config = {}) {
   let isUserMouseDown = false;
   let poly = [];
   let isDrawing = false;
-  let isBusy = false;
 
   // Path collection
   let walkPath = [];
@@ -594,7 +594,7 @@ function createEngine(config = {}) {
   };
 
   const tick = () => {
-    if (isUserMouseDown || isDrawing || isBusy || status !== 'WALKING') return;
+    if (isUserMouseDown || isDrawing || status !== 'WALKING') return;
 
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
@@ -608,17 +608,16 @@ function createEngine(config = {}) {
     }
 
     // 2. Report heartbeat to console
-    console.log(`💓 TICK ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
+    console.log(`💓 HEARTBEAT ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
 
     // 3. Sync orientation with URL
     if (currentYaw !== null) {
       wheel.setOrientation(currentYaw);
     }
 
-    // 3. Record what happened since last tick in the graph
+    // 4. Record result of PREVIOUS heartbeat in the graph
     if (previousLocation && algorithm.enhancedGraph) {
       if (currentLocation && currentLocation !== previousLocation) {
-        // Successfully moved to a new bubble
         algorithm.enhancedGraph.recordMovement(
           previousLocation,
           currentLocation,
@@ -626,8 +625,7 @@ function createEngine(config = {}) {
           currentYaw || wheel.getOrientation(),
           steps
         );
-      } else if (currentLocation === previousLocation && lastUrl !== null) {
-        // Failed to move - this is CRITICAL for triedYaws tracking
+      } else if (lastUrl !== null && currentUrl === lastUrl) {
         algorithm.enhancedGraph.recordFailedAttempt(
           previousLocation,
           previousYaw !== null ? previousYaw : wheel.getOrientation(),
@@ -636,7 +634,7 @@ function createEngine(config = {}) {
       }
     }
 
-    // 4. Prepare context for decision
+    // 5. Decision time
     const context = {
       url: currentUrl,
       location: currentLocation,
@@ -648,43 +646,30 @@ function createEngine(config = {}) {
 
     const decision = algorithm.decide(context);
 
-    // 5. The Heartbeat Action (Turn? then always Step)
-    isBusy = true;
-
-    const performStep = () => {
-      // Always perform the step (ArrowUp)
-      previousLocation = currentLocation;
-      previousYaw = wheel.getOrientation();
-      lastUrl = currentUrl; // Store the URL BEFORE the step
-
-      if (cfg.kbOn) {
-        if (onKeyPress) onKeyPress('ArrowUp');
-      } else {
-        const target = calculateClickTarget();
-        if (onMouseClick) onMouseClick(target.x, target.y);
-      }
-
-      steps++;
-      recordStep();
-      isBusy = false;
-    };
-
+    // 6. Action: Turn (Independent)
     if (decision.turn) {
-      console.log(`🔄 Heartbeat: Turning ${decision.angle}° then Stepping`);
-      wheel.turnLeft(decision.angle || 60, () => {
-        cumulativeTurnAngle += decision.angle || 60;
-        performStep();
-      });
-    } else {
-      performStep();
+      wheel.turnLeft(decision.angle || 60);
+      cumulativeTurnAngle += decision.angle || 60;
     }
 
-    // Update status EVERY tick (live numbers)
+    // 7. Action: Always Step (The Heartbeat)
+    previousLocation = currentLocation;
+    previousYaw = wheel.getOrientation(); 
+    lastUrl = currentUrl; 
+
+    if (cfg.kbOn) {
+      if (onKeyPress) onKeyPress('ArrowUp');
+    } else {
+      const target = calculateClickTarget();
+      if (onMouseClick) onMouseClick(target.x, target.y);
+    }
+
+    steps++;
+    recordStep();
+
     if (onStatusUpdate) {
       onStatusUpdate(status, steps, stuckCount);
     }
-
-    console.log(`url=${currentUrl}, yaw=${Math.round(wheel.getOrientation())}, stuck=${stuckCount}`);
   };
 
   const start = () => {
