@@ -181,17 +181,25 @@ export function createUnifiedAlgorithm(cfg) {
   let lastSearchAngle = 0;
   let navigationTarget = null;  // {location, targetYaw, path}
   let isReturning = false;
-  
+
   const enhancedGraph = new EnhancedTransitionGraph();
-  
+
   const decide = (context) => {
     const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
 
+    console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
+    console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
+
     if (!preferredYaw) preferredYaw = orientation;
-    if (!currentLocation) return { turn: false };
-    
+    if (!currentLocation) {
+      console.log('[DEBUG] No location, returning no turn');
+      return { turn: false };
+    }
+
     const currentParts = currentLocation.split(',').map(Number);
     const currentNode = enhancedGraph.getOrCreate(currentLocation, currentParts[0], currentParts[1]);
+    
+    console.log(`[DEBUG] currentNode.triedYaws=${[...currentNode.triedYaws].join(',')}, hasUntried=${currentNode.hasUntriedYaws()}`);
 
     // ═══════════════════════════════════════════════════════════
     // MODE DETECTION: Are we returning (retracing) or exploring?
@@ -200,12 +208,14 @@ export function createUnifiedAlgorithm(cfg) {
     const lastDifferentIndex = breadcrumbs.findLastIndex(loc => loc !== currentLocation);
     const hasBeenHereBefore = lastDifferentIndex !== -1 && breadcrumbs.slice(0, lastDifferentIndex + 1).includes(currentLocation);
     const isExhausted = !currentNode.hasUntriedYaws();
-    
+
+    console.log(`[DEBUG] hasBeenHereBefore=${hasBeenHereBefore}, isExhausted=${isExhausted}, navigationTarget=${navigationTarget ? 'set' : 'null'}`);
+
     if ((hasBeenHereBefore || isExhausted) && !navigationTarget) {
       // We're retracing! Find nearest crossroad candidate
       isReturning = true;
       const candidate = enhancedGraph.findNearestCrossroadCandidate(currentLocation, breadcrumbs);
-      
+
       if (candidate) {
         const targetYaw = candidate.node.getNextUntriedYaw();
         if (targetYaw !== null) {
@@ -238,14 +248,14 @@ export function createUnifiedAlgorithm(cfg) {
         // Will be caught by smart node exploration on next tick
         return { turn: false };
       }
-      
+
       // Navigate toward target (calculate yaw to target location)
       const targetParts = navigationTarget.location.split(',').map(Number);
       const dLat = targetParts[0] - currentParts[0];
       const dLng = targetParts[1] - currentParts[1];
       let yawToTarget = Math.atan2(dLng, dLat) * 180 / Math.PI;
       if (yawToTarget < 0) yawToTarget += 360;
-      
+
       const diff = yawDifference(orientation, yawToTarget);
       if (diff < 30) {
         return { turn: false };  // Move forward toward target
@@ -258,14 +268,18 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
     // ═══════════════════════════════════════════════════════════
+    console.log(`[DEBUG] Checking PANIC: stuckCount=${stuckCount} >= panicThreshold=${panicThreshold}? ${stuckCount >= panicThreshold}`);
     if (stuckCount >= panicThreshold) {
       const nextYaw = currentNode.getNextUntriedYaw();
+      console.log(`[DEBUG] PANIC MODE: nextYaw=${nextYaw}`);
       if (nextYaw !== null) {
-        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying next yaw ${nextYaw}°`);
-        return { turn: true, angle: getLeftTurnAngle(orientation, nextYaw) };
+        const turnAngle = getLeftTurnAngle(orientation, nextYaw);
+        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Turning to yaw ${nextYaw}° (angle=${Math.round(turnAngle)}°)`);
+        return { turn: true, angle: turnAngle };
       } else {
-        console.log(`🚨 PANIC! Node exhausted. Random escape.`);
-        return { turn: true, angle: 60 + (Math.random() * 60) };
+        const turnAngle = 60 + (Math.random() * 60);
+        console.log(`🚨 PANIC! Node exhausted. Random escape turn ${Math.round(turnAngle)}°`);
+        return { turn: true, angle: turnAngle };
       }
     }
 
@@ -274,14 +288,17 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     if (currentNode.hasUntriedYaws()) {
       const nextYaw = currentNode.getNextUntriedYaw();
+      console.log(`[DEBUG] FORWARD MODE: nextYaw=${nextYaw}, orientation=${Math.round(orientation)}°`);
       if (nextYaw !== null) {
         const diff = yawDifference(orientation, nextYaw);
+        console.log(`[DEBUG] yaw diff=${diff}°`);
         if (diff > 5 && diff < 355) {
           console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           return { turn: true, angle: turnAngle };
         } else {
           // Already pointing close enough, just move forward
+          console.log('[DEBUG] Already facing target yaw, moving forward');
           return { turn: false };
         }
       }
@@ -290,6 +307,7 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // FORWARD MODE: Go straight (no turn)
     // ═══════════════════════════════════════════════════════════
+    console.log('[DEBUG] FORWARD MODE: Going straight (no turn)');
     return { turn: false };
   };
 

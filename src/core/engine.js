@@ -180,22 +180,33 @@ export function createEngine(config = {}) {
   };
 
   const tick = () => {
-    if (isUserMouseDown || isDrawing || status !== 'WALKING') return;
+    console.log(`[DEBUG] tick() START - status=${status}, isUserMouseDown=${isUserMouseDown}, isDrawing=${isDrawing}`);
+    
+    if (isUserMouseDown || isDrawing || status !== 'WALKING') {
+      console.log('[DEBUG] tick() SKIP - conditions not met');
+      return;
+    }
 
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
+    console.log(`[DEBUG] currentUrl=${currentUrl.substring(0, 80)}...`);
+    console.log(`[DEBUG] currentLocation=${currentLocation}, currentYaw=${currentYaw}, previousLocation=${previousLocation}`);
+
     // 1. Stuck detection (Location based heartbeat)
     if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
+      console.log(`[DEBUG] STUCK DETECTED - same location, stuckCount=${stuckCount}`);
     } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
+      console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount`);
       stuckCount = 0;
     }
 
     // 2. Sync orientation with URL ONLY if it changed since last heartbeat
     // Use 1 degree threshold to ignore minor floating point jitter
     if (currentYaw !== null && (lastUrlYaw === null || Math.abs(currentYaw - lastUrlYaw) > 1.0)) {
+      console.log(`[DEBUG] Sync wheel orientation: lastUrlYaw=${lastUrlYaw}, currentYaw=${currentYaw}`);
       wheel.setOrientation(currentYaw);
       lastUrlYaw = currentYaw;
     }
@@ -234,7 +245,9 @@ export function createEngine(config = {}) {
       orientation: wheel.getOrientation()
     };
 
+    console.log('[DEBUG] Calling algorithm.decide()...');
     const decision = algorithm.decide(context);
+    console.log(`[DEBUG] decision=${JSON.stringify(decision)}`);
 
     // 6. Action: Turn (Independent)
     if (decision.turn) {
@@ -242,6 +255,7 @@ export function createEngine(config = {}) {
       // Skip stepping when turning - let the turn complete first
       previousYaw = wheel.getOrientation();
       wheel.turnLeft(decision.angle || 60, () => {
+        console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
         // After turn completes, update state and trigger next tick
         previousLocation = currentLocation;
         previousYaw = wheel.getOrientation();
@@ -260,6 +274,7 @@ export function createEngine(config = {}) {
         }
       });
       cumulativeTurnAngle += decision.angle || 60;
+      console.log('[DEBUG] tick() RETURN EARLY - waiting for turn to complete');
       return; // Exit tick early - don't step until turn completes
     }
 
@@ -281,17 +296,26 @@ export function createEngine(config = {}) {
     if (onStatusUpdate) {
       onStatusUpdate(status, steps, stuckCount);
     }
+    console.log('[DEBUG] tick() END');
   };
 
   const start = () => {
-    if (status === 'WALKING') return;
+    console.log(`[DEBUG] start() called - current status=${status}, intervalId=${intervalId ? 'set' : 'null'}`);
+    if (status === 'WALKING') {
+      console.log('[DEBUG] start() ABORT - already walking');
+      return;
+    }
     status = 'WALKING';
     if (steps === 0) {
       stuckCount = 0;
       lastUrl = null;
     }
-    if (intervalId) clearInterval(intervalId);
+    if (intervalId) {
+      console.log('[DEBUG] start() clearing existing interval');
+      clearInterval(intervalId);
+    }
     intervalId = setInterval(tick, cfg.pace);
+    console.log(`[DEBUG] start() interval set with pace=${cfg.pace}ms`);
     if (onStatusUpdate) onStatusUpdate('WALKING', steps, stuckCount);
   };
 

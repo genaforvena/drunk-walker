@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T10:08:32.040Z
+// Built: 2026-03-21T10:17:36.644Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -247,11 +247,19 @@ function createUnifiedAlgorithm(cfg) {
   const decide = (context) => {
     const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
 
+    console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
+    console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
+
     if (!preferredYaw) preferredYaw = orientation;
-    if (!currentLocation) return { turn: false };
+    if (!currentLocation) {
+      console.log('[DEBUG] No location, returning no turn');
+      return { turn: false };
+    }
 
     const currentParts = currentLocation.split(',').map(Number);
     const currentNode = enhancedGraph.getOrCreate(currentLocation, currentParts[0], currentParts[1]);
+
+    console.log(`[DEBUG] currentNode.triedYaws=${[...currentNode.triedYaws].join(',')}, hasUntried=${currentNode.hasUntriedYaws()}`);
 
     // ═══════════════════════════════════════════════════════════
     // MODE DETECTION: Are we returning (retracing) or exploring?
@@ -260,6 +268,8 @@ function createUnifiedAlgorithm(cfg) {
     const lastDifferentIndex = breadcrumbs.findLastIndex(loc => loc !== currentLocation);
     const hasBeenHereBefore = lastDifferentIndex !== -1 && breadcrumbs.slice(0, lastDifferentIndex + 1).includes(currentLocation);
     const isExhausted = !currentNode.hasUntriedYaws();
+
+    console.log(`[DEBUG] hasBeenHereBefore=${hasBeenHereBefore}, isExhausted=${isExhausted}, navigationTarget=${navigationTarget ? 'set' : 'null'}`);
 
     if ((hasBeenHereBefore || isExhausted) && !navigationTarget) {
       // We're retracing! Find nearest crossroad candidate
@@ -318,14 +328,18 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
     // ═══════════════════════════════════════════════════════════
+    console.log(`[DEBUG] Checking PANIC: stuckCount=${stuckCount} >= panicThreshold=${panicThreshold}? ${stuckCount >= panicThreshold}`);
     if (stuckCount >= panicThreshold) {
       const nextYaw = currentNode.getNextUntriedYaw();
+      console.log(`[DEBUG] PANIC MODE: nextYaw=${nextYaw}`);
       if (nextYaw !== null) {
-        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying next yaw ${nextYaw}°`);
-        return { turn: true, angle: getLeftTurnAngle(orientation, nextYaw) };
+        const turnAngle = getLeftTurnAngle(orientation, nextYaw);
+        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Turning to yaw ${nextYaw}° (angle=${Math.round(turnAngle)}°)`);
+        return { turn: true, angle: turnAngle };
       } else {
-        console.log(`🚨 PANIC! Node exhausted. Random escape.`);
-        return { turn: true, angle: 60 + (Math.random() * 60) };
+        const turnAngle = 60 + (Math.random() * 60);
+        console.log(`🚨 PANIC! Node exhausted. Random escape turn ${Math.round(turnAngle)}°`);
+        return { turn: true, angle: turnAngle };
       }
     }
 
@@ -334,14 +348,17 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     if (currentNode.hasUntriedYaws()) {
       const nextYaw = currentNode.getNextUntriedYaw();
+      console.log(`[DEBUG] FORWARD MODE: nextYaw=${nextYaw}, orientation=${Math.round(orientation)}°`);
       if (nextYaw !== null) {
         const diff = yawDifference(orientation, nextYaw);
+        console.log(`[DEBUG] yaw diff=${diff}°`);
         if (diff > 5 && diff < 355) {
           console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           return { turn: true, angle: turnAngle };
         } else {
           // Already pointing close enough, just move forward
+          console.log('[DEBUG] Already facing target yaw, moving forward');
           return { turn: false };
         }
       }
@@ -350,6 +367,7 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // FORWARD MODE: Go straight (no turn)
     // ═══════════════════════════════════════════════════════════
+    console.log('[DEBUG] FORWARD MODE: Going straight (no turn)');
     return { turn: false };
   };
 
@@ -592,22 +610,33 @@ function createEngine(config = {}) {
   };
 
   const tick = () => {
-    if (isUserMouseDown || isDrawing || status !== 'WALKING') return;
+    console.log(`[DEBUG] tick() START - status=${status}, isUserMouseDown=${isUserMouseDown}, isDrawing=${isDrawing}`);
+
+    if (isUserMouseDown || isDrawing || status !== 'WALKING') {
+      console.log('[DEBUG] tick() SKIP - conditions not met');
+      return;
+    }
 
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
+    console.log(`[DEBUG] currentUrl=${currentUrl.substring(0, 80)}...`);
+    console.log(`[DEBUG] currentLocation=${currentLocation}, currentYaw=${currentYaw}, previousLocation=${previousLocation}`);
+
     // 1. Stuck detection (Location based heartbeat)
     if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
+      console.log(`[DEBUG] STUCK DETECTED - same location, stuckCount=${stuckCount}`);
     } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
+      console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount`);
       stuckCount = 0;
     }
 
     // 2. Sync orientation with URL ONLY if it changed since last heartbeat
     // Use 1 degree threshold to ignore minor floating point jitter
     if (currentYaw !== null && (lastUrlYaw === null || Math.abs(currentYaw - lastUrlYaw) > 1.0)) {
+      console.log(`[DEBUG] Sync wheel orientation: lastUrlYaw=${lastUrlYaw}, currentYaw=${currentYaw}`);
       wheel.setOrientation(currentYaw);
       lastUrlYaw = currentYaw;
     }
@@ -646,7 +675,9 @@ function createEngine(config = {}) {
       orientation: wheel.getOrientation()
     };
 
+    console.log('[DEBUG] Calling algorithm.decide()...');
     const decision = algorithm.decide(context);
+    console.log(`[DEBUG] decision=${JSON.stringify(decision)}`);
 
     // 6. Action: Turn (Independent)
     if (decision.turn) {
@@ -654,6 +685,7 @@ function createEngine(config = {}) {
       // Skip stepping when turning - let the turn complete first
       previousYaw = wheel.getOrientation();
       wheel.turnLeft(decision.angle || 60, () => {
+        console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
         // After turn completes, update state and trigger next tick
         previousLocation = currentLocation;
         previousYaw = wheel.getOrientation();
@@ -672,6 +704,7 @@ function createEngine(config = {}) {
         }
       });
       cumulativeTurnAngle += decision.angle || 60;
+      console.log('[DEBUG] tick() RETURN EARLY - waiting for turn to complete');
       return; // Exit tick early - don't step until turn completes
     }
 
@@ -693,17 +726,26 @@ function createEngine(config = {}) {
     if (onStatusUpdate) {
       onStatusUpdate(status, steps, stuckCount);
     }
+    console.log('[DEBUG] tick() END');
   };
 
   const start = () => {
-    if (status === 'WALKING') return;
+    console.log(`[DEBUG] start() called - current status=${status}, intervalId=${intervalId ? 'set' : 'null'}`);
+    if (status === 'WALKING') {
+      console.log('[DEBUG] start() ABORT - already walking');
+      return;
+    }
     status = 'WALKING';
     if (steps === 0) {
       stuckCount = 0;
       lastUrl = null;
     }
-    if (intervalId) clearInterval(intervalId);
+    if (intervalId) {
+      console.log('[DEBUG] start() clearing existing interval');
+      clearInterval(intervalId);
+    }
     intervalId = setInterval(tick, cfg.pace);
+    console.log(`[DEBUG] start() interval set with pace=${cfg.pace}ms`);
     if (onStatusUpdate) onStatusUpdate('WALKING', steps, stuckCount);
   };
 
