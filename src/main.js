@@ -58,6 +58,13 @@ setTimeout(() => {
 
 // Wait for DOM to be ready before initializing
 const initialize = () => {
+  // Double-check and remove any panel that might have appeared
+  const existingPanel = document.getElementById('dw-modern-panel');
+  if (existingPanel) {
+    console.log('🤪 [initialize] Removing panel that appeared during init...');
+    existingPanel.remove();
+  }
+  
   try {
     // Check for screensaver mode restoration from localStorage
     let savedState = null;

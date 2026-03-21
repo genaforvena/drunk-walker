@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T10:22:17.408Z
+// Built: 2026-03-21T10:25:07.112Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -1701,6 +1701,13 @@ function createControlPanel(engine, options = {}) {
   };
 
   const createUI = () => {
+    // Remove any existing panel first (safeguard against duplicates)
+    const existingPanel = document.getElementById('dw-modern-panel');
+    if (existingPanel) {
+      console.log('[UI] Removing existing panel before creating new one...');
+      existingPanel.remove();
+    }
+
     container = document.createElement('div');
     container.id = 'dw-modern-panel';
     container.style.cssText = CSS.panel;
@@ -1997,6 +2004,13 @@ setTimeout(() => {
 
 // Wait for DOM to be ready before initializing
 const initialize = () => {
+  // Double-check and remove any panel that might have appeared
+  const existingPanel = document.getElementById('dw-modern-panel');
+  if (existingPanel) {
+    console.log('🤪 [initialize] Removing panel that appeared during init...');
+    existingPanel.remove();
+  }
+
   try {
     // Check for screensaver mode restoration from localStorage
     let savedState = null;

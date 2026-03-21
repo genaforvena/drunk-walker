@@ -353,6 +353,13 @@ export function createControlPanel(engine, options = {}) {
   };
 
   const createUI = () => {
+    // Remove any existing panel first (safeguard against duplicates)
+    const existingPanel = document.getElementById('dw-modern-panel');
+    if (existingPanel) {
+      console.log('[UI] Removing existing panel before creating new one...');
+      existingPanel.remove();
+    }
+    
     container = document.createElement('div');
     container.id = 'dw-modern-panel';
     container.style.cssText = CSS.panel;
