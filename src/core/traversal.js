@@ -98,6 +98,28 @@ function calculateYawFromPath(breadcrumbs, currentLocation, minSteps = 3) {
   return Math.round(yaw);
 }
 
+/**
+ * Calculate yaw from last movement (previous location → current)
+ * More accurate for new node correction
+ */
+function calculateYawFromLastMove(previousLocation, currentLocation) {
+  if (!previousLocation || !currentLocation || previousLocation === currentLocation) {
+    return null;
+  }
+  
+  const prev = previousLocation.split(',').map(Number);
+  const curr = currentLocation.split(',').map(Number);
+  
+  const dLat = curr[0] - prev[0];
+  const dLng = curr[1] - prev[1];
+  
+  // Calculate yaw from displacement
+  let yaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+  if (yaw < 0) yaw += 360;
+  
+  return Math.round(yaw);
+}
+
 class NodeInfo {
   constructor(location, lat, lng, step) {
     this.location = location;
@@ -247,7 +269,7 @@ export function createUnifiedAlgorithm(cfg) {
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned } = context;
+    const { stuckCount, currentLocation, previousLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned } = context;
 
     console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
     console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
@@ -272,17 +294,27 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🧭 YAW CORRECTION: Auto-correct drift using path history
     // ═══════════════════════════════════════════════════════════
-    // Only one correction per node, especially useful for new nodes
-    const pathYaw = calculateYawFromPath(breadcrumbs, currentLocation, 3);
+    // For NEW nodes: use last movement (previous → current)
+    // For VISITED nodes: use path history (last 3-5 steps)
+    let pathYaw = null;
+    if (isNewNode && previousLocation) {
+      // New node: calculate yaw from the movement that brought us here
+      pathYaw = calculateYawFromLastMove(previousLocation, currentLocation);
+      console.log(`[DEBUG] YAW CORRECTION (new node): pathYaw from last move = ${pathYaw}°`);
+    } else {
+      // Visited node: use path history
+      pathYaw = calculateYawFromPath(breadcrumbs, currentLocation, 3);
+    }
+    
     const hasCorrectedHere = yawCorrectedNodes.has(currentLocation);
     
-    if (pathYaw !== null && !hasCorrectedHere && !isNewNode) {
+    if (pathYaw !== null && !hasCorrectedHere) {
       const orientationDiff = yawDifference(orientation, pathYaw);
       
-      // Only correct if drift is significant (>15°)
-      if (orientationDiff > 15 && orientationDiff < 165) {
+      // Only correct if drift is significant (>10°)
+      if (orientationDiff > 10 && orientationDiff < 170) {
         yawCorrectedNodes.add(currentLocation);
-        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation}`);
+        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation} ${isNewNode ? '(NEW)' : ''}`);
         
         // Return turn to correct yaw
         const turnAngle = getLeftTurnAngle(orientation, pathYaw);

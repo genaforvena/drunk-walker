@@ -283,6 +283,7 @@ export function createEngine(config = {}) {
       const context = {
         url: currentUrl,
         currentLocation: currentLocation,
+        previousLocation: previousLocation,  // For yaw correction at new nodes
         visitedUrls,
         breadcrumbs,
         stuckCount,
