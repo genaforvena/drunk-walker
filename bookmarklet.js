@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T20:25:30.872Z
+// Built: 2026-03-21T20:39:43.253Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -530,49 +530,51 @@ function createUnifiedAlgorithm(cfg) {
     if (nodeVisitCount > maxRevisits) {
       console.log(`🚨 HIGH REVISIT: ${nodeVisitCount} visits to ${currentLocation}! Finding escape crossroad...`);
 
-      // Find nearest crossroad (node with ≥3 exits) in breadcrumbs
-      let nearestCrossroad = null;
-      let nearestDistance = Infinity;
+      // Priority 1: Find node with untried yaws (unexplored edges) - prefer large turns
+      let bestEscape = null;
+      let bestDistance = Infinity;
+      const minStepsBack = 3;  // Don't count immediate neighbors
 
-      for (let i = breadcrumbs.length - 1; i >= 0; i--) {
+      for (let i = breadcrumbs.length - 1 - minStepsBack; i >= 0; i--) {
         const loc = breadcrumbs[i];
         if (loc === currentLocation) continue;
         const node = enhancedGraph.nodes.get(loc);
-        if (node && node.isCrossroad) {
+        if (node && node.hasUntriedYaws() && !fullyExploredNodes.has(loc)) {
           const distance = breadcrumbs.length - i;
-          if (distance < nearestDistance) {
-            nearestCrossroad = { location: loc, node, distance };
-            nearestDistance = distance;
+          // Score by: untried yaws count * turn angle potential / distance
+          const untriedCount = 6 - node.triedYaws.size;
+          if (!bestEscape || (distance < bestDistance && untriedCount >= 2)) {
+            bestEscape = { location: loc, node, distance, untriedCount };
+            bestDistance = distance;
           }
-          break;  // Take the first (nearest) crossroad
         }
       }
 
-      // Fallback: find any node with untried yaws that's not in current cluster
-      if (!nearestCrossroad) {
-        for (let i = breadcrumbs.length - 1; i >= 0; i--) {
+      // Priority 2: Find nearest crossroad (node with ≥3 exits) that's not fully explored
+      if (!bestEscape) {
+        for (let i = breadcrumbs.length - 1 - minStepsBack; i >= 0; i--) {
           const loc = breadcrumbs[i];
           if (loc === currentLocation) continue;
           const node = enhancedGraph.nodes.get(loc);
-          if (node && node.hasUntriedYaws() && !fullyExploredNodes.has(loc)) {
-            nearestCrossroad = { location: loc, node, distance: breadcrumbs.length - i };
+          if (node && node.isCrossroad && !fullyExploredNodes.has(loc)) {
+            bestEscape = { location: loc, node, distance: breadcrumbs.length - i };
             break;
           }
         }
       }
 
-      if (nearestCrossroad) {
-        console.log(`🚨 ESCAPE: Found crossroad ${nearestCrossroad.location} (${nearestCrossroad.distance} steps away)`);
-        escapeTargetLocation = nearestCrossroad.location;
+      if (bestEscape) {
+        console.log(`🚨 ESCAPE: Found ${bestEscape.node.hasUntriedYaws() ? 'unexplored node' : 'crossroad'} ${bestEscape.location} (${bestEscape.distance} steps away, ${bestEscape.untriedCount || 'N/A'} untried yaws)`);
+        escapeTargetLocation = bestEscape.location;
         navigationTarget = {
-          location: nearestCrossroad.location,
-          targetYaw: nearestCrossroad.node.getNextUntriedYaw(orientation) || nearestCrossroad.node.successfulYaws.values().next().value || orientation,
-          distance: nearestCrossroad.distance
+          location: bestEscape.location,
+          targetYaw: bestEscape.node.getNextUntriedYaw(orientation) || orientation,
+          distance: bestEscape.distance
         };
         isReturning = true;
         consecutiveStraightMoves = 0;
       } else {
-        console.log(`🚨 ESCAPE: No crossroad found! Graph may be fully explored.`);
+        console.log(`🚨 ESCAPE: No escape found! Graph may be fully explored.`);
       }
     }
 
