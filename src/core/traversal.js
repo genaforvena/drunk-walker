@@ -296,6 +296,8 @@ export function createUnifiedAlgorithm(cfg) {
   let lastNewNodeCount = 0;  // graph.nodes count at last new node
   let consecutiveStraightMoves = 0;  // Count of consecutive straight moves (no turns)
   let lastDecisionWasTurn = false;  // Track if last decision was a turn
+  let linearSegmentStart = null;  // Track start of current linear segment
+  let traversedSegments = new Set();  // Segments traversed bidirectionally (format: "loc1|loc2")
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -347,8 +349,18 @@ export function createUnifiedAlgorithm(cfg) {
       // Track consecutive straight moves
       if (!lastDecisionWasTurn) {
         consecutiveStraightMoves++;
+        
+        // Track linear segment (same orientation, consecutive new nodes)
+        if (linearSegmentStart === null) {
+          linearSegmentStart = previousLocation || currentLocation;
+        }
+      } else {
+        consecutiveStraightMoves = 1;
+        linearSegmentStart = previousLocation || currentLocation;
       }
       
+      console.log(`[DEBUG] consecutiveStraightMoves=${consecutiveStraightMoves}, lastDecisionWasTurn=${lastDecisionWasTurn}`);
+
       // ═══════════════════════════════════════════════════════════
       // 🎯 AGGRESSIVE EXPLORATION: If we've been moving straight for
       // several nodes, stop and try a side exit before continuing!
@@ -357,12 +369,13 @@ export function createUnifiedAlgorithm(cfg) {
       // ═══════════════════════════════════════════════════════════
       // After 5+ consecutive straight moves, force exploration of a side exit
       if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws()) {
+        console.log(`🎯 AGGRESSIVE SCAN triggered! consecutiveStraightMoves=${consecutiveStraightMoves}`);
         // Pick an untried yaw that's NOT straight ahead
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
         // Find yaw most different from current orientation (side exit, not forward)
         let bestSideYaw = null;
         let bestDiff = 30;  // Minimum difference to be considered "side"
-        
+
         for (const yaw of untriedYaws) {
           const diff = yawDifference(orientation, yaw);
           // Prefer yaws that are 60-150° from current (side exits, not straight/back)
@@ -371,7 +384,7 @@ export function createUnifiedAlgorithm(cfg) {
             bestSideYaw = yaw;
           }
         }
-        
+
         // Fallback: any untried yaw that's not straight ahead
         if (bestSideYaw === null) {
           const forwardYaw = orientation;
@@ -382,19 +395,25 @@ export function createUnifiedAlgorithm(cfg) {
             }
           }
         }
-        
+
         if (bestSideYaw !== null) {
           const diff = yawDifference(orientation, bestSideYaw);
+          console.log(`  bestSideYaw=${bestSideYaw}, diff=${Math.round(diff)}°`);
           if (diff > 5 && diff < 170) {
             console.log(`🎯 AGGRESSIVE SCAN: After ${consecutiveStraightMoves} straight nodes, trying side yaw ${bestSideYaw}° (diff=${Math.round(diff)}°)`);
             const turnAngle = getLeftTurnAngle(orientation, bestSideYaw);
             const turnDirection = getTurnDirection(orientation, bestSideYaw);
             lastDecisionWasTurn = true;
             return { turn: true, angle: turnAngle, direction: turnDirection };
+          } else {
+            console.log(`  Skipping: diff=${Math.round(diff)}° not in range (5, 170)`);
           }
+        } else {
+          console.log(`  No suitable side yaw found. untriedYaws=[${untriedYaws.join(',')}]`);
         }
       }
       
+      lastDecisionWasTurn = false;  // Reset when going straight
       return { turn: false };
     }
 
@@ -411,6 +430,7 @@ export function createUnifiedAlgorithm(cfg) {
     if (hasBeenHereBefore) {
       consecutiveStraightMoves = 0;
       lastDecisionWasTurn = false;
+      linearSegmentStart = null;  // Reset segment tracking
     }
 
     // Detect start of backtrack (hit dead end, now returning)
@@ -637,6 +657,7 @@ export function createUnifiedAlgorithm(cfg) {
           const turnDirection = getTurnDirection(orientation, nextYaw);
           consecutiveStraightMoves = 0;  // Reset on turn
           lastDecisionWasTurn = true;
+          linearSegmentStart = null;  // Reset segment tracking on turn
           return { turn: true, angle: turnAngle, direction: turnDirection };
         } else {
           // Already pointing close enough, just move forward

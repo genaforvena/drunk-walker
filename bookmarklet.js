@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T19:42:43.699Z
+// Built: 2026-03-21T20:06:29.499Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -391,6 +391,8 @@ function createUnifiedAlgorithm(cfg) {
   let lastNewNodeCount = 0;  // graph.nodes count at last new node
   let consecutiveStraightMoves = 0;  // Count of consecutive straight moves (no turns)
   let lastDecisionWasTurn = false;  // Track if last decision was a turn
+  let linearSegmentStart = null;  // Track start of current linear segment
+  let traversedSegments = new Set();  // Segments traversed bidirectionally (format: "loc1|loc2")
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -442,7 +444,17 @@ function createUnifiedAlgorithm(cfg) {
       // Track consecutive straight moves
       if (!lastDecisionWasTurn) {
         consecutiveStraightMoves++;
+
+        // Track linear segment (same orientation, consecutive new nodes)
+        if (linearSegmentStart === null) {
+          linearSegmentStart = previousLocation || currentLocation;
+        }
+      } else {
+        consecutiveStraightMoves = 1;
+        linearSegmentStart = previousLocation || currentLocation;
       }
+
+      console.log(`[DEBUG] consecutiveStraightMoves=${consecutiveStraightMoves}, lastDecisionWasTurn=${lastDecisionWasTurn}`);
 
       // ═══════════════════════════════════════════════════════════
       // 🎯 AGGRESSIVE EXPLORATION: If we've been moving straight for
@@ -452,6 +464,7 @@ function createUnifiedAlgorithm(cfg) {
       // ═══════════════════════════════════════════════════════════
       // After 5+ consecutive straight moves, force exploration of a side exit
       if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws()) {
+        console.log(`🎯 AGGRESSIVE SCAN triggered! consecutiveStraightMoves=${consecutiveStraightMoves}`);
         // Pick an untried yaw that's NOT straight ahead
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
         // Find yaw most different from current orientation (side exit, not forward)
@@ -480,16 +493,22 @@ function createUnifiedAlgorithm(cfg) {
 
         if (bestSideYaw !== null) {
           const diff = yawDifference(orientation, bestSideYaw);
+          console.log(`  bestSideYaw=${bestSideYaw}, diff=${Math.round(diff)}°`);
           if (diff > 5 && diff < 170) {
             console.log(`🎯 AGGRESSIVE SCAN: After ${consecutiveStraightMoves} straight nodes, trying side yaw ${bestSideYaw}° (diff=${Math.round(diff)}°)`);
             const turnAngle = getLeftTurnAngle(orientation, bestSideYaw);
             const turnDirection = getTurnDirection(orientation, bestSideYaw);
             lastDecisionWasTurn = true;
             return { turn: true, angle: turnAngle, direction: turnDirection };
+          } else {
+            console.log(`  Skipping: diff=${Math.round(diff)}° not in range (5, 170)`);
           }
+        } else {
+          console.log(`  No suitable side yaw found. untriedYaws=[${untriedYaws.join(',')}]`);
         }
       }
 
+      lastDecisionWasTurn = false;  // Reset when going straight
       return { turn: false };
     }
 
@@ -506,6 +525,7 @@ function createUnifiedAlgorithm(cfg) {
     if (hasBeenHereBefore) {
       consecutiveStraightMoves = 0;
       lastDecisionWasTurn = false;
+      linearSegmentStart = null;  // Reset segment tracking
     }
 
     // Detect start of backtrack (hit dead end, now returning)
@@ -732,6 +752,7 @@ function createUnifiedAlgorithm(cfg) {
           const turnDirection = getTurnDirection(orientation, nextYaw);
           consecutiveStraightMoves = 0;  // Reset on turn
           lastDecisionWasTurn = true;
+          linearSegmentStart = null;  // Reset segment tracking on turn
           return { turn: true, angle: turnAngle, direction: turnDirection };
         } else {
           // Already pointing close enough, just move forward
