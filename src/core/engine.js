@@ -248,12 +248,11 @@ export function createEngine(config = {}) {
       }
     }
 
-    // 5. Decision time - ONLY when stationary at a node (not while moving/turning)
-    const isStationary = currentLocation && previousLocation && currentLocation === previousLocation;
-
+    // 5. Decision time
     // Check if this is a new node or already visited
     const nodeVisitCount = visitedUrls.get(currentLocation) || 0;
     const isNewNode = nodeVisitCount === 0;
+    const isStationary = currentLocation && previousLocation && currentLocation === previousLocation;
 
     // Get node info from graph to check if fully scanned
     const nodeInfo = currentLocation ? algorithm.enhancedGraph.get(currentLocation) : null;
@@ -273,13 +272,17 @@ export function createEngine(config = {}) {
 
     let decision = { turn: false };
 
-    // Only make turn decisions when:
-    // - Stationary at a node (not mid-movement)
-    // - Not already turning
-    // - Not waiting for step result
-    // - Turn cooldown has expired (prevent rapid re-turning before Street View loads)
-    // - Either stuck, OR at a known node that needs exploration
-    if (isStationary && !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS) {
+    // Make turn decisions when:
+    // 1. Stationary at a node (not mid-movement) - normal case
+    // 2. Just arrived at NEW node - allow yaw correction before continuing
+    // But NOT when:
+    // - Already turning
+    // - Waiting for step result
+    // - Turn cooldown active
+    const shouldMakeDecision = !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS &&
+      (isStationary || isNewNode);
+
+    if (shouldMakeDecision) {
       const context = {
         url: currentUrl,
         currentLocation: currentLocation,
@@ -297,8 +300,8 @@ export function createEngine(config = {}) {
       console.log(`[DEBUG] decision=${JSON.stringify(decision)}`);
     } else if (isTurning) {
       console.log('[DEBUG] Skipping decision - already turning');
-    } else if (!isStationary) {
-      console.log('[DEBUG] Skipping decision - not stationary (moving between nodes)');
+    } else if (!isStationary && !isNewNode) {
+      console.log('[DEBUG] Skipping decision - moving through visited node');
     } else if (ticksSinceTurn < TURNS_COOLDOWN_TICKS) {
       console.log(`[DEBUG] Skipping decision - turn cooldown active (${ticksSinceTurn}/${TURNS_COOLDOWN_TICKS})`);
     }
