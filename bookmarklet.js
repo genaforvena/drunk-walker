@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T11:08:59.877Z
+// Built: 2026-03-21T11:15:08.320Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -529,6 +529,7 @@ function createEngine(config = {}) {
   // Turn state - prevent oscillation
   let isTurning = false;  // True while executing a turn
   let turnCompleted = false;  // Set to true when turn finishes
+  let awaitingStepResult = false;  // True after turn+step, waiting to see if we moved
 
   // Action callbacks
   let onKeyPress = null;
@@ -722,15 +723,26 @@ function createEngine(config = {}) {
     const nodeInfo = currentLocation ? algorithm.enhancedGraph.get(currentLocation) : null;
     const isFullyScanned = nodeInfo ? nodeInfo.triedYaws.size >= 6 : false;
 
-    console.log(`[DEBUG] isStationary=${isStationary}, isNewNode=${isNewNode}, nodeVisitCount=${nodeVisitCount}, isFullyScanned=${isFullyScanned}, isTurning=${isTurning}`);
+    console.log(`[DEBUG] isStationary=${isStationary}, isNewNode=${isNewNode}, nodeVisitCount=${nodeVisitCount}, isFullyScanned=${isFullyScanned}, isTurning=${isTurning}, awaitingStepResult=${awaitingStepResult}`);
+
+    // Check step result from previous turn+step attempt
+    if (awaitingStepResult) {
+      if (currentLocation !== previousLocation) {
+        console.log('[DEBUG] Step succeeded! Location changed.');
+      } else {
+        console.log('[DEBUG] Step failed! Still at same location - record failed attempt.');
+      }
+      awaitingStepResult = false;  // Now we can make new decisions
+    }
 
     let decision = { turn: false };
 
     // Only make turn decisions when:
     // - Stationary at a node (not mid-movement)
     // - Not already turning
+    // - Not waiting for step result
     // - Either stuck, OR at a known node that needs exploration
-    if (isStationary && !isTurning) {
+    if (isStationary && !isTurning && !awaitingStepResult) {
       const context = {
         url: currentUrl,
         currentLocation: currentLocation,
@@ -763,6 +775,7 @@ function createEngine(config = {}) {
         console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
         isTurning = false;
         turnCompleted = true;
+        awaitingStepResult = true;  // Wait for next tick to see if we moved
 
         // After turn completes, update state and trigger next tick
         previousLocation = currentLocation;
