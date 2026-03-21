@@ -1,4 +1,4 @@
-# 🤪 Drunk Walker v4.2.0-EXP (End of the World Finder)
+# 🤪 Drunk Walker v6.5.0 (Drift-Walk Labyrinth Explorer)
 
 ![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)
@@ -6,35 +6,114 @@
 
 **[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)**
 
-> "The 'direction' isn't a point on a map; it's a constant flight away from the past. The bot is always running away from its own breadcrumbs until it eventually runs out of world to explore."
+> "The bot doesn't have a map. It learns the labyrinth by walking it—one drift at a time."
 
 ## What is this?
 
-Drunk Walker is a sandbox experiment in **Blind Graph Traversal**. It’s a bot that lives inside Google Street View, pressing "Up" and "Left" according to a simple set of rules designed to find the edges of the digital world.
+Drunk Walker is a sandbox experiment in **Blind Graph Traversal**. It's a bot that lives inside Google Street View, pressing "Up" and "Left" according to simple rules designed to explore every corner of the digital world.
 
-It doesn't have a map. It doesn't know where it's going. It only knows where it has been, and it's constantly trying to be somewhere else.
-
----
-
-## The Three Personas
-
-You can swap the bot's "soul" on the fly using the control panel:
-
-1.  🌍 **EXPLORER (The Expansionist)**:
-    Runs away from its own history. It uses a **Weighted Heatmap** to find "cold" areas and rushes into them. If it hits a wall, it does a systematic scan to find a new path.
-2.  🏹 **HUNTER (The Topological Sniper)**:
-    Heads toward conflict. It looks for **Cul-de-sacs** and dead-ends—places where the digital metadata stops but the world continues. When it finds one, it performs a 180° Snap-Back turn and retreats to find the next one.
-3.  🔪 **SURGEON (The Perfectionist)**:
-    Hates wasted energy. It uses projection math to "veto" any direction it has already visited, aiming for a perfect **1:1 steps-to-discovery ratio**.
+**Key insight:** The bot is blind—it doesn't know where panoramas exist until it tries to walk there. Every movement is physical probing of the graph structure.
 
 ---
 
-## How it works (The Sandbox Logic)
+## 🧭 How It Walks: The Drift-Walk Model
 
-*   **Memory & Scent**: The bot keeps a heatmap of every location it visits and a rolling buffer of its last 20 steps (Breadcrumbs). This creates a "scent" that pushes it toward new territory.
-*   **Physical Probing**: The bot is "blind." It doesn't know a road exists until it tries to walk there. Every turn is a physical experiment.
-*   **The Drift**: Because we turn by time (ms) rather than degrees, the bot’s internal compass slowly drifts. This adds a layer of stochastic uncertainty, making every walk unique.
-*   **Entropy Equilibrium**: Eventually, the entire neighborhood becomes "hot" on the map. At this point, the bot reverts to pure randomness until it accidentally breaks out into a new area. Clearing the cache gives it **Amnesia**, allowing the expansion to start all over again.
+### The Problem
+
+Google Street View is a **graph of 360° panoramas** connected by invisible edges. To move:
+1. You must be pointing **almost exactly** at the next panorama
+2. Press `ArrowUp` to "walk" in that direction
+3. If misaligned, nothing happens (virtual wall)
+
+### The Drift Solution
+
+We turn by **holding keys for milliseconds**, not by specifying degrees:
+- Hold "Left" for 600ms → expect 60° turn → get 57° or 63°
+- Browser lag, network latency, camera smoothing cause **accumulated drift**
+- After 20 turns: bot thinks it's at 90°, actually at 78° or 103°
+
+### Embracing Drift: The Cone Model
+
+```
+        Failed buckets (blocked)
+        ↓
+    ╭────┼────╮
+    │  \ | /  │
+    │   \|/   │ ← Successful exit at 90°
+A → ●────→────→ B
+    │   /|\   │
+    │  / | \  │
+    ╰────┼────╯
+        ↑
+   "Drift cone" - we know this angular range is passable
+```
+
+**Key insight:** When we walk A→B at yaw 90°, we validate the 90° bucket **plus drift tolerance** (±15-20°). This becomes **learned connectivity**.
+
+---
+
+## 🗺️ The Six Buckets
+
+We divide 360° into 6 yaw buckets (0°, 60°, 120°, 180°, 240°, 300°):
+
+| Node Type | Exits | Yaw Pattern | Behavior |
+|-----------|-------|-------------|----------|
+| **STRAIGHT** | 2 | ~180° apart | Skip during backtrack |
+| **CROSSROAD** | 3+ | Multiple | STOP and explore! |
+| **DEAD_END** | 1 | Entry only | Escape via reverse yaw |
+
+**No true dead ends:** Every node has at least the reverse direction (we came from somewhere!).
+
+---
+
+## 🔄 Exploration Flow
+
+### Forward Pass (New Territory)
+```
+A → B → C → D
+  Try untried buckets at each node
+  Record successful exits in graph
+```
+
+### Dead End → Backtrack
+```
+A → B → C → D (all buckets failed)
+    ↓
+   unexplored at B
+
+Backtrack:
+1. D → C (check untried? no) → B
+2. B has untried bucket? → ONE exploration turn
+3. If new area → explore! If dead-end → continue to A
+```
+
+### One-Turn Rule
+During backtrack: **exactly ONE turn per visited node**
+- Prevents infinite loops
+- Ensures systematic exploration
+- Respects drift-walk geometry
+
+---
+
+## 🎮 Modes
+
+The bot adapts its strategy based on context:
+
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| **FORWARD** | New node, untried buckets | Try next untried yaw |
+| **PANIC** | Stuck ≥3 heartbeats | Retry successful exits, then reverse entry yaw |
+| **RETURN** | Backtracking from dead end | Check each node for untried buckets |
+
+---
+
+## 📊 Performance Metrics
+
+| Metric | Formula | Target | Meaning |
+|--------|---------|--------|---------|
+| **Progress Ratio** | `unique / totalSteps` | > 0.70 | Exploration efficiency |
+| **Steps/Location** | `totalSteps / unique` | < 2.0 | Inverse of progress |
+| **Coverage** | `visited / totalInArea` | 1.0 | Complete exploration |
 
 ---
 
@@ -46,15 +125,31 @@ You can swap the bot's "soul" on the fly using the control panel:
 4. Visit [genaforvena.github.io/drunk-walker/](https://genaforvena.github.io/drunk-walker/)
 5. Click **COPY LATEST**
 6. Paste into console, press Enter
-7. Click **START**
+7. Use the **draggable control panel** (grab anywhere to move)
+
+### Controls
+
+- **START/STOP** - Begin or pause exploration
+- **Steps** - Total steps taken
+- **Visited** - Unique locations discovered
+- **Pace** - Speed of decisions (0.5s - 5.0s)
+- **💾 Path** - Export walk as JSON
+- **📄 Logs** - Export session logs
 
 ---
 
 ## Documentation
 
-- **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Deep dive into the theory (no BS edition)
-- **[ALGORITHM.md](docs/ALGORITHM.md)** — The math behind the three modes
-- **[src/README.md](src/README.md)** — Developer guide (How to build and test)
+### Core Concepts
+- **[HOW_IT_WALKS.md](docs/HOW_IT_WALKS.md)** — **Start here!** Drift-walk mechanics, bucket system, exploration flow
+- **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Theory of blind graph traversal
+- **[ALGORITHM.md](docs/ALGORITHM.md)** — Technical implementation (engine, wheel, traversal)
+
+### Advanced Topics
+- **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (STRAIGHT, CROSSROAD, DEAD_END)
+- **[SURGEON_MODE.md](docs/SURGEON_MODE.md)** — Efficiency-focused mode (1:1 steps/visited target)
+- **[TRANSITION_GRAPH_LEARNING.md](docs/TRANSITION_GRAPH_LEARNING.md)** — Learning connectivity from walks
+- **[src/README.md](src/README.md)** — Developer guide (build, test, deploy)
 
 ---
 
@@ -64,4 +159,4 @@ This is a technical experiment for fun. It is not a tool for mass scraping. Use 
 
 **Not affiliated with Google or Google Maps.**
 
-*Created with confused ❤️.*
+*Created with confused ❤️. The bot is always running away from its own breadcrumbs.*
