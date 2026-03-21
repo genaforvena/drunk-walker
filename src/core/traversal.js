@@ -378,7 +378,8 @@ export function createUnifiedAlgorithm(cfg) {
       // checking side paths.
       // ═══════════════════════════════════════════════════════════
       // After 5+ consecutive straight moves, force exploration of a side exit
-      if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws()) {
+      // BUT: Skip aggressive scan if we're discovering new nodes (DFS priority!)
+      if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws() && !isNewNode) {
         console.log(`🎯 AGGRESSIVE SCAN triggered! consecutiveStraightMoves=${consecutiveStraightMoves}`);
         // Pick an untried yaw that's NOT straight ahead
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));

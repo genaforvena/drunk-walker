@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T21:18:14.843Z
+// Built: 2026-03-21T21:24:58.099Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -473,7 +473,8 @@ function createUnifiedAlgorithm(cfg) {
       // checking side paths.
       // ═══════════════════════════════════════════════════════════
       // After 5+ consecutive straight moves, force exploration of a side exit
-      if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws()) {
+      // BUT: Skip aggressive scan if we're discovering new nodes (DFS priority!)
+      if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws() && !isNewNode) {
         console.log(`🎯 AGGRESSIVE SCAN triggered! consecutiveStraightMoves=${consecutiveStraightMoves}`);
         // Pick an untried yaw that's NOT straight ahead
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
