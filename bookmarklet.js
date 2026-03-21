@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.0.0-CYBERPUNK - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T00:49:22.549Z
+// Built: 2026-03-21T09:21:19.244Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -906,6 +906,7 @@ function setupInteractionListeners(callbacks = {}) {
   /**
  * Exploration Map Component
  * Renders a mini-map showing explored territory from walker's perspective
+ * v6.0.0-CYBERPUNK
  */
 
 function createExplorationMap() {
@@ -921,77 +922,117 @@ function createExplorationMap() {
   let zoom = 1;
   const baseZoom = 0.0001; // meters per pixel
 
-  // Create map container and canvas
-  function init() {
-    // Create container
-    container = document.createElement('div');
-    container.id = 'dw-map-container';
-    container.style.cssText = `
+  // Styles
+  const CSS = {
+    container: `
       position: fixed;
-      bottom: 10px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
-      border: 2px solid #444;
-      border-radius: 8px;
-      padding: 8px;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
       z-index: 999998;
       display: none;
-      font-family: monospace;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
       font-size: 11px;
       color: #fff;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.3);
       min-width: 320px;
-    `;
-
-    // Header with controls
-    const header = document.createElement('div');
-    header.style.cssText = `
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    `,
+    header: `
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 10px;
       padding: 0 4px;
-    `;
+    `,
+    title: `
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    `,
+    controls: `
+      display: flex; 
+      gap: 6px;
+    `,
+    btn: `
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    `,
+    statsBar: `
+      display: flex;
+      gap: 16px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    `,
+    statItem: `
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+    `,
+    canvasContainer: `
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
+    `
+  };
+
+  function init() {
+    container = document.createElement('div');
+    container.id = 'dw-map-container';
+    container.style.cssText = CSS.container;
+
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = CSS.header;
 
     const title = document.createElement('span');
-    title.textContent = '🗺️ EXPLORATION MAP';
-    title.style.cssText = 'font-weight: bold; color: #4fc3f7;';
+    title.innerHTML = '<span>🗺️</span> EXPLORATION MAP';
+    title.style.cssText = CSS.title;
 
     const controls = document.createElement('div');
-    controls.style.cssText = 'display: flex; gap: 6px;';
+    controls.style.cssText = CSS.controls;
 
-    // Expand/collapse button
     const expandBtn = document.createElement('button');
-    expandBtn.textContent = '⛶';
+    expandBtn.innerHTML = '⛶';
     expandBtn.title = 'Expand/Collapse';
-    expandBtn.style.cssText = `
-      background: #333;
-      border: 1px solid #555;
-      color: #fff;
-      padding: 2px 6px;
-      cursor: pointer;
-      border-radius: 3px;
-      font-size: 12px;
-    `;
-    expandBtn.onmouseover = () => expandBtn.style.background = '#444';
-    expandBtn.onmouseout = () => expandBtn.style.background = '#333';
+    expandBtn.style.cssText = CSS.btn;
+    expandBtn.onmouseover = () => { expandBtn.style.background = 'rgba(255,255,255,0.1)'; expandBtn.style.color = '#fff'; };
+    expandBtn.onmouseout = () => { expandBtn.style.background = 'rgba(255,255,255,0.05)'; expandBtn.style.color = 'rgba(255,255,255,0.7)'; };
     expandBtn.onclick = () => toggleExpand();
 
-    // Close button
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕';
+    closeBtn.innerHTML = '✕';
     closeBtn.title = 'Close (M)';
-    closeBtn.style.cssText = `
-      background: #333;
-      border: 1px solid #555;
-      color: #fff;
-      padding: 2px 6px;
-      cursor: pointer;
-      border-radius: 3px;
-      font-size: 12px;
-    `;
-    closeBtn.onmouseover = () => closeBtn.style.background = '#c62828';
-    closeBtn.onmouseout = () => closeBtn.style.background = '#333';
+    closeBtn.style.cssText = CSS.btn;
+    closeBtn.onmouseover = () => { closeBtn.style.background = 'rgba(255, 50, 50, 0.2)'; closeBtn.style.color = '#ff4d4d'; closeBtn.style.borderColor = 'rgba(255, 50, 50, 0.3)'; };
+    closeBtn.onmouseout = () => { closeBtn.style.background = 'rgba(255,255,255,0.05)'; closeBtn.style.color = 'rgba(255,255,255,0.7)'; closeBtn.style.borderColor = 'rgba(255,255,255,0.1)'; };
     closeBtn.onclick = () => hide();
 
     controls.appendChild(expandBtn);
@@ -1002,35 +1043,29 @@ function createExplorationMap() {
     // Stats bar
     const statsBar = document.createElement('div');
     statsBar.id = 'dw-map-stats';
-    statsBar.style.cssText = `
-      display: flex;
-      gap: 12px;
-      padding: 4px 8px;
-      background: rgba(50, 50, 50, 0.5);
-      border-radius: 4px;
-      margin-bottom: 6px;
-      font-size: 10px;
+    statsBar.style.cssText = CSS.statsBar;
+
+    const stat = (color, label, id) => `
+      <div style="${CSS.statItem}">
+        <span style="width:6px;height:6px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color};"></span>
+        <span>${label}: <strong id="${id}" style="color:#fff;">0</strong></span>
+      </div>
     `;
+
     statsBar.innerHTML = `
-      <span style="color: #81c784;">● Visited: <strong id="dw-stat-visited">0</strong></span>
-      <span style="color: #ffb74d;">★ Crossroads: <strong id="dw-stat-crossroads">0</strong></span>
-      <span style="color: #e57373;">⚑ Dead ends: <strong id="dw-stat-deadends">0</strong></span>
+      ${stat('#00ff80', 'Visited', 'dw-stat-visited')}
+      ${stat('#ffb74d', 'Crossroads', 'dw-stat-crossroads')}
+      ${stat('#ff4d4d', 'Dead ends', 'dw-stat-deadends')}
     `;
 
     // Canvas container
     const canvasContainer = document.createElement('div');
-    canvasContainer.style.cssText = `
-      position: relative;
-      border: 1px solid #444;
-      border-radius: 4px;
-      overflow: hidden;
-    `;
+    canvasContainer.style.cssText = CSS.canvasContainer;
 
-    // Create canvas
     canvas = document.createElement('canvas');
     canvas.width = 300;
     canvas.height = 200;
-    canvas.style.cssText = 'display: block;';
+    canvas.style.cssText = 'display: block; width: 100%; height: 100%;';
 
     canvasContainer.appendChild(canvas);
     ctx = canvas.getContext('2d');
@@ -1041,7 +1076,6 @@ function createExplorationMap() {
 
     document.body.appendChild(container);
 
-    // Keyboard shortcut
     document.addEventListener('keydown', (e) => {
       if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
@@ -1050,7 +1084,6 @@ function createExplorationMap() {
     });
   }
 
-  // Toggle map visibility
   function toggle() {
     if (!container) init();
     isVisible = !isVisible;
@@ -1058,7 +1091,6 @@ function createExplorationMap() {
     if (isVisible) render();
   }
 
-  // Show map
   function show() {
     if (!container) init();
     isVisible = true;
@@ -1066,66 +1098,69 @@ function createExplorationMap() {
     render();
   }
 
-  // Hide map
   function hide() {
     isVisible = false;
     if (container) container.style.display = 'none';
   }
 
-  // Toggle expanded mode
   function toggleExpand() {
     isExpanded = !isExpanded;
     if (isExpanded) {
       canvas.width = 600;
       canvas.height = 400;
+      container.style.minWidth = '620px';
     } else {
       canvas.width = 300;
       canvas.height = 200;
+      container.style.minWidth = '320px';
     }
     render();
   }
 
-  // Convert GPS to screen coordinates
   function gpsToScreen(lat, lng, centerLat, centerLng, width, height, zoom) {
-    const scale = zoom * 10000000; // Scale factor
+    const scale = zoom * 10000000;
     const x = width / 2 + (lng - centerLng) * scale;
-    const y = height / 2 - (lat - centerLat) * scale * 1.5; // Adjust for lat distortion
+    const y = height / 2 - (lat - centerLat) * scale * 1.5;
     return { x, y };
   }
 
-  // Render the map
   function render(transitionGraph, currentLocation, visitedUrls) {
     if (!ctx || !canvas) return;
 
     const width = canvas.width;
     const height = canvas.height;
 
-    // Clear canvas
-    ctx.fillStyle = '#1a1a2e';
+    // Clear canvas with deep space blue
+    ctx.fillStyle = '#0a0a0c';
     ctx.fillRect(0, 0, width, height);
 
+    // Grid background
+    ctx.strokeStyle = '#1a1a1c';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let x=0; x<width; x+=20) { ctx.moveTo(x,0); ctx.lineTo(x,height); }
+    for(let y=0; y<height; y+=20) { ctx.moveTo(0,y); ctx.lineTo(width,y); }
+    ctx.stroke();
+
     if (!transitionGraph) {
-      // Show "no data" message
-      ctx.fillStyle = '#666';
-      ctx.font = '14px monospace';
+      ctx.fillStyle = '#444';
+      ctx.font = '12px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('Walk in progress...', width / 2, height / 2);
+      ctx.fillText('AWAITING TELEMETRY...', width / 2, height / 2);
       return;
     }
 
-    // Get all locations
     const stats = transitionGraph.getStats();
     const locations = Array.from(transitionGraph.connections.keys());
 
     if (locations.length === 0) {
-      ctx.fillStyle = '#666';
-      ctx.font = '14px monospace';
+      ctx.fillStyle = '#444';
+      ctx.font = '12px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('No locations yet...', width / 2, height / 2);
+      ctx.fillText('NO DATA COLLECTED', width / 2, height / 2);
       return;
     }
 
-    // Calculate bounds
     let minLat = Infinity, maxLat = -Infinity;
     let minLng = Infinity, maxLng = -Infinity;
 
@@ -1137,17 +1172,15 @@ function createExplorationMap() {
       maxLng = Math.max(maxLng, lng);
     });
 
-    // Set center
     centerLat = (minLat + maxLat) / 2;
     centerLng = (minLng + maxLng) / 2;
 
-    // Calculate zoom to fit all points
     const latRange = maxLat - minLat || 0.0001;
     const lngRange = maxLng - minLng || 0.0001;
-    zoom = Math.min(width / lngRange / 100000, height / latRange / 100000) * 0.8;
+    zoom = Math.min(width / lngRange / 100000, height / latRange / 100000) * 0.7;
 
-    // Draw connections first (edges)
-    ctx.strokeStyle = '#444';
+    // Draw edges
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
 
     locations.forEach(loc => {
@@ -1175,42 +1208,42 @@ function createExplorationMap() {
       const isCurrent = loc === currentLocation;
       const isVisited = visitedUrls ? visitedUrls.has(loc) : false;
 
-      // Node style
       if (isCurrent) {
-        // Current position - pulsing circle
-        ctx.fillStyle = '#4fc3f7';
+        // Pulse effect
+        const pulse = (Date.now() / 1000) % 1;
+        ctx.fillStyle = `rgba(0, 255, 128, ${1-pulse})`;
         ctx.beginPath();
-        ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
+        ctx.arc(pos.x, pos.y, 12 * pulse + 4, 0, Math.PI * 2);
         ctx.fill();
 
-        // Outer ring
+        ctx.fillStyle = '#00ff80';
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(pos.x, pos.y, 8, 0, Math.PI * 2);
+        ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
         ctx.stroke();
       } else if (isCrossroad) {
-        // Crossroad - star/larger circle
         ctx.fillStyle = '#ffb74d';
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (isVisited) {
-        // Visited - green circle
-        ctx.fillStyle = '#81c784';
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
         ctx.fill();
-      } else {
-        // Unvisited - red dot
-        ctx.fillStyle = '#e57373';
+      } else if (isVisited) {
+        ctx.fillStyle = '#00ff80';
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = '#ff4d4d';
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
         ctx.fill();
       }
     });
 
-    // Update stats
     const deadEnds = locations.filter(loc => {
       const conns = transitionGraph.getConnections(loc);
       return conns.size === 1;
@@ -1222,26 +1255,20 @@ function createExplorationMap() {
   }
 
   return {
-    init,
-    toggle,
-    show,
-    hide,
-    toggleExpand,
-    render,
-    isVisible: () => isVisible
+    init, toggle, show, hide, toggleExpand, render, isVisible: () => isVisible
   };
 }
 
 
   // === UI CONTROLLER ===
   /**
- * UI Controller - Control Panel Management
- * v5.9.0-UI-OVERHAUL
+ * UI Controller - Sleek Modern Control Panel
+ * v6.0.0-CYBERPUNK
  */
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '5.9.0',
+    version = '6.0.0',
     autoStart = true,
     onPathCollectionToggle = null
   } = options;
@@ -1251,6 +1278,7 @@ function createControlPanel(engine, options = {}) {
   let statusEl = null;
   let stepsEl = null;
   let visitedEl = null;
+  let stuckEl = null;
   let paceValEl = null;
   let paceSlider = null;
   let mainContent = null;
@@ -1260,7 +1288,6 @@ function createControlPanel(engine, options = {}) {
   const sessionLogs = [];
   const originalConsoleLog = console.log;
 
-  // Intercept console.log
   console.log = function(...args) {
     const timestamp = new Date().toISOString();
     const message = args.map(arg => 
@@ -1270,31 +1297,33 @@ function createControlPanel(engine, options = {}) {
     originalConsoleLog.apply(console, args);
   };
 
-  // Styles
   const CSS = {
     panel: `
       position: fixed;
       top: 20px;
       right: 20px;
-      width: 280px;
-      background: rgba(10, 10, 10, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 255, 0, 0.3);
-      border-radius: 12px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 255, 0, 0.1);
-      color: #e0e0e0;
-      font-family: 'Segoe UI', 'Roboto', monospace;
+      width: 300px;
+      background: rgba(18, 18, 20, 0.75);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      box-shadow: 
+        0 20px 40px -10px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      color: #f0f0f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       font-size: 13px;
       z-index: 1000000;
-      transition: height 0.3s ease;
+      transition: height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s;
       overflow: hidden;
       user-select: none;
     `,
     header: `
-      padding: 12px 15px;
-      background: rgba(0, 255, 0, 0.05);
-      border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+      padding: 16px 20px;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1302,87 +1331,145 @@ function createControlPanel(engine, options = {}) {
     `,
     title: `
       font-weight: 700;
-      color: #0f0;
-      letter-spacing: 0.5px;
-      font-size: 12px;
+      color: #fff;
+      letter-spacing: -0.3px;
+      font-size: 14px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     `,
-    module: `
-      padding: 15px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    badge: `
+      background: rgba(0, 255, 128, 0.15);
+      color: #00ff80;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(0, 255, 128, 0.2);
+    `,
+    content: `
+      padding: 20px;
     `,
     grid: `
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    `,
+    statItem: `
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    `,
+    statLabel: `
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    `,
+    statValue: `
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      font-feature-settings: "tnum";
+      letter-spacing: -0.5px;
+    `,
+    statusRow: `
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    `,
+    statusText: `
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `,
+    stuckIndicator: `
+      font-size: 11px;
+      font-weight: 700;
+      color: #ff4d4d;
+      background: rgba(255, 77, 77, 0.1);
+      padding: 2px 8px;
+      border-radius: 100px;
+      border: 1px solid rgba(255, 77, 77, 0.2);
+      opacity: 0;
+      transition: opacity 0.2s;
+    `,
+    controls: `
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    `,
+    btnMain: `
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    `,
+    btnSecondaryGroup: `
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     `,
-    statBox: `
-      background: rgba(255, 255, 255, 0.03);
-      padding: 8px;
-      border-radius: 6px;
-      text-align: center;
-    `,
-    statLabel: `
-      display: block;
-      font-size: 10px;
-      color: #888;
-      margin-bottom: 2px;
-      text-transform: uppercase;
-    `,
-    statValue: `
-      display: block;
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff;
-      font-family: monospace;
-    `,
-    btnPrimary: `
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
+    btnSec: `
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.8);
+      height: 36px;
+      border-radius: 8px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 5px;
     `,
-    btnSecondary: `
-      background: rgba(255, 255, 255, 0.05);
-      color: #ccc;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 6px 10px;
-      border-radius: 4px;
-      font-size: 11px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 5px;
-      transition: background 0.2s;
+    sliderWrapper: `
+      margin-top: 8px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     `,
-    sliderContainer: `
-      margin-top: 10px;
-    `,
-    sliderLabel: `
+    sliderHeader: `
       display: flex;
       justify-content: space-between;
-      margin-bottom: 5px;
+      margin-bottom: 10px;
       font-size: 11px;
-      color: #aaa;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
     `,
     slider: `
       width: 100%;
+      -webkit-appearance: none;
       height: 4px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 2px;
       outline: none;
-      -webkit-appearance: none;
     `
   };
 
-  // Draggable logic
   const makeDraggable = (element, handle) => {
     let isDragging = false;
     let startX, startY, initialLeft, initialTop;
@@ -1391,100 +1478,101 @@ function createControlPanel(engine, options = {}) {
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
-
-      // Calculate initial position relative to viewport
       const rect = element.getBoundingClientRect();
       initialLeft = rect.left;
       initialTop = rect.top;
-
       handle.style.cursor = 'grabbing';
-
-      // Remove 'right' and 'bottom' positioning to allow free movement via 'left'/'top'
       element.style.right = 'auto';
       element.style.bottom = 'auto';
       element.style.left = `${initialLeft}px`;
       element.style.top = `${initialTop}px`;
+      element.style.transform = 'scale(1.02)';
     });
 
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
-
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-
       element.style.left = `${initialLeft + dx}px`;
       element.style.top = `${initialTop + dy}px`;
     });
 
     document.addEventListener('mouseup', () => {
-      isDragging = false;
-      handle.style.cursor = 'grab';
+      if (isDragging) {
+        isDragging = false;
+        handle.style.cursor = 'grab';
+        element.style.transform = 'scale(1)';
+      }
     });
   };
 
   const createUI = () => {
     container = document.createElement('div');
-    container.id = 'dw-panel';
+    container.id = 'dw-modern-panel';
     container.style.cssText = CSS.panel;
 
-    // --- HEADER ---
+    // Header
     const header = document.createElement('div');
     header.style.cssText = CSS.header;
-
-    const titleArea = document.createElement('div');
-    titleArea.style.cssText = CSS.title;
-    titleArea.innerHTML = '<span>🤪</span> DRUNK WALKER';
-
-    const minBtn = document.createElement('button');
-    minBtn.innerHTML = '−';
-    minBtn.style.cssText = 'background:none;border:none;color:#0f0;font-size:16px;cursor:pointer;padding:0 5px;';
-    minBtn.onclick = toggleMinimize;
-
-    header.appendChild(titleArea);
-    header.appendChild(minBtn);
+    header.innerHTML = `
+      <div style="${CSS.title}">
+        <span>🟣</span> DRUNK WALKER
+        <span style="${CSS.badge}">v${version.split('-')[0]}</span>
+      </div>
+      <button id="dw-min-btn" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;padding:4px;">
+        <svg width="12" height="2" viewBox="0 0 12 2" fill="currentColor"><rect width="12" height="2" rx="1"/></svg>
+      </button>
+    `;
     container.appendChild(header);
 
-    // --- MAIN CONTENT ---
+    // Main Content
     mainContent = document.createElement('div');
+    mainContent.style.cssText = CSS.content;
 
-    // Module 1: Status Grid
-    const statusMod = document.createElement('div');
-    statusMod.style.cssText = CSS.module;
-
+    // Stats Grid
     const grid = document.createElement('div');
     grid.style.cssText = CSS.grid;
 
-    const createStat = (label, id, def) => {
-      const el = document.createElement('div');
-      el.style.cssText = CSS.statBox;
-      el.innerHTML = `<span style="${CSS.statLabel}">${label}</span><span id="${id}" style="${CSS.statValue}">${def}</span>`;
-      return { container: el, val: el.querySelector(`#${id}`) };
-    };
+    const createStat = (label, id, val) => `
+      <div style="${CSS.statItem}">
+        <span style="${CSS.statLabel}">${label}</span>
+        <span id="${id}" style="${CSS.statValue}">${val}</span>
+      </div>
+    `;
 
-    const s1 = createStat('STEPS', 'dw-steps', '0');
-    stepsEl = s1.val;
-    const s2 = createStat('VISITED', 'dw-visited', '0');
-    visitedEl = s2.val;
+    grid.innerHTML = `
+      ${createStat('Steps', 'dw-steps', '0')}
+      ${createStat('Visited', 'dw-visited', '0')}
+      ${createStat('Pace', 'dw-pace-display', (engine.getConfig().pace/1000).toFixed(1)+'s')}
+    `;
+    mainContent.appendChild(grid);
 
-    grid.appendChild(s1.container);
-    grid.appendChild(s2.container);
+    stepsEl = mainContent.querySelector('#dw-steps');
+    visitedEl = mainContent.querySelector('#dw-visited');
+    paceValEl = mainContent.querySelector('#dw-pace-display');
 
-    const statusLine = document.createElement('div');
-    statusLine.style.cssText = 'margin-top:10px;text-align:center;font-size:11px;color:#aaa;';
-    statusLine.innerHTML = 'STATUS: <span id="dw-status" style="color:#fff;font-weight:bold;">IDLE</span>';
-    statusMod.appendChild(grid);
-    statusMod.appendChild(statusLine);
-    statusEl = statusLine.querySelector('#dw-status');
+    // Status Row
+    const statusRow = document.createElement('div');
+    statusRow.style.cssText = CSS.statusRow;
+    statusRow.innerHTML = `
+      <div style="${CSS.statusText}">
+        <div id="dw-status-dot" style="width:6px;height:6px;border-radius:50%;background:#666;"></div>
+        <span id="dw-status-text">IDLE</span>
+      </div>
+      <span id="dw-stuck-indicator" style="${CSS.stuckIndicator}">STUCK</span>
+    `;
+    mainContent.appendChild(statusRow);
 
-    mainContent.appendChild(statusMod);
+    statusEl = mainContent.querySelector('#dw-status-text');
+    stuckEl = mainContent.querySelector('#dw-stuck-indicator');
 
-    // Module 2: Primary Controls
-    const ctrlMod = document.createElement('div');
-    ctrlMod.style.cssText = CSS.module;
+    // Controls
+    const controls = document.createElement('div');
+    controls.style.cssText = CSS.controls;
 
     btn = document.createElement('button');
-    btn.innerText = 'START WALKING';
-    btn.style.cssText = CSS.btnPrimary + 'background:#0f0;color:#000;box-shadow:0 0 10px rgba(0,255,0,0.3);';
+    btn.style.cssText = CSS.btnMain + 'background: #fff; color: #000; box-shadow: 0 4px 12px rgba(255,255,255,0.2);';
+    btn.innerHTML = '<span>▶</span> START EXPLORING';
     btn.onmouseover = () => btn.style.transform = 'translateY(-1px)';
     btn.onmouseout = () => btn.style.transform = 'translateY(0)';
     btn.onclick = () => {
@@ -1492,21 +1580,37 @@ function createControlPanel(engine, options = {}) {
       else engine.start();
       updateButton();
     };
+    controls.appendChild(btn);
 
-    ctrlMod.appendChild(btn);
-    mainContent.appendChild(ctrlMod);
+    const secBtns = document.createElement('div');
+    secBtns.style.cssText = CSS.btnSecondaryGroup;
 
-    // Module 3: Settings
-    const setMod = document.createElement('div');
-    setMod.style.cssText = CSS.module;
+    const dlPath = document.createElement('button');
+    dlPath.innerText = '💾 JSON';
+    dlPath.style.cssText = CSS.btnSec;
+    dlPath.onmouseover = () => dlPath.style.background = 'rgba(255,255,255,0.1)';
+    dlPath.onmouseout = () => dlPath.style.background = 'rgba(255,255,255,0.05)';
+    dlPath.onclick = exportPath;
 
-    const sliderBox = document.createElement('div');
-    sliderBox.style.cssText = CSS.sliderContainer;
+    const dlLogs = document.createElement('button');
+    dlLogs.innerText = '📄 LOGS';
+    dlLogs.style.cssText = CSS.btnSec;
+    dlLogs.onmouseover = () => dlLogs.style.background = 'rgba(255,255,255,0.1)';
+    dlLogs.onmouseout = () => dlLogs.style.background = 'rgba(255,255,255,0.05)';
+    dlLogs.onclick = exportLogs;
 
-    const labelLine = document.createElement('div');
-    labelLine.style.cssText = CSS.sliderLabel;
-    labelLine.innerHTML = '<span>HEARTBEAT PACE</span><span id="dw-pace-val">2.0s</span>';
-    paceValEl = labelLine.querySelector('#dw-pace-val');
+    secBtns.appendChild(dlPath);
+    secBtns.appendChild(dlLogs);
+    controls.appendChild(secBtns);
+
+    // Slider
+    const sliderWrap = document.createElement('div');
+    sliderWrap.style.cssText = CSS.sliderWrapper;
+    sliderWrap.innerHTML = `
+      <div style="${CSS.sliderHeader}">
+        <span>HEARTBEAT SPEED</span>
+      </div>
+    `;
 
     paceSlider = document.createElement('input');
     paceSlider.type = 'range';
@@ -1521,37 +1625,15 @@ function createControlPanel(engine, options = {}) {
       engine.setPace(val);
     };
 
-    sliderBox.appendChild(labelLine);
-    sliderBox.appendChild(paceSlider);
-    setMod.appendChild(sliderBox);
-    mainContent.appendChild(setMod);
+    sliderWrap.appendChild(paceSlider);
+    controls.appendChild(sliderWrap);
 
-    // Module 4: Data Actions
-    const dataMod = document.createElement('div');
-    dataMod.style.cssText = CSS.module + 'border-bottom:none;';
-
-    const dlPathBtn = document.createElement('button');
-    dlPathBtn.innerText = '💾 EXPORT PATH JSON';
-    dlPathBtn.style.cssText = CSS.btnSecondary;
-    dlPathBtn.onmouseover = () => dlPathBtn.style.background = 'rgba(255,255,255,0.1)';
-    dlPathBtn.onmouseout = () => dlPathBtn.style.background = 'rgba(255,255,255,0.05)';
-    dlPathBtn.onclick = exportPath;
-
-    const dlLogsBtn = document.createElement('button');
-    dlLogsBtn.innerText = '📄 EXPORT LOGS TXT';
-    dlLogsBtn.style.cssText = CSS.btnSecondary;
-    dlLogsBtn.onmouseover = () => dlLogsBtn.style.background = 'rgba(255,255,255,0.1)';
-    dlLogsBtn.onmouseout = () => dlLogsBtn.style.background = 'rgba(255,255,255,0.05)';
-    dlLogsBtn.onclick = exportLogs;
-
-    dataMod.appendChild(dlPathBtn);
-    dataMod.appendChild(dlLogsBtn);
-    mainContent.appendChild(dataMod);
-
+    mainContent.appendChild(controls);
     container.appendChild(mainContent);
     document.body.appendChild(container);
 
-    // Initialize drag
+    // Minimize logic
+    header.querySelector('#dw-min-btn').onclick = toggleMinimize;
     makeDraggable(container, header);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
@@ -1560,30 +1642,38 @@ function createControlPanel(engine, options = {}) {
 
   const toggleMinimize = () => {
     isMinimized = !isMinimized;
-    const btn = container.querySelector('button');
     if (isMinimized) {
       mainContent.style.display = 'none';
-      btn.innerText = '+';
-      container.style.width = '180px';
+      container.style.width = '200px';
     } else {
       mainContent.style.display = 'block';
-      btn.innerText = '−';
-      container.style.width = '280px';
+      container.style.width = '300px';
     }
   };
 
   const updateButton = () => {
     if (!btn) return;
+    const dot = document.getElementById('dw-status-dot');
     if (engine.isNavigating()) {
-      btn.innerText = 'PAUSE HEARTBEAT';
-      btn.style.background = 'rgba(255, 50, 50, 0.9)';
-      btn.style.color = '#fff';
-      btn.style.boxShadow = '0 0 10px rgba(255,0,0,0.3)';
+      btn.innerHTML = '<span>⏸</span> PAUSE';
+      btn.style.background = 'rgba(255, 50, 50, 0.1)';
+      btn.style.color = '#ff4d4d';
+      btn.style.border = '1px solid rgba(255, 50, 50, 0.3)';
+      btn.style.boxShadow = 'none';
+      if (dot) {
+        dot.style.background = '#00ff80';
+        dot.style.boxShadow = '0 0 8px #00ff80';
+      }
     } else {
-      btn.innerText = 'START WALKING';
-      btn.style.background = '#0f0';
+      btn.innerHTML = '<span>▶</span> RESUME';
+      btn.style.background = '#fff';
       btn.style.color = '#000';
-      btn.style.boxShadow = '0 0 10px rgba(0,255,0,0.3)';
+      btn.style.border = 'none';
+      btn.style.boxShadow = '0 4px 12px rgba(255,255,255,0.2)';
+      if (dot) {
+        dot.style.background = '#666';
+        dot.style.boxShadow = 'none';
+      }
     }
   };
 
@@ -1618,9 +1708,18 @@ function createControlPanel(engine, options = {}) {
   };
 
   const onStatusUpdate = (statusText, stepCount, stuckCount) => {
-    if (statusEl) statusEl.innerText = statusText + (stuckCount > 0 ? ` (STUCK ${stuckCount})` : '');
+    if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
     if (visitedEl) visitedEl.innerText = engine.getVisitedCount();
+
+    if (stuckEl) {
+      if (stuckCount > 0) {
+        stuckEl.style.opacity = '1';
+        stuckEl.innerText = `STUCK ${stuckCount}`;
+      } else {
+        stuckEl.style.opacity = '0';
+      }
+    }
     updateButton();
   };
 
@@ -1630,7 +1729,7 @@ function createControlPanel(engine, options = {}) {
       createUI();
       updateButton();
       if (autoStart) engine.start();
-      console.log('🤪 UI Initialized');
+      console.log('🟣 UI Initialized (Cyberpunk Edition)');
       return { destroy };
     } catch (e) {
       console.error('UI Init Failed:', e);
