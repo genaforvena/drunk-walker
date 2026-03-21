@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.11.0-AUTO-REPLACE - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T00:46:29.975Z
+// Drunk Walker v6.0.0-CYBERPUNK - BUNDLED BOOKMARKLET
+// Built: 2026-03-21T00:49:22.549Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -10,6 +10,9 @@
 void function initDrunkWalker(){
   // Main entry point handles restart logic now
   
+  // === VERSION ===
+  const VERSION = '6.0.0-CYBERPUNK';
+
   // === WHEEL ===
   /**
  * Wheel component for Drunk Walker
@@ -417,7 +420,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.11.0-AUTO-REPLACE';
+const __export_dummy = { VERSION };
 
 const defaultConfig = {
   pace: 2000,

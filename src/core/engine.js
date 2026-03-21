@@ -13,8 +13,9 @@ import {
   createDefaultAlgorithm,
   extractLocationFromUrl
 } from './traversal.js';
+import { VERSION } from '../version.js';
 
-export const VERSION = '5.11.0-AUTO-REPLACE';
+export { VERSION };
 
 export const defaultConfig = {
   pace: 2000,

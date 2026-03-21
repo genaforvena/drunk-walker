@@ -15,9 +15,9 @@ import fs from 'fs';
 
 const outfile = 'bookmarklet.js';
 
-// Read version from engine.js (single source of truth)
-const engineSource = fs.readFileSync('src/core/engine.js', 'utf8');
-const versionMatch = engineSource.match(/export const VERSION = ['"]([^'"]+)['"]/);
+// Read version from version.js (single source of truth)
+const versionSource = fs.readFileSync('src/version.js', 'utf8');
+const versionMatch = versionSource.match(/export const VERSION = ['"]([^'"]+)['"]/);
 const VERSION = versionMatch ? versionMatch[1] : '0.0.0-DEV';
 
 console.log(`ℹ️  Building version: ${VERSION}`);
@@ -54,6 +54,7 @@ function stripModuleSyntax(code) {
 }
 
 // Read all source files (order matters)
+const versionFile = fs.readFileSync('src/version.js', 'utf8');
 const wheel = fs.readFileSync('src/core/wheel.js', 'utf8');
 const traversal = fs.readFileSync('src/core/traversal.js', 'utf8');
 const navigation = fs.readFileSync('src/core/navigation.js', 'utf8');
@@ -77,6 +78,9 @@ let content = `
 void function initDrunkWalker(){
   // Main entry point handles restart logic now
   
+  // === VERSION ===
+  ${stripModuleSyntax(versionFile)}
+
   // === WHEEL ===
   ${stripModuleSyntax(wheel)}
 
