@@ -57,6 +57,47 @@ function predictNextLocation(currentLocation, orientation, stepDistance = 0.0005
   return `${(lat + dLat).toFixed(6)},${(lng + dLng).toFixed(6)}`;
 }
 
+/**
+ * Calculate yaw from recent path history using linear regression
+ * Returns the direction of travel based on last N steps
+ */
+function calculateYawFromPath(breadcrumbs, currentLocation, minSteps = 3) {
+  if (!breadcrumbs || breadcrumbs.length < minSteps || !currentLocation) {
+    return null;
+  }
+  
+  // Get last N unique locations from breadcrumbs
+  const uniqueLocations = [];
+  const seen = new Set();
+  for (let i = breadcrumbs.length - 1; i >= 0 && uniqueLocations.length < 5; i--) {
+    const loc = breadcrumbs[i];
+    if (!seen.has(loc)) {
+      seen.add(loc);
+      uniqueLocations.push(loc);
+    }
+  }
+  
+  if (uniqueLocations.length < minSteps) {
+    return null;
+  }
+  
+  // Reverse to get chronological order (oldest first)
+  uniqueLocations.reverse();
+  
+  // Calculate total displacement from first to last
+  const first = uniqueLocations[0].split(',').map(Number);
+  const last = uniqueLocations[uniqueLocations.length - 1].split(',').map(Number);
+  
+  const dLat = last[0] - first[0];
+  const dLng = last[1] - first[1];
+  
+  // Calculate yaw from displacement
+  let yaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+  if (yaw < 0) yaw += 360;
+  
+  return Math.round(yaw);
+}
+
 class NodeInfo {
   constructor(location, lat, lng, step) {
     this.location = location;
@@ -199,6 +240,9 @@ export function createUnifiedAlgorithm(cfg) {
   let fullyExploredNodes = new Set();  // Nodes where ALL 6 buckets have been tried (never re-explore)
   let backtrackCount = 0;  // Count how many times we've backtracked
   let lastBacktrackLocation = null;  // Track where we last started backtracking from
+  
+  // Yaw correction tracking
+  let yawCorrectedNodes = new Set();  // Nodes where we already corrected yaw (one correction per node)
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -223,6 +267,27 @@ export function createUnifiedAlgorithm(cfg) {
     // Mark node as fully explored if all 6 buckets tried
     if (currentNode.triedYaws.size >= 6) {
       fullyExploredNodes.add(currentLocation);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🧭 YAW CORRECTION: Auto-correct drift using path history
+    // ═══════════════════════════════════════════════════════════
+    // Only one correction per node, especially useful for new nodes
+    const pathYaw = calculateYawFromPath(breadcrumbs, currentLocation, 3);
+    const hasCorrectedHere = yawCorrectedNodes.has(currentLocation);
+    
+    if (pathYaw !== null && !hasCorrectedHere && !isNewNode) {
+      const orientationDiff = yawDifference(orientation, pathYaw);
+      
+      // Only correct if drift is significant (>15°)
+      if (orientationDiff > 15 && orientationDiff < 165) {
+        yawCorrectedNodes.add(currentLocation);
+        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation}`);
+        
+        // Return turn to correct yaw
+        const turnAngle = getLeftTurnAngle(orientation, pathYaw);
+        return { turn: true, angle: turnAngle };
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -299,6 +364,7 @@ export function createUnifiedAlgorithm(cfg) {
       turnedAtNodes.clear();
       backtrackCount = 0;
       lastBacktrackLocation = null;
+      // Don't clear yawCorrectedNodes - corrections persist across sessions
     }
 
     // ═══════════════════════════════════════════════════════════
