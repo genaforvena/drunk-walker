@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T21:24:58.099Z
+// Built: 2026-03-21T21:29:19.930Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -474,49 +474,57 @@ function createUnifiedAlgorithm(cfg) {
       // ═══════════════════════════════════════════════════════════
       // After 5+ consecutive straight moves, force exploration of a side exit
       // BUT: Skip aggressive scan if we're discovering new nodes (DFS priority!)
+      // AND: Only trigger at HIGH-PROBABILITY junctions (≥2 untried yaws)
       if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws() && !isNewNode) {
-        console.log(`🎯 AGGRESSIVE SCAN triggered! consecutiveStraightMoves=${consecutiveStraightMoves}`);
-        // Pick an untried yaw that's NOT straight ahead
-        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
-        // Find yaw most different from current orientation (side exit, not forward)
-        let bestSideYaw = null;
-        let bestDiff = 30;  // Minimum difference to be considered "side"
+        const untriedCount = 6 - currentNode.triedYaws.size;
+        // Only trigger aggressive scan at junctions with ≥2 untried yaws
+        // (high probability of unexplored exits)
+        if (untriedCount >= 2) {
+          console.log(`🎯 AGGRESSIVE SCAN triggered! consecutiveStraightMoves=${consecutiveStraightMoves}, untriedCount=${untriedCount}`);
+          // Pick an untried yaw that's NOT straight ahead
+          const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+          // Find yaw most different from current orientation (side exit, not forward)
+          let bestSideYaw = null;
+          let bestDiff = 30;  // Minimum difference to be considered "side"
 
-        for (const yaw of untriedYaws) {
-          const diff = yawDifference(orientation, yaw);
-          // Prefer yaws that are 60-150° from current (side exits, not straight/back)
-          if (diff >= 60 && diff <= 150 && diff > bestDiff) {
-            bestDiff = diff;
-            bestSideYaw = yaw;
-          }
-        }
-
-        // Fallback: any untried yaw that's not straight ahead
-        if (bestSideYaw === null) {
-          const forwardYaw = orientation;
           for (const yaw of untriedYaws) {
-            if (yawDifference(yaw, forwardYaw) >= 60) {
+            const diff = yawDifference(orientation, yaw);
+            // Prefer yaws that are 60-150° from current (side exits, not straight/back)
+            if (diff >= 60 && diff <= 150 && diff > bestDiff) {
+              bestDiff = diff;
               bestSideYaw = yaw;
-              break;
             }
           }
-        }
 
-        if (bestSideYaw !== null) {
-          const diff = yawDifference(orientation, bestSideYaw);
-          console.log(`  bestSideYaw=${bestSideYaw}, diff=${Math.round(diff)}°`);
-          if (diff > 5 && diff < 170) {
-            console.log(`🎯 AGGRESSIVE SCAN: After ${consecutiveStraightMoves} straight nodes, trying side yaw ${bestSideYaw}° (diff=${Math.round(diff)}°)`);
-            const turnAngle = getLeftTurnAngle(orientation, bestSideYaw);
-            const turnDirection = getTurnDirection(orientation, bestSideYaw);
-            lastDecisionWasTurn = true;
-            aggressiveScanCooldown = 5;  // Don't enter return mode for 5 ticks after aggressive scan
-            return { turn: true, angle: turnAngle, direction: turnDirection };
+          // Fallback: any untried yaw that's not straight ahead
+          if (bestSideYaw === null) {
+            const forwardYaw = orientation;
+            for (const yaw of untriedYaws) {
+              if (yawDifference(yaw, forwardYaw) >= 60) {
+                bestSideYaw = yaw;
+                break;
+              }
+            }
+          }
+
+          if (bestSideYaw !== null) {
+            const diff = yawDifference(orientation, bestSideYaw);
+            console.log(`  bestSideYaw=${bestSideYaw}, diff=${Math.round(diff)}°`);
+            if (diff > 5 && diff < 170) {
+              console.log(`🎯 AGGRESSIVE SCAN: After ${consecutiveStraightMoves} straight nodes, trying side yaw ${bestSideYaw}° (diff=${Math.round(diff)}°)`);
+              const turnAngle = getLeftTurnAngle(orientation, bestSideYaw);
+              const turnDirection = getTurnDirection(orientation, bestSideYaw);
+              lastDecisionWasTurn = true;
+              aggressiveScanCooldown = 5;  // Don't enter return mode for 5 ticks after aggressive scan
+              return { turn: true, angle: turnAngle, direction: turnDirection };
+            } else {
+              console.log(`  Skipping: diff=${Math.round(diff)}° not in range (5, 170)`);
+            }
           } else {
-            console.log(`  Skipping: diff=${Math.round(diff)}° not in range (5, 170)`);
+            console.log(`  No suitable side yaw found. untriedYaws=[${untriedYaws.join(',')}]`);
           }
         } else {
-          console.log(`  No suitable side yaw found. untriedYaws=[${untriedYaws.join(',')}]`);
+          console.log(`  Skipping aggressive scan: only ${untriedCount} untried yaw(s) - low probability junction`);
         }
       }
 
