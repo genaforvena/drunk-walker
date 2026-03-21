@@ -21,6 +21,12 @@ if (window.DRUNK_WALKER) {
   window.DRUNK_WALKER_ACTIVE = false;
 }
 
+// Remove any existing UI panel from previous runs
+const existingPanel = document.getElementById('dw-modern-panel');
+if (existingPanel) {
+  existingPanel.remove();
+}
+
 // Small delay to ensure cleanup is processed by browser
 setTimeout(() => {
   window.DRUNK_WALKER_ACTIVE = true;

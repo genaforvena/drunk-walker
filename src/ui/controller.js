@@ -249,53 +249,107 @@ export function createControlPanel(engine, options = {}) {
   };
 
   const makeResizable = (element) => {
-    const resizeHandle = document.createElement('div');
-    resizeHandle.id = 'dw-resize-handle';
-    resizeHandle.style.cssText = `
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 20px;
-      height: 20px;
-      cursor: nwse-resize;
-      background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.1) 50%);
-      border-radius: 0 0 16px 0;
-      z-index: 1000001;
-    `;
+    const minSize = { width: 250, height: 200 };
+    const maxSize = { width: 600, height: 800 };
+    
+    const createResizeHandle = (position) => {
+      const handle = document.createElement('div');
+      handle.className = 'dw-resize-handle';
+      
+      const styles = {
+        'se': { cursor: 'nwse-resize', bottom: '0', right: '0', width: '20px', height: '20px', borderRadius: '0 0 16px 0' },
+        'sw': { cursor: 'nesw-resize', bottom: '0', left: '0', width: '20px', height: '20px', borderRadius: '16px 0 0 0' },
+        'ne': { cursor: 'nesw-resize', top: '0', right: '0', width: '20px', height: '20px', borderRadius: '0 16px 0 0' },
+        'nw': { cursor: 'nwse-resize', top: '0', left: '0', width: '20px', height: '20px', borderRadius: '16px 0 0 0' },
+        'e': { cursor: 'ew-resize', top: '20px', bottom: '20px', right: '0', width: '8px', height: 'auto' },
+        'w': { cursor: 'ew-resize', top: '20px', bottom: '20px', left: '0', width: '8px', height: 'auto' },
+        'n': { cursor: 'ns-resize', left: '20px', right: '20px', top: '0', height: '8px', width: 'auto' },
+        's': { cursor: 'ns-resize', left: '20px', right: '20px', bottom: '0', height: '8px', width: 'auto' }
+      };
+      
+      const posStyle = styles[position];
+      handle.style.cssText = `
+        position: absolute;
+        z-index: 1000001;
+        background: linear-gradient(${position.includes('e') ? '135deg' : '-45deg'}, transparent 50%, rgba(255,255,255,0.15) 50%);
+        ${posStyle.cursor};
+        ${posStyle.bottom !== undefined ? `bottom: ${posStyle.bottom}` : ''};
+        ${posStyle.top !== undefined ? `top: ${posStyle.top}` : ''};
+        ${posStyle.right !== undefined ? `right: ${posStyle.right}` : ''};
+        ${posStyle.left !== undefined ? `left: ${posStyle.left}` : ''};
+        ${posStyle.width !== undefined ? `width: ${posStyle.width}` : ''};
+        ${posStyle.height !== undefined ? `height: ${posStyle.height}` : ''};
+        ${posStyle.borderRadius !== undefined ? `border-radius: ${posStyle.borderRadius}` : ''};
+        transition: background 0.2s;
+      `;
+      
+      handle.onmouseover = () => handle.style.background = 'rgba(255,255,255,0.25)';
+      handle.onmouseout = () => handle.style.background = `linear-gradient(${position.includes('e') ? '135deg' : '-45deg'}, transparent 50%, rgba(255,255,255,0.15) 50%)`;
+      
+      return handle;
+    };
 
-    let isResizing = false;
-    let startWidth, startHeight, startX, startY;
-
-    resizeHandle.addEventListener('mousedown', (e) => {
-      isResizing = true;
+    const startResize = (e, direction) => {
       e.preventDefault();
       e.stopPropagation();
+      
       const rect = element.getBoundingClientRect();
-      startWidth = rect.width;
-      startHeight = rect.height;
-      startX = e.clientX;
-      startY = e.clientY;
+      const startWidth = rect.width;
+      const startHeight = rect.height;
+      const startX = e.clientX;
+      const startY = e.clientY;
+      
       element.style.transition = 'none';
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!isResizing) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      const newWidth = Math.max(250, Math.min(600, startWidth + dx));
-      const newHeight = Math.max(200, Math.min(800, startHeight + dy));
-      element.style.width = `${newWidth}px`;
-      element.style.height = `${newHeight}px`;
-    });
-
-    document.addEventListener('mouseup', () => {
-      if (isResizing) {
-        isResizing = false;
+      
+      const onMouseMove = (e) => {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newLeft = rect.left;
+        let newTop = rect.top;
+        
+        if (direction.includes('e')) {
+          newWidth = Math.max(minSize.width, Math.min(maxSize.width, startWidth + dx));
+        }
+        if (direction.includes('w')) {
+          newWidth = Math.max(minSize.width, Math.min(maxSize.width, startWidth - dx));
+          newLeft = rect.left + (startWidth - newWidth);
+        }
+        if (direction.includes('s')) {
+          newHeight = Math.max(minSize.height, Math.min(maxSize.height, startHeight + dy));
+        }
+        if (direction.includes('n')) {
+          newHeight = Math.max(minSize.height, Math.min(maxSize.height, startHeight - dy));
+          newTop = rect.top + (startHeight - newHeight);
+        }
+        
+        element.style.width = `${newWidth}px`;
+        element.style.height = `${newHeight}px`;
+        element.style.left = `${newLeft}px`;
+        element.style.top = `${newTop}px`;
+        element.style.right = 'auto';
+        element.style.bottom = 'auto';
+      };
+      
+      const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
         element.style.transition = 'height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s';
-      }
-    });
+      };
+      
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
 
-    element.appendChild(resizeHandle);
+    // Add all resize handles
+    const positions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+    positions.forEach(pos => {
+      const handle = createResizeHandle(pos);
+      handle.addEventListener('mousedown', (e) => startResize(e, pos));
+      element.appendChild(handle);
+    });
   };
 
   const createUI = () => {
