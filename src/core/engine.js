@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.8.0-VISIBILITY';
+export const VERSION = '5.9.0-UI-OVERHAUL';
 
 export const defaultConfig = {
   pace: 2000,
