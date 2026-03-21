@@ -294,6 +294,8 @@ export function createUnifiedAlgorithm(cfg) {
   // Progress tracking - detect when we're stuck in a local cluster
   let lastNewNodeStep = 0;  // breadcrumbs.length when we last discovered a new node
   let lastNewNodeCount = 0;  // graph.nodes count at last new node
+  let consecutiveStraightMoves = 0;  // Count of consecutive straight moves (no turns)
+  let lastDecisionWasTurn = false;  // Track if last decision was a turn
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -341,6 +343,58 @@ export function createUnifiedAlgorithm(cfg) {
       console.log('[DEBUG] NEW NODE - going straight (no turn)');
       // Remove from fully explored if it was there (fresh visit)
       fullyExploredNodes.delete(currentLocation);
+      
+      // Track consecutive straight moves
+      if (!lastDecisionWasTurn) {
+        consecutiveStraightMoves++;
+      }
+      
+      // ═══════════════════════════════════════════════════════════
+      // 🎯 AGGRESSIVE EXPLORATION: If we've been moving straight for
+      // several nodes, stop and try a side exit before continuing!
+      // This prevents walking 100+ nodes down a linear street without
+      // checking side paths.
+      // ═══════════════════════════════════════════════════════════
+      // After 5+ consecutive straight moves, force exploration of a side exit
+      if (consecutiveStraightMoves >= 5 && currentNode.hasUntriedYaws()) {
+        // Pick an untried yaw that's NOT straight ahead
+        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+        // Find yaw most different from current orientation (side exit, not forward)
+        let bestSideYaw = null;
+        let bestDiff = 30;  // Minimum difference to be considered "side"
+        
+        for (const yaw of untriedYaws) {
+          const diff = yawDifference(orientation, yaw);
+          // Prefer yaws that are 60-150° from current (side exits, not straight/back)
+          if (diff >= 60 && diff <= 150 && diff > bestDiff) {
+            bestDiff = diff;
+            bestSideYaw = yaw;
+          }
+        }
+        
+        // Fallback: any untried yaw that's not straight ahead
+        if (bestSideYaw === null) {
+          const forwardYaw = orientation;
+          for (const yaw of untriedYaws) {
+            if (yawDifference(yaw, forwardYaw) >= 60) {
+              bestSideYaw = yaw;
+              break;
+            }
+          }
+        }
+        
+        if (bestSideYaw !== null) {
+          const diff = yawDifference(orientation, bestSideYaw);
+          if (diff > 5 && diff < 170) {
+            console.log(`🎯 AGGRESSIVE SCAN: After ${consecutiveStraightMoves} straight nodes, trying side yaw ${bestSideYaw}° (diff=${Math.round(diff)}°)`);
+            const turnAngle = getLeftTurnAngle(orientation, bestSideYaw);
+            const turnDirection = getTurnDirection(orientation, bestSideYaw);
+            lastDecisionWasTurn = true;
+            return { turn: true, angle: turnAngle, direction: turnDirection };
+          }
+        }
+      }
+      
       return { turn: false };
     }
 
@@ -352,6 +406,12 @@ export function createUnifiedAlgorithm(cfg) {
     const isExhausted = !currentNode.hasUntriedYaws();
 
     console.log(`[DEBUG] hasBeenHereBefore=${hasBeenHereBefore}, isExhausted=${isExhausted}, fullyExplored=${fullyExploredNodes.has(currentLocation)}`);
+
+    // Reset consecutive straight moves counter when we arrive at a visited node
+    if (hasBeenHereBefore) {
+      consecutiveStraightMoves = 0;
+      lastDecisionWasTurn = false;
+    }
 
     // Detect start of backtrack (hit dead end, now returning)
     const isBacktracking = (hasBeenHereBefore || isExhausted) && !navigationTarget;
@@ -464,6 +524,8 @@ export function createUnifiedAlgorithm(cfg) {
             console.log(`🎯 FORWARD MOMENTUM: Untired yaw ${untriedYaw}° is ${diffToOrientation}° from current ${Math.round(orientation)}° - trying first!`);
             const turnAngle = getLeftTurnAngle(orientation, untriedYaw);
             const turnDirection = getTurnDirection(orientation, untriedYaw);
+            consecutiveStraightMoves = 0;  // Reset on turn
+            lastDecisionWasTurn = true;
             return { turn: true, angle: turnAngle, direction: turnDirection };
           }
         }
@@ -481,6 +543,8 @@ export function createUnifiedAlgorithm(cfg) {
       } else {
         const turnAngle = getLeftTurnAngle(orientation, yawToNavigate);
         const turnDirection = getTurnDirection(orientation, yawToNavigate);
+        consecutiveStraightMoves = 0;  // Reset on turn
+        lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };  // Turn toward target
       }
     }
@@ -498,6 +562,8 @@ export function createUnifiedAlgorithm(cfg) {
         const turnAngle = getLeftTurnAngle(orientation, nextYaw);
         const turnDirection = getTurnDirection(orientation, nextYaw);
         console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying untried yaw ${nextYaw}° (angle=${Math.round(turnAngle)}° ${turnDirection})`);
+        consecutiveStraightMoves = 0;  // Reset on turn
+        lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
       } else if (currentNode.successfulYaws.size > 0) {
         // All buckets tried but still stuck - retry a successful exit
@@ -507,6 +573,8 @@ export function createUnifiedAlgorithm(cfg) {
         const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
         const turnDirection = getTurnDirection(orientation, randomSuccessfulYaw);
         console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}° ${turnDirection})`);
+        consecutiveStraightMoves = 0;  // Reset on turn
+        lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
       } else {
         // TRULY STUCK - No successful exits recorded (shouldn't happen with bidirectional recording)
@@ -567,6 +635,8 @@ export function createUnifiedAlgorithm(cfg) {
           console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           const turnDirection = getTurnDirection(orientation, nextYaw);
+          consecutiveStraightMoves = 0;  // Reset on turn
+          lastDecisionWasTurn = true;
           return { turn: true, angle: turnAngle, direction: turnDirection };
         } else {
           // Already pointing close enough, just move forward
@@ -586,6 +656,8 @@ export function createUnifiedAlgorithm(cfg) {
       console.log(`[DEBUG] FALLBACK: Retrying successful yaw ${randomSuccessfulYaw}°, diff=${diff}°`);
       if (diff > 5 && diff < 355) {
         const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
+        consecutiveStraightMoves = 0;  // Reset on turn
+        lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: getTurnDirection(orientation, randomSuccessfulYaw) };
       }
       // Already facing it, move forward
@@ -614,8 +686,10 @@ export function createUnifiedAlgorithm(cfg) {
         yawCorrectedNodes.add(currentLocation);
         const turnDirection = getTurnDirection(orientation, pathYaw);
         console.log(`🧭 YAW CORRECTION (fallback): ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) ${turnDirection} at ${currentLocation}`);
-        
+
         const turnAngle = getLeftTurnAngle(orientation, pathYaw);
+        consecutiveStraightMoves = 0;  // Reset on turn
+        lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
     }
