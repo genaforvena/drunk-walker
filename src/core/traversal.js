@@ -164,12 +164,37 @@ class NodeInfo {
   }
   
   hasUntriedYaws() { return this.triedYaws.size < 6; }
-  
-  getNextUntriedYaw() {
-    for (const yaw of [0, 60, 120, 180, 240, 300]) {
-      if (!this.triedYaws.has(yaw)) return yaw;
+
+  /**
+   * Get untried yaw closest to current orientation
+   * @param {number} currentOrientation - Current yaw orientation (optional)
+   * @returns {number|null} Closest untried yaw bucket, or null if all tried
+   */
+  getNextUntriedYaw(currentOrientation = null) {
+    if (currentOrientation === null) {
+      // Fallback: return first untried (old behavior)
+      for (const yaw of [0, 60, 120, 180, 240, 300]) {
+        if (!this.triedYaws.has(yaw)) return yaw;
+      }
+      return null;
     }
-    return null;
+    
+    // Find untried yaw closest to current orientation
+    const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !this.triedYaws.has(y));
+    if (untriedYaws.length === 0) return null;
+    
+    let closestYaw = untriedYaws[0];
+    let closestDiff = yawDifference(currentOrientation, closestYaw);
+    
+    for (const yaw of untriedYaws) {
+      const diff = yawDifference(currentOrientation, yaw);
+      if (diff < closestDiff) {
+        closestDiff = diff;
+        closestYaw = yaw;
+      }
+    }
+    
+    return closestYaw;
   }
 }
 
@@ -349,7 +374,7 @@ export function createUnifiedAlgorithm(cfg) {
       // Navigate to nearest node with untried buckets (skip fully explored)
       const candidate = enhancedGraph.findNearestCrossroadCandidate(currentLocation, breadcrumbs);
       if (candidate) {
-        const targetYaw = candidate.node.getNextUntriedYaw();
+        const targetYaw = candidate.node.getNextUntriedYaw(orientation);
         if (targetYaw !== null) {
           navigationTarget = {
             location: candidate.location,
@@ -465,8 +490,8 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     console.log(`[DEBUG] Checking PANIC: stuckCount=${stuckCount} >= panicThreshold=${panicThreshold}? ${stuckCount >= panicThreshold}`);
     if (stuckCount >= panicThreshold) {
-      // First, try any untried yaw
-      const nextYaw = currentNode.getNextUntriedYaw();
+      // First, try any untried yaw (closest to current orientation)
+      const nextYaw = currentNode.getNextUntriedYaw(orientation);
       console.log(`[DEBUG] PANIC MODE: nextYaw=${nextYaw}, successfulYaws=${[...currentNode.successfulYaws].join(',')}`);
 
       if (nextYaw !== null) {
@@ -519,7 +544,7 @@ export function createUnifiedAlgorithm(cfg) {
         if (oldLoc === currentLocation) continue;
         const oldNode = enhancedGraph.nodes.get(oldLoc);
         if (oldNode && oldNode.hasUntriedYaws() && !fullyExploredNodes.has(oldLoc)) {
-          const targetYaw = oldNode.getNextUntriedYaw();
+          const targetYaw = oldNode.getNextUntriedYaw(orientation);
           navigationTarget = {
             location: oldLoc,
             targetYaw,
@@ -533,7 +558,7 @@ export function createUnifiedAlgorithm(cfg) {
     }
     
     if (currentNode.hasUntriedYaws()) {
-      const nextYaw = currentNode.getNextUntriedYaw();
+      const nextYaw = currentNode.getNextUntriedYaw(orientation);
       console.log(`[DEBUG] FORWARD MODE: nextYaw=${nextYaw}, orientation=${Math.round(orientation)}°`);
       if (nextYaw !== null) {
         const diff = yawDifference(orientation, nextYaw);
