@@ -256,15 +256,19 @@ export function createUnifiedAlgorithm(cfg) {
   let lastSearchAngle = 0;
   let navigationTarget = null;  // {location, targetYaw, path}
   let isReturning = false;
-  
+
   // Knowledge tracking for intelligent exploration
   let turnedAtNodes = new Set();  // Nodes where we made exploration turn during CURRENT backtrack session
   let fullyExploredNodes = new Set();  // Nodes where ALL 6 buckets have been tried (never re-explore)
   let backtrackCount = 0;  // Count how many times we've backtracked
   let lastBacktrackLocation = null;  // Track where we last started backtracking from
-  
+
   // Yaw correction tracking
   let yawCorrectedNodes = new Set();  // Nodes where we already corrected yaw (one correction per node)
+
+  // Progress tracking - detect when we're stuck in a local cluster
+  let lastNewNodeStep = 0;  // breadcrumbs.length when we last discovered a new node
+  let lastNewNodeCount = 0;  // graph.nodes count at last new node
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -285,6 +289,20 @@ export function createUnifiedAlgorithm(cfg) {
     const currentNode = enhancedGraph.getOrCreate(currentLocation, currentParts[0], currentParts[1]);
 
     console.log(`[DEBUG] currentNode.triedYaws=${[...currentNode.triedYaws].join(',')}, hasUntried=${currentNode.hasUntriedYaws()}`);
+
+    // Track when we discover new nodes
+    if (isNewNode) {
+      lastNewNodeStep = breadcrumbs.length;
+      lastNewNodeCount = enhancedGraph.nodes.size;
+    }
+
+    // Detect stagnation: no new nodes for many steps
+    const stepsSinceNewNode = breadcrumbs.length - lastNewNodeStep;
+    const isStagnant = stepsSinceNewNode > 50 && enhancedGraph.nodes.size > 50;
+    
+    if (isStagnant) {
+      console.log(`⚠️ STAGNATION: ${stepsSinceNewNode} steps since new node (graph=${enhancedGraph.nodes.size} nodes)`);
+    }
 
     // Mark node as fully explored if all 6 buckets tried
     if (currentNode.triedYaws.size >= 6) {
@@ -312,10 +330,10 @@ export function createUnifiedAlgorithm(cfg) {
 
     // Detect start of backtrack (hit dead end, now returning)
     const isBacktracking = (hasBeenHereBefore || isExhausted) && !navigationTarget;
-    
+
     if (isBacktracking) {
       isReturning = true;
-      
+
       // Loop detection: if we're backtracking from same location repeatedly, STOP
       if (lastBacktrackLocation === currentLocation) {
         backtrackCount++;
@@ -327,26 +345,7 @@ export function createUnifiedAlgorithm(cfg) {
         backtrackCount = 0;
         lastBacktrackLocation = currentLocation;
       }
-      
-      // Skip fully explored nodes - we know everything about them
-      if (fullyExploredNodes.has(currentLocation)) {
-        console.log(`🔙 BACKTRACK: Skipping ${currentLocation} - fully explored (6/6 buckets)`);
-        // Just navigate to next unexplored node
-      } else if (currentNode.hasUntriedYaws() && !turnedAtNodes.has(currentLocation)) {
-        // Explore this node! One turn only.
-        const targetYaw = currentNode.getNextUntriedYaw();
-        turnedAtNodes.add(currentLocation);
-        const diff = yawDifference(orientation, targetYaw);
-        if (diff > 5 && diff < 355) {
-          const turnAngle = getLeftTurnAngle(orientation, targetYaw);
-          const turnDirection = getTurnDirection(orientation, targetYaw);
-          console.log(`🔙 BACKTRACK: Exploring untried yaw ${targetYaw}° at ${currentLocation} (${currentNode.triedYaws.size}/6) angle=${Math.round(turnAngle)}° ${turnDirection}`);
-          return { turn: true, angle: turnAngle, direction: turnDirection };
-        }
-        console.log(`🔙 BACKTRACK: Already facing untried yaw ${targetYaw}°, moving forward`);
-        return { turn: false };
-      }
-      
+
       // Navigate to nearest node with untried buckets (skip fully explored)
       const candidate = enhancedGraph.findNearestCrossroadCandidate(currentLocation, breadcrumbs);
       if (candidate) {
@@ -395,14 +394,37 @@ export function createUnifiedAlgorithm(cfg) {
         return { turn: false };
       }
 
-      // Navigate toward target (calculate yaw to target location)
-      const targetParts = navigationTarget.location.split(',').map(Number);
-      const dLat = targetParts[0] - currentParts[0];
-      const dLng = targetParts[1] - currentParts[1];
-      let yawToTarget = Math.atan2(dLng, dLat) * 180 / Math.PI;
-      if (yawToTarget < 0) yawToTarget += 360;
+      // Navigate by following breadcrumbs back (graph topology, not geometry!)
+      // Find the previous node in the breadcrumb trail that leads to target
+      const targetIndex = breadcrumbs.lastIndexOf(navigationTarget.location);
+      const currentIndex = breadcrumbs.lastIndexOf(currentLocation);
+      
+      let yawToNavigate = null;
+      
+      if (targetIndex !== -1 && currentIndex !== -1 && targetIndex < currentIndex) {
+        // Navigate to previous breadcrumb (closer to target)
+        const previousInPath = breadcrumbs[currentIndex - 1];
+        if (previousInPath && previousInPath !== currentLocation) {
+          const prevParts = previousInPath.split(',').map(Number);
+          const dLat = prevParts[0] - currentParts[0];
+          const dLng = prevParts[1] - currentParts[1];
+          yawToNavigate = Math.atan2(dLng, dLat) * 180 / Math.PI;
+          if (yawToNavigate < 0) yawToNavigate += 360;
+          console.log(`[DEBUG] NAVIGATION: Following breadcrumb to ${previousInPath} (target: ${navigationTarget.location})`);
+        }
+      }
+      
+      // Fallback: if breadcrumb navigation failed, use geometric approach
+      if (yawToNavigate === null) {
+        const targetParts = navigationTarget.location.split(',').map(Number);
+        const dLat = targetParts[0] - currentParts[0];
+        const dLng = targetParts[1] - currentParts[1];
+        yawToNavigate = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (yawToNavigate < 0) yawToNavigate += 360;
+        console.log(`[DEBUG] NAVIGATION: Using geometric fallback to ${navigationTarget.location}`);
+      }
 
-      const diff = yawDifference(orientation, yawToTarget);
+      const diff = yawDifference(orientation, yawToNavigate);
 
       // If stuck while navigating, fall through to PANIC mode
       if (stuckCount >= panicThreshold) {
@@ -412,8 +434,8 @@ export function createUnifiedAlgorithm(cfg) {
       } else if (diff < 30) {
         return { turn: false };  // Move forward toward target
       } else {
-        const turnAngle = getLeftTurnAngle(orientation, yawToTarget);
-        const turnDirection = getTurnDirection(orientation, yawToTarget);
+        const turnAngle = getLeftTurnAngle(orientation, yawToNavigate);
+        const turnDirection = getTurnDirection(orientation, yawToNavigate);
         return { turn: true, angle: turnAngle, direction: turnDirection };  // Turn toward target
       }
     }
@@ -466,6 +488,30 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // FORWARD MODE: At node with untried yaws - try them
     // ═══════════════════════════════════════════════════════════
+    
+    // 🎯 STAGNATION ESCAPE: If no new nodes for a while, find boundary nodes
+    // Boundary = nodes with untried yaws that are furthest from current position
+    if (isStagnant && !navigationTarget) {
+      // Find the oldest node in breadcrumbs with untried yaws (boundary exploration)
+      const currentIndex = breadcrumbs.lastIndexOf(currentLocation);
+      for (let i = 0; i < Math.min(breadcrumbs.length - 1, 100); i++) {
+        const oldLoc = breadcrumbs[i];
+        if (oldLoc === currentLocation) continue;
+        const oldNode = enhancedGraph.nodes.get(oldLoc);
+        if (oldNode && oldNode.hasUntriedYaws() && !fullyExploredNodes.has(oldLoc)) {
+          const targetYaw = oldNode.getNextUntriedYaw();
+          navigationTarget = {
+            location: oldLoc,
+            targetYaw,
+            distance: Math.abs(currentIndex - i)
+          };
+          console.log(`🎯 BOUNDARY: Stagnation escape! Targeting boundary node ${oldLoc} (${Math.abs(currentIndex - i)} steps back)`);
+          isReturning = true;
+          break;
+        }
+      }
+    }
+    
     if (currentNode.hasUntriedYaws()) {
       const nextYaw = currentNode.getNextUntriedYaw();
       console.log(`[DEBUG] FORWARD MODE: nextYaw=${nextYaw}, orientation=${Math.round(orientation)}°`);
