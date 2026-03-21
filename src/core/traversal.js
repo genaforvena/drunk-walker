@@ -337,10 +337,12 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🗑️ AGGRESSIVE PRUNING: Mark node as fully explored when 5+ yaws tried
     // (1 yaw is how we arrived, 4+ explored = nothing new to find)
+    // Also mark as dead-end if only 1 untried yaw remains (the arrival yaw)
     // ═══════════════════════════════════════════════════════════
-    if (currentNode.triedYaws.size >= 5) {
+    const untriedCount = 6 - currentNode.triedYaws.size;
+    if (currentNode.triedYaws.size >= 5 || untriedCount <= 1) {
       fullyExploredNodes.add(currentLocation);
-    } else if (currentNode.triedYaws.size < 5 && fullyExploredNodes.has(currentLocation)) {
+    } else if (untriedCount > 1 && fullyExploredNodes.has(currentLocation)) {
       // New yaw discovered - remove from fully explored
       fullyExploredNodes.delete(currentLocation);
     }
@@ -457,6 +459,9 @@ export function createUnifiedAlgorithm(cfg) {
         
         const distance = breadcrumbs.length - i;
         const untriedCount = 6 - node.triedYaws.size;
+        
+        // Skip dead-end nodes (only 1 untried yaw = arrival yaw, nothing to explore)
+        if (untriedCount <= 1) continue;
         
         // Score: prioritize untried yaws, but also consider distance
         // Higher score = better frontier candidate
