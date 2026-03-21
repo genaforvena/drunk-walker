@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T20:55:55.457Z
+// Built: 2026-03-21T21:11:10.530Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -394,6 +394,7 @@ function createUnifiedAlgorithm(cfg) {
   let linearSegmentStart = null;  // Track start of current linear segment
   let traversedSegments = new Set();  // Segments traversed bidirectionally (format: "loc1|loc2")
   let escapeTargetLocation = null;  // Emergency escape target when stuck in loop
+  let aggressiveScanCooldown = 0;  // Cooldown after aggressive scan to prevent immediate return mode
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -508,6 +509,7 @@ function createUnifiedAlgorithm(cfg) {
             const turnAngle = getLeftTurnAngle(orientation, bestSideYaw);
             const turnDirection = getTurnDirection(orientation, bestSideYaw);
             lastDecisionWasTurn = true;
+            aggressiveScanCooldown = 5;  // Don't enter return mode for 5 ticks after aggressive scan
             return { turn: true, angle: turnAngle, direction: turnDirection };
           } else {
             console.log(`  Skipping: diff=${Math.round(diff)}° not in range (5, 170)`);
@@ -611,8 +613,14 @@ function createUnifiedAlgorithm(cfg) {
       linearSegmentStart = null;  // Reset segment tracking
     }
 
+    // Decrement aggressive scan cooldown
+    if (aggressiveScanCooldown > 0) {
+      aggressiveScanCooldown--;
+    }
+
     // Detect start of backtrack (hit dead end, now returning)
-    const isBacktracking = (hasBeenHereBefore || isExhausted) && !navigationTarget;
+    // Skip return mode if we just did an aggressive scan (exploring side exit)
+    const isBacktracking = (hasBeenHereBefore || isExhausted) && !navigationTarget && aggressiveScanCooldown === 0;
 
     if (isBacktracking) {
       isReturning = true;
