@@ -435,7 +435,7 @@ const VERSION = '5.4.3-HEARTBEAT-FIX';
 const defaultConfig = {
   pace: 2000,
   kbOn: true,
-  panicThreshold: 10,
+  panicThreshold: 3,
   radius: 50,
   targetX: 0.4,
   targetY: 0.8,
@@ -600,14 +600,17 @@ function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
-    // 1. Stuck detection (Has location changed since last heartbeat?)
-    if (currentLocation && previousLocation && currentLocation === previousLocation) {
+    // 1. Stuck detection (URL based heartbeat)
+    if (lastUrl !== null && currentUrl === lastUrl) {
       stuckCount++;
-    } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
+    } else {
       stuckCount = 0;
     }
 
-    // 2. Always sync orientation with URL to prevent internal drift
+    // 2. Report heartbeat to console
+    console.log(`💓 TICK ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
+
+    // 3. Sync orientation with URL
     if (currentYaw !== null) {
       wheel.setOrientation(currentYaw);
     }
