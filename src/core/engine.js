@@ -301,7 +301,8 @@ export function createEngine(config = {}) {
         orientation: wheel.getOrientation(),
         isNewNode,
         isFullyScanned,
-        justArrived
+        justArrived,
+        nodeVisitCount
       };
 
       console.log(`[DEBUG] ticksSinceTurn=${ticksSinceTurn}, calling algorithm.decide()...`);

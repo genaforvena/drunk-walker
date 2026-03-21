@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T20:06:29.499Z
+// Built: 2026-03-21T20:25:30.872Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -393,11 +393,12 @@ function createUnifiedAlgorithm(cfg) {
   let lastDecisionWasTurn = false;  // Track if last decision was a turn
   let linearSegmentStart = null;  // Track start of current linear segment
   let traversedSegments = new Set();  // Segments traversed bidirectionally (format: "loc1|loc2")
+  let escapeTargetLocation = null;  // Emergency escape target when stuck in loop
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, previousLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned, justArrived } = context;
+    const { stuckCount, currentLocation, previousLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned, justArrived, nodeVisitCount } = context;
 
     console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
     console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
@@ -521,6 +522,60 @@ function createUnifiedAlgorithm(cfg) {
 
     console.log(`[DEBUG] hasBeenHereBefore=${hasBeenHereBefore}, isExhausted=${isExhausted}, fullyExplored=${fullyExploredNodes.has(currentLocation)}`);
 
+    // ═══════════════════════════════════════════════════════════
+    // 🚨 HIGH REVISIT DETECTION: If we've visited this node too many
+    // times, we're stuck in a loop. ESCAPE to nearest crossroad!
+    // ═══════════════════════════════════════════════════════════
+    const maxRevisits = 5;
+    if (nodeVisitCount > maxRevisits) {
+      console.log(`🚨 HIGH REVISIT: ${nodeVisitCount} visits to ${currentLocation}! Finding escape crossroad...`);
+
+      // Find nearest crossroad (node with ≥3 exits) in breadcrumbs
+      let nearestCrossroad = null;
+      let nearestDistance = Infinity;
+
+      for (let i = breadcrumbs.length - 1; i >= 0; i--) {
+        const loc = breadcrumbs[i];
+        if (loc === currentLocation) continue;
+        const node = enhancedGraph.nodes.get(loc);
+        if (node && node.isCrossroad) {
+          const distance = breadcrumbs.length - i;
+          if (distance < nearestDistance) {
+            nearestCrossroad = { location: loc, node, distance };
+            nearestDistance = distance;
+          }
+          break;  // Take the first (nearest) crossroad
+        }
+      }
+
+      // Fallback: find any node with untried yaws that's not in current cluster
+      if (!nearestCrossroad) {
+        for (let i = breadcrumbs.length - 1; i >= 0; i--) {
+          const loc = breadcrumbs[i];
+          if (loc === currentLocation) continue;
+          const node = enhancedGraph.nodes.get(loc);
+          if (node && node.hasUntriedYaws() && !fullyExploredNodes.has(loc)) {
+            nearestCrossroad = { location: loc, node, distance: breadcrumbs.length - i };
+            break;
+          }
+        }
+      }
+
+      if (nearestCrossroad) {
+        console.log(`🚨 ESCAPE: Found crossroad ${nearestCrossroad.location} (${nearestCrossroad.distance} steps away)`);
+        escapeTargetLocation = nearestCrossroad.location;
+        navigationTarget = {
+          location: nearestCrossroad.location,
+          targetYaw: nearestCrossroad.node.getNextUntriedYaw(orientation) || nearestCrossroad.node.successfulYaws.values().next().value || orientation,
+          distance: nearestCrossroad.distance
+        };
+        isReturning = true;
+        consecutiveStraightMoves = 0;
+      } else {
+        console.log(`🚨 ESCAPE: No crossroad found! Graph may be fully explored.`);
+      }
+    }
+
     // Reset consecutive straight moves counter when we arrive at a visited node
     if (hasBeenHereBefore) {
       consecutiveStraightMoves = 0;
@@ -580,6 +635,7 @@ function createUnifiedAlgorithm(cfg) {
           const turnAngle = getLeftTurnAngle(orientation, navigationTarget.targetYaw);
           const turnDirection = getTurnDirection(orientation, navigationTarget.targetYaw);
           navigationTarget = null;
+          escapeTargetLocation = null;  // Clear escape target
           // Reset backtrack tracking - starting fresh exploration
           turnedAtNodes.clear();
           backtrackCount = 0;
@@ -587,6 +643,7 @@ function createUnifiedAlgorithm(cfg) {
           return { turn: true, angle: turnAngle, direction: turnDirection };
         }
         navigationTarget = null;
+        escapeTargetLocation = null;  // Clear escape target
         turnedAtNodes.clear();
         backtrackCount = 0;
         lastBacktrackLocation = null;
@@ -1189,7 +1246,8 @@ function createEngine(config = {}) {
         orientation: wheel.getOrientation(),
         isNewNode,
         isFullyScanned,
-        justArrived
+        justArrived,
+        nodeVisitCount
       };
 
       console.log(`[DEBUG] ticksSinceTurn=${ticksSinceTurn}, calling algorithm.decide()...`);
