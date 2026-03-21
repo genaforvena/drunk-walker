@@ -81,18 +81,24 @@ class NodeInfo {
   }
   
   updateType() {
-    if (this.triedYaws.size < 6) return;
-    this.isFullyExplored = true;
     const exitCount = this.connections.size;
-    if (exitCount === 1) {
-      this.isDeadEnd = true;
-    } else if (exitCount === 2) {
-      const yaws = Array.from(this.successfulYaws);
-      if (yaws.length === 2) {
-        this.isStraight = yawDifference(yaws[0], yaws[1]) > 150;
+    
+    // Node classification
+    if (this.triedYaws.size >= 6) {
+      this.isFullyExplored = true;
+      if (exitCount === 1) {
+        this.isDeadEnd = true;
+      } else if (exitCount === 2) {
+        const yaws = Array.from(this.successfulYaws);
+        if (yaws.length === 2) {
+          this.isStraight = yawDifference(yaws[0], yaws[1]) > 150;
+        }
+      } else if (exitCount >= 3) {
+        this.isCrossroad = true;
       }
-    } else if (exitCount >= 3) {
-      this.isCrossroad = true;
+    } else {
+      // Early dead-end detection: if we've tried many yaws and only found 1 exit
+      // but we haven't tried all 6 yet, it's not "fully" dead yet.
     }
   }
   

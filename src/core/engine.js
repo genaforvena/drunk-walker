@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.4.1-STUCK-FIX';
+export const VERSION = '5.4.2-HEARTBEAT';
 
 export const defaultConfig = {
   pace: 2000,
@@ -184,11 +184,6 @@ export function createEngine(config = {}) {
     const currentLocation = extractLocation(currentUrl);
     const currentYaw = extractYaw(currentUrl);
 
-    // Sync internal orientation with URL if possible (helps logs and logic)
-    if (currentYaw !== null && lastUrl === null) {
-      wheel.setOrientation(currentYaw);
-    }
-
     // 1. Stuck detection (URL hasn't changed since last tick)
     if (lastUrl !== null && currentUrl === lastUrl) {
       stuckCount++;
@@ -196,7 +191,12 @@ export function createEngine(config = {}) {
       stuckCount = 0;
     }
 
-    // 2. Record what happened since last tick in the graph
+    // 2. Sync orientation with URL if we just started or drifted
+    if (currentYaw !== null && lastUrl === null) {
+      wheel.setOrientation(currentYaw);
+    }
+
+    // 3. Record what happened since last tick in the graph
     if (previousLocation && algorithm.enhancedGraph) {
       if (currentLocation && currentLocation !== previousLocation) {
         // Successfully moved to a new bubble
@@ -208,7 +208,7 @@ export function createEngine(config = {}) {
           steps
         );
       } else if (currentLocation === previousLocation && lastUrl !== null) {
-        // Failed to move
+        // Failed to move - this is CRITICAL for triedYaws tracking
         algorithm.enhancedGraph.recordFailedAttempt(
           previousLocation,
           previousYaw !== null ? previousYaw : wheel.getOrientation(),
@@ -217,9 +217,7 @@ export function createEngine(config = {}) {
       }
     }
 
-    // 3. Prepare context for decision
-    previousLocation = currentLocation;
-
+    // 4. Prepare context for decision
     const context = {
       url: currentUrl,
       location: currentLocation,
@@ -231,36 +229,35 @@ export function createEngine(config = {}) {
 
     const decision = algorithm.decide(context);
 
-    if (decision.turn) {
-      isBusy = true;
-      wheel.turnLeft(decision.angle || 60, () => {
-        // Save the NEW yaw we are pointing at before pressing ArrowUp
-        previousYaw = wheel.getOrientation();
-        if (cfg.kbOn) {
-          if (onKeyPress) onKeyPress('ArrowUp');
-        } else {
-          const target = calculateClickTarget();
-          if (onMouseClick) onMouseClick(target.x, target.y);
-        }
-        isBusy = false;
-        // Update lastUrl AFTER turn might have changed it (via onKeyPress/navigation)
-        lastUrl = typeof window !== 'undefined' ? window.location.href : currentUrl;
-      });
-      steps++;
-      recordStep();
-      cumulativeTurnAngle += decision.angle || 60;
-    } else {
-      // Save current yaw before pressing ArrowUp
+    // 5. The Heartbeat Action (Turn? then always Step)
+    isBusy = true;
+    
+    const performStep = () => {
+      // Always perform the step (ArrowUp)
+      previousLocation = currentLocation;
       previousYaw = wheel.getOrientation();
+      lastUrl = currentUrl; // Store the URL BEFORE the step
+
       if (cfg.kbOn) {
         if (onKeyPress) onKeyPress('ArrowUp');
       } else {
         const target = calculateClickTarget();
         if (onMouseClick) onMouseClick(target.x, target.y);
       }
+
       steps++;
       recordStep();
-      lastUrl = currentUrl;
+      isBusy = false;
+    };
+
+    if (decision.turn) {
+      console.log(`🔄 Heartbeat: Turning ${decision.angle}° then Stepping`);
+      wheel.turnLeft(decision.angle || 60, () => {
+        cumulativeTurnAngle += decision.angle || 60;
+        performStep();
+      });
+    } else {
+      performStep();
     }
 
     // Update status EVERY tick (live numbers)
@@ -268,7 +265,7 @@ export function createEngine(config = {}) {
       onStatusUpdate(status, steps, stuckCount);
     }
 
-    console.log(`url=${currentUrl}, currentYaw=${Math.round(wheel.getOrientation())}, stuck=${stuckCount}`);
+    console.log(`url=${currentUrl}, yaw=${Math.round(wheel.getOrientation())}, stuck=${stuckCount}`);
   };
 
   const start = () => {
