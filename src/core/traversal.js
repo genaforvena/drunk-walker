@@ -266,7 +266,13 @@ export function createUnifiedAlgorithm(cfg) {
       if (yawToTarget < 0) yawToTarget += 360;
 
       const diff = yawDifference(orientation, yawToTarget);
-      if (diff < 30) {
+      
+      // If stuck while navigating, fall through to PANIC mode
+      if (stuckCount >= panicThreshold) {
+        console.log(`[DEBUG] Stuck while navigating (stuck=${stuckCount}), falling through to PANIC`);
+        // Clear navigation target so PANIC can work
+        // navigationTarget stays set but we'll handle the stuck
+      } else if (diff < 30) {
         return { turn: false };  // Move forward toward target
       } else {
         const turnAngle = getLeftTurnAngle(orientation, yawToTarget);

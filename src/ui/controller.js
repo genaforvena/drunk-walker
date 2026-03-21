@@ -501,8 +501,11 @@ export function createControlPanel(engine, options = {}) {
 
     // Minimize logic
     header.querySelector('#dw-min-btn').onclick = toggleMinimize;
-    // No dragging - panel is centered at bottom
-    // Only resize from top corners
+    
+    // Make panel draggable
+    makeDraggable(container, header);
+    
+    // Resize from top corners only
     makeResizable(container, ['nw', 'ne']);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);

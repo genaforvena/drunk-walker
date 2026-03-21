@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T11:02:15.389Z
+// Built: 2026-03-21T11:08:59.877Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -326,7 +326,13 @@ function createUnifiedAlgorithm(cfg) {
       if (yawToTarget < 0) yawToTarget += 360;
 
       const diff = yawDifference(orientation, yawToTarget);
-      if (diff < 30) {
+
+      // If stuck while navigating, fall through to PANIC mode
+      if (stuckCount >= panicThreshold) {
+        console.log(`[DEBUG] Stuck while navigating (stuck=${stuckCount}), falling through to PANIC`);
+        // Clear navigation target so PANIC can work
+        // navigationTarget stays set but we'll handle the stuck
+      } else if (diff < 30) {
         return { turn: false };  // Move forward toward target
       } else {
         const turnAngle = getLeftTurnAngle(orientation, yawToTarget);
@@ -1921,8 +1927,11 @@ function createControlPanel(engine, options = {}) {
 
     // Minimize logic
     header.querySelector('#dw-min-btn').onclick = toggleMinimize;
-    // No dragging - panel is centered at bottom
-    // Only resize from top corners
+
+    // Make panel draggable
+    makeDraggable(container, header);
+
+    // Resize from top corners only
     makeResizable(container, ['nw', 'ne']);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
