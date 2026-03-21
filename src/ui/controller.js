@@ -1,11 +1,11 @@
 /**
  * UI Controller - Compact Draggable Panel
- * v6.5.0-DRAGGABLE-WHOLE
+ * v6.6.0-LOGS-FIX
  */
 
 export function createControlPanel(engine, options = {}) {
   const {
-    version = '6.5.0',
+    version = '6.6.0',
     autoStart = true,
     onPathCollectionToggle = null
   } = options;
@@ -16,15 +16,42 @@ export function createControlPanel(engine, options = {}) {
   let paceValEl = null;
   let startStopBtn = null;
 
-  // Session logs storage
+  // Session logs storage - collect from console
   const sessionLogs = [];
+  const originalConsoleLog = console.log;
+  const originalConsoleWarn = console.warn;
+  const originalConsoleError = console.error;
+
+  // Hook console to capture logs
+  const hookConsole = () => {
+    console.log = function(...args) {
+      const msg = `[${new Date().toISOString().substr(11, 8)}] ${args.join(' ')}`;
+      sessionLogs.push(msg);
+      if (sessionLogs.length > 5000) sessionLogs.shift();
+      originalConsoleLog.apply(console, args);
+    };
+    console.warn = function(...args) {
+      const msg = `[${new Date().toISOString().substr(11, 8)}] ⚠️ ${args.join(' ')}`;
+      sessionLogs.push(msg);
+      if (sessionLogs.length > 5000) sessionLogs.shift();
+      originalConsoleWarn.apply(console, args);
+    };
+    console.error = function(...args) {
+      const msg = `[${new Date().toISOString().substr(11, 8)}] ❌ ${args.join(' ')}`;
+      sessionLogs.push(msg);
+      if (sessionLogs.length > 5000) sessionLogs.shift();
+      originalConsoleError.apply(console, args);
+    };
+  };
+
+  // Hook console immediately
+  hookConsole();
 
   const makeDraggable = (element) => {
     let isDragging = false;
     let startX, startY, initialLeft, initialTop;
 
     element.addEventListener('mousedown', (e) => {
-      // Ignore clicks on buttons, inputs, and links
       if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('input')) {
         return;
       }
@@ -88,34 +115,15 @@ export function createControlPanel(engine, options = {}) {
 
     // Stats row
     const statRow = document.createElement('div');
-    statRow.style.cssText = `
-      display: flex;
-      gap: 6px;
-    `;
+    statRow.style.cssText = `display: flex; gap: 6px;`;
     statRow.innerHTML = `
-      <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 6px 8px;
-        background: rgba(255,255,255,0.06);
-        border-radius: 8px;
-        flex: 1;
-      ">
-        <span style="font-size: 7px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px;">Steps</span>
-        <span id="dw-steps" style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">0</span>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:6px 8px;background:rgba(255,255,255,0.06);border-radius:8px;flex:1;">
+        <span style="font-size:7px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;">Steps</span>
+        <span id="dw-steps" style="font-size:14px;font-weight:700;color:#fff;margin-top:2px;">0</span>
       </div>
-      <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 6px 8px;
-        background: rgba(255,255,255,0.06);
-        border-radius: 8px;
-        flex: 1;
-      ">
-        <span style="font-size: 7px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px;">Visited</span>
-        <span id="dw-visited" style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">0</span>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:6px 8px;background:rgba(255,255,255,0.06);border-radius:8px;flex:1;">
+        <span style="font-size:7px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;">Visited</span>
+        <span id="dw-visited" style="font-size:14px;font-weight:700;color:#fff;margin-top:2px;">0</span>
       </div>
     `;
     container.appendChild(statRow);
@@ -125,35 +133,14 @@ export function createControlPanel(engine, options = {}) {
     // START/STOP button
     startStopBtn = document.createElement('button');
     startStopBtn.style.cssText = `
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 12px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px;
-      color: #f0f0f0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;
+      background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;
+      color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px;
     `;
     startStopBtn.innerHTML = '<span>▶</span> START';
-    startStopBtn.onmouseover = () => {
-      if (!engine.isNavigating()) {
-        startStopBtn.style.background = 'rgba(255,255,255,0.12)';
-      }
-    };
-    startStopBtn.onmouseout = () => {
-      if (!engine.isNavigating()) {
-        startStopBtn.style.background = 'rgba(255,255,255,0.08)';
-      }
-    };
+    startStopBtn.onmouseover = () => { if (!engine.isNavigating()) startStopBtn.style.background = 'rgba(255,255,255,0.12)'; };
+    startStopBtn.onmouseout = () => { if (!engine.isNavigating()) startStopBtn.style.background = 'rgba(255,255,255,0.08)'; };
     startStopBtn.onclick = (e) => {
       e.stopPropagation();
       if (engine.isNavigating()) engine.stop();
@@ -164,37 +151,10 @@ export function createControlPanel(engine, options = {}) {
 
     // Save Path / Save Logs row
     const saveRow = document.createElement('div');
-    saveRow.style.cssText = `
-      display: flex;
-      gap: 6px;
-    `;
+    saveRow.style.cssText = `display: flex; gap: 6px;`;
     saveRow.innerHTML = `
-      <button id="dw-save-path" style="
-        flex: 1;
-        padding: 6px 10px;
-        font-size: 12px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 7px;
-        color: #f0f0f0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-      ">💾 Path</button>
-      <button id="dw-save-logs" style="
-        flex: 1;
-        padding: 6px 10px;
-        font-size: 12px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 7px;
-        color: #f0f0f0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-      ">📄 Logs</button>
+      <button id="dw-save-path" style="flex:1;padding:6px 10px;font-size:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-weight:500;cursor:pointer;transition:all 0.2s;">💾 Path</button>
+      <button id="dw-save-logs" style="flex:1;padding:6px 10px;font-size:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-weight:500;cursor:pointer;transition:all 0.2s;">📄 Logs</button>
     `;
     container.appendChild(saveRow);
     saveRow.querySelector('#dw-save-path').onclick = (e) => { e.stopPropagation(); exportPath(); };
@@ -202,48 +162,17 @@ export function createControlPanel(engine, options = {}) {
 
     // Pace control
     const paceRow = document.createElement('div');
-    paceRow.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding-top: 4px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-    `;
+    paceRow.style.cssText = `display:flex;flex-direction:column;gap:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.08);`;
     paceRow.innerHTML = `
-      <span style="font-size: 8px; color: rgba(255,255,255,0.5); text-align: center;">Pace: <span id="dw-pace-val">${(engine.getConfig().pace / 1000).toFixed(1)}s</span></span>
-      <input type="range" min="500" max="5000" step="100" value="${engine.getConfig().pace}" style="
-        width: 100%;
-        -webkit-appearance: none;
-        height: 4px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 2px;
-        outline: none;
-        cursor: pointer;
-      " />
+      <span style="font-size:8px;color:rgba(255,255,255,0.5);text-align:center;">Pace: <span id="dw-pace-val">${(engine.getConfig().pace / 1000).toFixed(1)}s</span></span>
+      <input type="range" min="500" max="5000" step="100" value="${engine.getConfig().pace}" style="width:100%;-webkit-appearance:none;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;outline:none;cursor:pointer;" />
     `;
-    
-    // Style the slider thumb
     const sliderStyle = document.createElement('style');
     sliderStyle.textContent = `
-      .dw-float-ui input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 14px;
-        height: 14px;
-        background: rgba(255,255,255,0.8);
-        border-radius: 50%;
-        cursor: pointer;
-      }
-      .dw-float-ui input[type=range]::-moz-range-thumb {
-        width: 14px;
-        height: 14px;
-        background: rgba(255,255,255,0.8);
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-      }
+      .dw-float-ui input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:rgba(255,255,255,0.8);border-radius:50%;cursor:pointer;}
+      .dw-float-ui input[type=range]::-moz-range-thumb{width:14px;height:14px;background:rgba(255,255,255,0.8);border:none;border-radius:50%;cursor:pointer;}
     `;
     container.appendChild(sliderStyle);
-    
     container.appendChild(paceRow);
     const paceSlider = paceRow.querySelector('input');
     paceValEl = paceRow.querySelector('#dw-pace-val');
@@ -254,8 +183,6 @@ export function createControlPanel(engine, options = {}) {
     };
 
     document.body.appendChild(container);
-
-    // Make entire panel draggable
     makeDraggable(container);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
@@ -279,15 +206,13 @@ export function createControlPanel(engine, options = {}) {
 
   const exportPath = () => {
     const walkPath = engine.getWalkPath();
-    if (walkPath.length === 0) {
-      alert('No path recorded yet.');
-      return;
-    }
+    if (walkPath.length === 0) { alert('No path recorded yet.'); return; }
     const blob = new Blob([JSON.stringify(walkPath, null, 2)], { type: 'application/json' });
     downloadFile(blob, `dw-path-${Date.now()}.json`);
   };
 
   const exportLogs = () => {
+    if (sessionLogs.length === 0) { alert('No logs captured yet.'); return; }
     const blob = new Blob([sessionLogs.join('\n')], { type: 'text/plain' });
     downloadFile(blob, `dw-logs-${Date.now()}.txt`);
   };
