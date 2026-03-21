@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T17:11:13.258Z
+// Built: 2026-03-21T17:24:33.135Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -16,26 +16,33 @@ void function initDrunkWalker(){
   // === WHEEL ===
   /**
  * Wheel component for Drunk Walker
- * Manages orientation and turning (only left)
+ * Manages orientation and turning (left and right)
  */
+
 function createWheel(callbacks) {
   let orientation = 0; // 0-359
+
   const getOrientation = () => orientation;
+
   const setOrientation = (newOrientation) => {
     orientation = normalizeAngle(newOrientation);
   };
+
   const turnLeft = (angle, callback) => {
     // Update orientation IMMEDIATELY (intent-based)
     orientation = normalizeAngle(orientation - angle);
+
     // Convert angle to duration (10ms per degree as per existing code)
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
+
     let callbackCalled = false;
     const safeCallback = () => {
       if (callbackCalled) return;
       callbackCalled = true;
       if (callback) callback();
     };
+
     if (callbacks.onLongKeyPress) {
       callbacks.onLongKeyPress('ArrowLeft', clampedDuration, safeCallback);
       // Safety timeout in case onLongKeyPress doesn't call back
@@ -44,18 +51,46 @@ function createWheel(callbacks) {
       safeCallback();
     }
   };
+
+  const turnRight = (angle, callback) => {
+    // Update orientation IMMEDIATELY (intent-based)
+    orientation = normalizeAngle(orientation + angle);
+
+    // Convert angle to duration (10ms per degree)
+    const duration = Math.round(angle * 10);
+    const clampedDuration = Math.max(300, Math.min(900, duration));
+
+    let callbackCalled = false;
+    const safeCallback = () => {
+      if (callbackCalled) return;
+      callbackCalled = true;
+      if (callback) callback();
+    };
+
+    if (callbacks.onLongKeyPress) {
+      callbacks.onLongKeyPress('ArrowRight', clampedDuration, safeCallback);
+      // Safety timeout
+      setTimeout(safeCallback, clampedDuration + 500);
+    } else {
+      safeCallback();
+    }
+  };
+
   const normalizeAngle = (angle) => {
     angle = angle % 360;
     if (angle < 0) angle += 360;
     return angle;
   };
+
   return {
     getOrientation,
     setOrientation,
     turnLeft,
+    turnRight,
     reset: () => { orientation = 0; }
   };
 }
+
 
   // === TRAVERSAL ALGORITHMS ===
   /**
@@ -352,38 +387,6 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🧭 YAW CORRECTION: Auto-correct drift using path history
-    // ═══════════════════════════════════════════════════════════
-    // For ALL nodes: use last movement (previous → current)
-    // This corrects drift based on actual direction of travel
-    let pathYaw = null;
-    if (previousLocation && previousLocation !== currentLocation) {
-      // Calculate yaw from the movement that brought us here
-      pathYaw = calculateYawFromLastMove(previousLocation, currentLocation);
-      console.log(`[DEBUG] YAW CORRECTION: pathYaw from last move = ${pathYaw}° (prev=${previousLocation} → curr=${currentLocation})`);
-    } else if (breadcrumbs.length >= 3) {
-      // Fallback: use path history if no previousLocation available
-      pathYaw = calculateYawFromPath(breadcrumbs, currentLocation, 3);
-      console.log(`[DEBUG] YAW CORRECTION: pathYaw from breadcrumbs = ${pathYaw}°`);
-    }
-
-    const hasCorrectedHere = yawCorrectedNodes.has(currentLocation);
-
-    if (pathYaw !== null && !hasCorrectedHere) {
-      const orientationDiff = yawDifference(orientation, pathYaw);
-
-      // Only correct if drift is significant (>10°)
-      if (orientationDiff > 10 && orientationDiff < 170) {
-        yawCorrectedNodes.add(currentLocation);
-        console.log(`🧭 YAW CORRECTION: ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) at ${currentLocation} ${isNewNode ? '(NEW)' : '(VISITED)'}`);
-
-        // Return turn to correct yaw
-        const turnAngle = getLeftTurnAngle(orientation, pathYaw);
-        return { turn: true, angle: turnAngle };
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════════
     // 🚫 NEW NODE: Never turn at new/unsampled nodes - go straight!
     // ═══════════════════════════════════════════════════════════
     if (isNewNode) {
@@ -431,8 +434,9 @@ function createUnifiedAlgorithm(cfg) {
         const diff = yawDifference(orientation, targetYaw);
         if (diff > 5 && diff < 355) {
           const turnAngle = getLeftTurnAngle(orientation, targetYaw);
-          console.log(`🔙 BACKTRACK: Exploring untried yaw ${targetYaw}° at ${currentLocation} (${currentNode.triedYaws.size}/6) angle=${Math.round(turnAngle)}°`);
-          return { turn: true, angle: turnAngle };
+          const turnDirection = getTurnDirection(orientation, targetYaw);
+          console.log(`🔙 BACKTRACK: Exploring untried yaw ${targetYaw}° at ${currentLocation} (${currentNode.triedYaws.size}/6) angle=${Math.round(turnAngle)}° ${turnDirection}`);
+          return { turn: true, angle: turnAngle, direction: turnDirection };
         }
         console.log(`🔙 BACKTRACK: Already facing untried yaw ${targetYaw}°, moving forward`);
         return { turn: false };
@@ -470,12 +474,13 @@ function createUnifiedAlgorithm(cfg) {
         if (diff > 5 && diff < 355) {
           console.log(`🎯 Reached crossroad! Turning to ${navigationTarget.targetYaw}°`);
           const turnAngle = getLeftTurnAngle(orientation, navigationTarget.targetYaw);
+          const turnDirection = getTurnDirection(orientation, navigationTarget.targetYaw);
           navigationTarget = null;
           // Reset backtrack tracking - starting fresh exploration
           turnedAtNodes.clear();
           backtrackCount = 0;
           lastBacktrackLocation = null;
-          return { turn: true, angle: turnAngle };
+          return { turn: true, angle: turnAngle, direction: turnDirection };
         }
         navigationTarget = null;
         turnedAtNodes.clear();
@@ -503,7 +508,8 @@ function createUnifiedAlgorithm(cfg) {
         return { turn: false };  // Move forward toward target
       } else {
         const turnAngle = getLeftTurnAngle(orientation, yawToTarget);
-        return { turn: true, angle: turnAngle };  // Turn toward target
+        const turnDirection = getTurnDirection(orientation, yawToTarget);
+        return { turn: true, angle: turnAngle, direction: turnDirection };  // Turn toward target
       }
     }
 
@@ -518,16 +524,18 @@ function createUnifiedAlgorithm(cfg) {
 
       if (nextYaw !== null) {
         const turnAngle = getLeftTurnAngle(orientation, nextYaw);
-        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying untried yaw ${nextYaw}° (angle=${Math.round(turnAngle)}°)`);
-        return { turn: true, angle: turnAngle };
+        const turnDirection = getTurnDirection(orientation, nextYaw);
+        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying untried yaw ${nextYaw}° (angle=${Math.round(turnAngle)}° ${turnDirection})`);
+        return { turn: true, angle: turnAngle, direction: turnDirection };
       } else if (currentNode.successfulYaws.size > 0) {
         // All buckets tried but still stuck - retry a successful exit
         // Pick random successful yaw (one of them must work - we came from somewhere!)
         const successfulYawsArray = Array.from(currentNode.successfulYaws);
         const randomSuccessfulYaw = successfulYawsArray[Math.floor(Math.random() * successfulYawsArray.length)];
         const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
-        console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}°)`);
-        return { turn: true, angle: turnAngle };
+        const turnDirection = getTurnDirection(orientation, randomSuccessfulYaw);
+        console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}° ${turnDirection})`);
+        return { turn: true, angle: turnAngle, direction: turnDirection };
       } else {
         // TRULY STUCK - No successful exits recorded (shouldn't happen with bidirectional recording)
         // This means we have a data inconsistency - log error and try to recover
@@ -539,8 +547,9 @@ function createUnifiedAlgorithm(cfg) {
         if (currentNode.entryYaw !== undefined && currentNode.entryYaw !== null) {
           const reverseYaw = (currentNode.entryYaw + 180) % 360;
           const turnAngle = getLeftTurnAngle(orientation, reverseYaw);
-          console.log(`🚨 EMERGENCY! Using entryYaw ${currentNode.entryYaw}° → reverse ${reverseYaw}° (angle=${Math.round(turnAngle)}°)`);
-          return { turn: true, angle: turnAngle };
+          const turnDirection = getTurnDirection(orientation, reverseYaw);
+          console.log(`🚨 EMERGENCY! Using entryYaw ${currentNode.entryYaw}° → reverse ${reverseYaw}° (angle=${Math.round(turnAngle)}° ${turnDirection})`);
+          return { turn: true, angle: turnAngle, direction: turnDirection };
         }
 
         // Last resort: stop the bot - we're truly stuck with no way out
@@ -561,7 +570,8 @@ function createUnifiedAlgorithm(cfg) {
         if (diff > 5 && diff < 355) {
           console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
-          return { turn: true, angle: turnAngle };
+          const turnDirection = getTurnDirection(orientation, nextYaw);
+          return { turn: true, angle: turnAngle, direction: turnDirection };
         } else {
           // Already pointing close enough, just move forward
           console.log('[DEBUG] Already facing target yaw, moving forward');
@@ -580,10 +590,38 @@ function createUnifiedAlgorithm(cfg) {
       console.log(`[DEBUG] FALLBACK: Retrying successful yaw ${randomSuccessfulYaw}°, diff=${diff}°`);
       if (diff > 5 && diff < 355) {
         const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
-        return { turn: true, angle: turnAngle };
+        return { turn: true, angle: turnAngle, direction: getTurnDirection(orientation, randomSuccessfulYaw) };
       }
       // Already facing it, move forward
       return { turn: false };
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🧭 YAW CORRECTION (LOWEST PRIORITY): Only if no other algorithm applied
+    // ═══════════════════════════════════════════════════════════
+    // Only correct if:
+    // - Just arrived at this node (first decision here)
+    // - Haven't corrected at this node yet
+    // - Drift is significant (>15°)
+    // - No other algorithm decision was made
+    const pathYaw = previousLocation && previousLocation !== currentLocation
+      ? calculateYawFromLastMove(previousLocation, currentLocation)
+      : (breadcrumbs.length >= 3 ? calculateYawFromPath(breadcrumbs, currentLocation, 3) : null);
+
+    const hasCorrectedHere = yawCorrectedNodes.has(currentLocation);
+
+    if (pathYaw !== null && !hasCorrectedHere && justArrived) {
+      const orientationDiff = yawDifference(orientation, pathYaw);
+
+      // Only correct if drift is significant (>15°)
+      if (orientationDiff > 15 && orientationDiff < 165) {
+        yawCorrectedNodes.add(currentLocation);
+        const turnDirection = getTurnDirection(orientation, pathYaw);
+        console.log(`🧭 YAW CORRECTION (fallback): ${Math.round(orientation)}° → ${pathYaw}° (diff=${Math.round(orientationDiff)}°) ${turnDirection} at ${currentLocation}`);
+
+        const turnAngle = getLeftTurnAngle(orientation, pathYaw);
+        return { turn: true, angle: turnAngle, direction: turnDirection };
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -593,7 +631,19 @@ function createUnifiedAlgorithm(cfg) {
     return { turn: false };
   };
 
-  return { 
+  /**
+   * Determine optimal turn direction (left or right)
+   * Returns 'right' if turning right is shorter, otherwise 'left'
+   */
+  function getTurnDirection(currentYaw, targetYaw) {
+    const leftAngle = getLeftTurnAngle(currentYaw, targetYaw);
+    const rightAngle = (360 - leftAngle) % 360;
+
+    // Turn right if it's shorter (less than 180°)
+    return rightAngle < leftAngle ? 'right' : 'left';
+  }
+
+  return {
     decide,
     enhancedGraph,
     isReturning: () => isReturning,
@@ -967,15 +1017,19 @@ function createEngine(config = {}) {
       console.log(`[DEBUG] Skipping decision - turn cooldown active (${ticksSinceTurn}/${TURNS_COOLDOWN_TICKS})`);
     }
 
-    // 6. Action: Turn (Independent)
+    // 6. Action: Turn (Left or Right)
     if (decision.turn) {
-      console.log(`   🔄 ACTION: Turning Left ${decision.angle}°`);
+      const angle = decision.angle || 60;
+      const direction = decision.direction || 'left';  // 'left' or 'right'
+
+      console.log(`   🔄 ACTION: Turning ${direction.toUpperCase()} ${angle}°`);
       isTurning = true;
       turnCompleted = false;
 
       // Skip stepping when turning - let the turn complete first
       previousYaw = wheel.getOrientation();
-      wheel.turnLeft(decision.angle || 60, () => {
+
+      const turnCallback = () => {
         console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
         isTurning = false;
         turnCompleted = true;
@@ -998,8 +1052,15 @@ function createEngine(config = {}) {
           const target = calculateClickTarget();
           if (onMouseClick) onMouseClick(target.x, target.y);
         }
-      });
-      cumulativeTurnAngle += decision.angle || 60;
+      };
+
+      if (direction === 'right') {
+        wheel.turnRight(angle, turnCallback);
+      } else {
+        wheel.turnLeft(angle, turnCallback);
+      }
+
+      cumulativeTurnAngle += angle;
       console.log('[DEBUG] tick() RETURN EARLY - waiting for turn to complete');
       return; // Exit tick early - don't step until turn completes
     }

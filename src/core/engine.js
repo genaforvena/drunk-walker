@@ -315,15 +315,19 @@ export function createEngine(config = {}) {
       console.log(`[DEBUG] Skipping decision - turn cooldown active (${ticksSinceTurn}/${TURNS_COOLDOWN_TICKS})`);
     }
 
-    // 6. Action: Turn (Independent)
+    // 6. Action: Turn (Left or Right)
     if (decision.turn) {
-      console.log(`   🔄 ACTION: Turning Left ${decision.angle}°`);
+      const angle = decision.angle || 60;
+      const direction = decision.direction || 'left';  // 'left' or 'right'
+      
+      console.log(`   🔄 ACTION: Turning ${direction.toUpperCase()} ${angle}°`);
       isTurning = true;
       turnCompleted = false;
 
       // Skip stepping when turning - let the turn complete first
       previousYaw = wheel.getOrientation();
-      wheel.turnLeft(decision.angle || 60, () => {
+      
+      const turnCallback = () => {
         console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
         isTurning = false;
         turnCompleted = true;
@@ -346,8 +350,15 @@ export function createEngine(config = {}) {
           const target = calculateClickTarget();
           if (onMouseClick) onMouseClick(target.x, target.y);
         }
-      });
-      cumulativeTurnAngle += decision.angle || 60;
+      };
+      
+      if (direction === 'right') {
+        wheel.turnRight(angle, turnCallback);
+      } else {
+        wheel.turnLeft(angle, turnCallback);
+      }
+      
+      cumulativeTurnAngle += angle;
       console.log('[DEBUG] tick() RETURN EARLY - waiting for turn to complete');
       return; // Exit tick early - don't step until turn completes
     }
