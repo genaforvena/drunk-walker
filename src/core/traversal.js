@@ -72,10 +72,11 @@ class NodeInfo {
   }
   
   recordAttempt(yaw, success, targetLocation = null) {
-    this.triedYaws.add(normalizeAngle(yaw));
+    const bucket = Math.round(normalizeAngle(yaw) / 60) * 60 % 360;
+    this.triedYaws.add(bucket);
     if (success && targetLocation) {
-      this.successfulYaws.add(normalizeAngle(yaw));
-      this.connections.set(normalizeAngle(yaw), targetLocation);
+      this.successfulYaws.add(bucket);
+      this.connections.set(bucket, targetLocation);
     }
     this.updateType();
   }
@@ -96,9 +97,6 @@ class NodeInfo {
       } else if (exitCount >= 3) {
         this.isCrossroad = true;
       }
-    } else {
-      // Early dead-end detection: if we've tried many yaws and only found 1 exit
-      // but we haven't tried all 6 yet, it's not "fully" dead yet.
     }
   }
   
@@ -264,9 +262,12 @@ export function createUnifiedAlgorithm(cfg) {
       if (nextYaw !== null) {
         const diff = yawDifference(orientation, nextYaw);
         if (diff > 5 && diff < 355) {
-          console.log(`🔍 Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
+          console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           return { turn: true, angle: turnAngle };
+        } else {
+          // Already pointing close enough, just move forward
+          return { turn: false };
         }
       }
     }
@@ -275,19 +276,13 @@ export function createUnifiedAlgorithm(cfg) {
     // STUCK >= panicThreshold: Systematic search (blocked, need to turn)
     // ═══════════════════════════════════════════════════════════
     if (stuckCount >= panicThreshold) {
-      // ONLY panic if we've already tried all 6 standard directions
-      // or if stuckCount is exceptionally high
       let searchIncrement = 60;
       if (stuckCount >= 15) searchIncrement = 30;
-      if (stuckCount >= 30) {
-        return { turn: true, angle: Math.floor(Math.random() * 360) };
-      }
       
-      // Systematic sweep using 60 degree increments
       lastSearchAngle = (lastSearchAngle + searchIncrement) % 360;
       if (lastSearchAngle === 0) lastSearchAngle = searchIncrement;
       
-      console.log(`🔒 Truly Stuck ${stuckCount}, turning ${lastSearchAngle}°`);
+      console.log(`🔒 Panic Turn: ${lastSearchAngle}° (stuck ${stuckCount})`);
       return { turn: true, angle: lastSearchAngle };
     }
 

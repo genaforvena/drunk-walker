@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v5.5.0-DECOUPLED-HEARTBEAT - BUNDLED BOOKMARKLET
+// Drunk Walker v5.5.1-DECOUPLED-FIX - BUNDLED BOOKMARKLET
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -132,10 +132,11 @@ class NodeInfo {
   }
 
   recordAttempt(yaw, success, targetLocation = null) {
-    this.triedYaws.add(normalizeAngle(yaw));
+    const bucket = Math.round(normalizeAngle(yaw) / 60) * 60 % 360;
+    this.triedYaws.add(bucket);
     if (success && targetLocation) {
-      this.successfulYaws.add(normalizeAngle(yaw));
-      this.connections.set(normalizeAngle(yaw), targetLocation);
+      this.successfulYaws.add(bucket);
+      this.connections.set(bucket, targetLocation);
     }
     this.updateType();
   }
@@ -156,9 +157,6 @@ class NodeInfo {
       } else if (exitCount >= 3) {
         this.isCrossroad = true;
       }
-    } else {
-      // Early dead-end detection: if we've tried many yaws and only found 1 exit
-      // but we haven't tried all 6 yet, it's not "fully" dead yet.
     }
   }
 
@@ -324,9 +322,12 @@ function createUnifiedAlgorithm(cfg) {
       if (nextYaw !== null) {
         const diff = yawDifference(orientation, nextYaw);
         if (diff > 5 && diff < 355) {
-          console.log(`🔍 Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
+          console.log(`🔍 Node ${currentLocation.split(',')[0]}...: Trying yaw ${nextYaw}° (${currentNode.triedYaws.size}/6)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           return { turn: true, angle: turnAngle };
+        } else {
+          // Already pointing close enough, just move forward
+          return { turn: false };
         }
       }
     }
@@ -335,19 +336,13 @@ function createUnifiedAlgorithm(cfg) {
     // STUCK >= panicThreshold: Systematic search (blocked, need to turn)
     // ═══════════════════════════════════════════════════════════
     if (stuckCount >= panicThreshold) {
-      // ONLY panic if we've already tried all 6 standard directions
-      // or if stuckCount is exceptionally high
       let searchIncrement = 60;
       if (stuckCount >= 15) searchIncrement = 30;
-      if (stuckCount >= 30) {
-        return { turn: true, angle: Math.floor(Math.random() * 360) };
-      }
 
-      // Systematic sweep using 60 degree increments
       lastSearchAngle = (lastSearchAngle + searchIncrement) % 360;
       if (lastSearchAngle === 0) lastSearchAngle = searchIncrement;
 
-      console.log(`🔒 Truly Stuck ${stuckCount}, turning ${lastSearchAngle}°`);
+      console.log(`🔒 Panic Turn: ${lastSearchAngle}° (stuck ${stuckCount})`);
       return { turn: true, angle: lastSearchAngle };
     }
 
@@ -431,7 +426,7 @@ const __default_export = {
  * - Traversal: Decision-making with stuck type detection
  */
 
-const VERSION = '5.5.0-DECOUPLED-HEARTBEAT';
+const VERSION = '5.5.1-DECOUPLED-FIX';
 
 const defaultConfig = {
   pace: 2000,
@@ -486,7 +481,8 @@ function createEngine(config = {}) {
 
   const extractYaw = (url) => {
     if (!url) return null;
-    const match = url.match(/yaw[=%]3D?([0-9.]+)/i);
+    // Match both &yaw=123 and 75y,123h formats
+    const match = url.match(/yaw[=%]3D?([0-9.]+)/i) || url.match(/,([0-9.]+)h/i);
     return match ? parseFloat(match[1]) : null;
   };
 
@@ -607,13 +603,14 @@ function createEngine(config = {}) {
       stuckCount = 0;
     }
 
-    // 2. Report heartbeat to console
-    console.log(`💓 HEARTBEAT ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
-
-    // 3. Sync orientation with URL
-    if (currentYaw !== null) {
+    // 2. Sync orientation with URL ONLY if location changed or we just started
+    // This prevents syncing from stale URL yaw while stuck and turning
+    if (currentYaw !== null && (currentLocation !== previousLocation || lastUrl === null)) {
       wheel.setOrientation(currentYaw);
     }
+
+    // 3. Report heartbeat to console
+    console.log(`💓 HEARTBEAT ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
 
     // 4. Record result of PREVIOUS heartbeat in the graph
     if (previousLocation && algorithm.enhancedGraph) {

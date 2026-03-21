@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.5.0-DECOUPLED-HEARTBEAT';
+export const VERSION = '5.5.1-DECOUPLED-FIX';
 
 export const defaultConfig = {
   pace: 2000,
@@ -69,7 +69,8 @@ export function createEngine(config = {}) {
 
   const extractYaw = (url) => {
     if (!url) return null;
-    const match = url.match(/yaw[=%]3D?([0-9.]+)/i);
+    // Match both &yaw=123 and 75y,123h formats
+    const match = url.match(/yaw[=%]3D?([0-9.]+)/i) || url.match(/,([0-9.]+)h/i);
     return match ? parseFloat(match[1]) : null;
   };
 
@@ -190,13 +191,14 @@ export function createEngine(config = {}) {
       stuckCount = 0;
     }
 
-    // 2. Report heartbeat to console
-    console.log(`💓 HEARTBEAT ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
-
-    // 3. Sync orientation with URL
-    if (currentYaw !== null) {
+    // 2. Sync orientation with URL ONLY if location changed or we just started
+    // This prevents syncing from stale URL yaw while stuck and turning
+    if (currentYaw !== null && (currentLocation !== previousLocation || lastUrl === null)) {
       wheel.setOrientation(currentYaw);
     }
+
+    // 3. Report heartbeat to console
+    console.log(`💓 HEARTBEAT ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
 
     // 4. Record result of PREVIOUS heartbeat in the graph
     if (previousLocation && algorithm.enhancedGraph) {
