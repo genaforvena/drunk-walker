@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T10:40:49.066Z
+// Built: 2026-03-21T10:59:16.715Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -1430,20 +1430,21 @@ function createControlPanel(engine, options = {}) {
   const CSS = {
     panel: `
       position: fixed;
-      top: 20px;
-      right: 20px;
-      width: 300px;
-      min-width: 250px;
-      max-width: 600px;
-      min-height: 200px;
-      max-height: 800px;
-      background: rgba(18, 18, 20, 0.75);
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      min-width: 350px;
+      max-width: 700px;
+      min-height: 180px;
+      max-height: 600px;
+      background: rgba(18, 18, 20, 0.85);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px 20px 0 0;
       box-shadow:
-        0 20px 40px -10px rgba(0, 0, 0, 0.6),
+        0 -10px 40px -10px rgba(0, 0, 0, 0.8),
         0 0 0 1px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
       color: #f0f0f0;
@@ -1456,13 +1457,14 @@ function createControlPanel(engine, options = {}) {
       resize: none;
     `,
     header: `
-      padding: 16px 20px;
+      padding: 12px 20px;
       background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: grab;
+      border-radius: 20px 20px 0 0;
     `,
     title: `
       font-weight: 700;
@@ -1485,28 +1487,33 @@ function createControlPanel(engine, options = {}) {
       border: 1px solid rgba(0, 255, 128, 0.2);
     `,
     content: `
-      padding: 20px;
+      padding: 16px 20px 20px 20px;
     `,
     grid: `
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(5, 1fr);
       gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     `,
     statItem: `
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 4px;
+      padding: 10px 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     `,
     statLabel: `
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 600;
       color: rgba(255, 255, 255, 0.4);
       letter-spacing: 0.5px;
       text-transform: uppercase;
     `,
     statValue: `
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
       color: #fff;
       font-feature-settings: "tnum";
@@ -1516,16 +1523,16 @@ function createControlPanel(engine, options = {}) {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 10px 14px;
+      background: rgba(0, 255, 128, 0.05);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(0, 255, 128, 0.1);
     `,
     statusText: `
       font-size: 12px;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.7);
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -1535,7 +1542,7 @@ function createControlPanel(engine, options = {}) {
       font-weight: 700;
       color: #ff4d4d;
       background: rgba(255, 77, 77, 0.1);
-      padding: 2px 8px;
+      padding: 4px 10px;
       border-radius: 100px;
       border: 1px solid rgba(255, 77, 77, 0.2);
       opacity: 0;
@@ -1543,16 +1550,16 @@ function createControlPanel(engine, options = {}) {
     `,
     controls: `
       display: flex;
-      flex-direction: column;
       gap: 12px;
+      align-items: center;
     `,
     btnMain: `
-      width: 100%;
-      height: 44px;
+      flex: 1;
+      height: 42px;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex;
@@ -1565,42 +1572,46 @@ function createControlPanel(engine, options = {}) {
       overflow: hidden;
     `,
     btnSecondaryGroup: `
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      display: flex;
+      gap: 8px;
     `,
     btnSec: `
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: rgba(255, 255, 255, 0.8);
-      height: 36px;
-      border-radius: 8px;
-      font-size: 11px;
+      width: 44px;
+      height: 42px;
+      border-radius: 10px;
+      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     `,
     sliderWrapper: `
-      margin-top: 8px;
-      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
       background: rgba(255, 255, 255, 0.03);
       border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.05);
     `,
-    sliderHeader: `
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 11px;
+    sliderLabel: `
+      font-size: 10px;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      white-space: nowrap;
     `,
     slider: `
-      width: 100%;
+      flex: 1;
       -webkit-appearance: none;
-      height: 4px;
+      height: 6px;
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
+      border-radius: 3px;
       outline: none;
     `
   };
@@ -1641,9 +1652,9 @@ function createControlPanel(engine, options = {}) {
     });
   };
 
-  const makeResizable = (element) => {
-    const minSize = { width: 250, height: 200 };
-    const maxSize = { width: 600, height: 800 };
+  const makeResizable = (element, positions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']) => {
+    const minSize = { width: 350, height: 180 };
+    const maxSize = { width: 700, height: 600 };
 
     const createResizeHandle = (position) => {
       const handle = document.createElement('div');
@@ -1736,8 +1747,7 @@ function createControlPanel(engine, options = {}) {
       document.addEventListener('mouseup', onMouseUp);
     };
 
-    // Add all resize handles
-    const positions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+    // Add specified resize handles
     positions.forEach(pos => {
       const handle = createResizeHandle(pos);
       handle.addEventListener('mousedown', (e) => startResize(e, pos));
@@ -1789,13 +1799,17 @@ function createControlPanel(engine, options = {}) {
     grid.innerHTML = `
       ${createStat('Steps', 'dw-steps', '0')}
       ${createStat('Visited', 'dw-visited', '0')}
+      ${createStat('Stuck', 'dw-stuck-count', '0')}
       ${createStat('Pace', 'dw-pace-display', (engine.getConfig().pace/1000).toFixed(1)+'s')}
+      ${createStat('Turns', 'dw-turns', '0°')}
     `;
     mainContent.appendChild(grid);
 
     stepsEl = mainContent.querySelector('#dw-steps');
     visitedEl = mainContent.querySelector('#dw-visited');
     paceValEl = mainContent.querySelector('#dw-pace-display');
+    const stuckCountEl = mainContent.querySelector('#dw-stuck-count');
+    const turnsEl = mainContent.querySelector('#dw-turns');
 
     // Status Row
     const statusRow = document.createElement('div');
@@ -1812,12 +1826,12 @@ function createControlPanel(engine, options = {}) {
     statusEl = mainContent.querySelector('#dw-status-text');
     stuckEl = mainContent.querySelector('#dw-stuck-indicator');
 
-    // Controls
+    // Controls - horizontal layout
     const controls = document.createElement('div');
     controls.style.cssText = CSS.controls;
 
     btn = document.createElement('button');
-    btn.style.cssText = CSS.btnMain + 'background: #fff; color: #000; box-shadow: 0 4px 12px rgba(255,255,255,0.2);';
+    btn.style.cssText = CSS.btnMain + 'background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%); color: #000; box-shadow: 0 4px 12px rgba(255,255,255,0.15);';
     btn.innerHTML = '<span>▶</span> START EXPLORING';
     btn.onmouseover = () => btn.style.transform = 'translateY(-1px)';
     btn.onmouseout = () => btn.style.transform = 'translateY(0)';
@@ -1832,14 +1846,16 @@ function createControlPanel(engine, options = {}) {
     secBtns.style.cssText = CSS.btnSecondaryGroup;
 
     const dlPath = document.createElement('button');
-    dlPath.innerText = '💾 JSON';
+    dlPath.innerHTML = '💾';
+    dlPath.title = 'Export Path';
     dlPath.style.cssText = CSS.btnSec;
     dlPath.onmouseover = () => dlPath.style.background = 'rgba(255,255,255,0.1)';
     dlPath.onmouseout = () => dlPath.style.background = 'rgba(255,255,255,0.05)';
     dlPath.onclick = exportPath;
 
     const dlLogs = document.createElement('button');
-    dlLogs.innerText = '📄 LOGS';
+    dlLogs.innerHTML = '📄';
+    dlLogs.title = 'Export Logs';
     dlLogs.style.cssText = CSS.btnSec;
     dlLogs.onmouseover = () => dlLogs.style.background = 'rgba(255,255,255,0.1)';
     dlLogs.onmouseout = () => dlLogs.style.background = 'rgba(255,255,255,0.05)';
@@ -1853,9 +1869,7 @@ function createControlPanel(engine, options = {}) {
     const sliderWrap = document.createElement('div');
     sliderWrap.style.cssText = CSS.sliderWrapper;
     sliderWrap.innerHTML = `
-      <div style="${CSS.sliderHeader}">
-        <span>HEARTBEAT SPEED</span>
-      </div>
+      <span style="${CSS.sliderLabel}">⏱ Pace</span>
     `;
 
     paceSlider = document.createElement('input');
@@ -1880,8 +1894,9 @@ function createControlPanel(engine, options = {}) {
 
     // Minimize logic
     header.querySelector('#dw-min-btn').onclick = toggleMinimize;
-    makeDraggable(container, header);
-    makeResizable(container);
+    // No dragging - panel is centered at bottom
+    // Only resize from top corners
+    makeResizable(container, ['nw', 'ne']);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
     engine.setSelfAvoiding(true);
@@ -1958,6 +1973,8 @@ function createControlPanel(engine, options = {}) {
     if (statusEl) statusEl.innerText = statusText;
     if (stepsEl) stepsEl.innerText = stepCount;
     if (visitedEl) visitedEl.innerText = engine.getVisitedCount();
+    if (stuckCountEl) stuckCountEl.innerText = stuckCount;
+    if (turnsEl) turnsEl.innerText = Math.round(engine.getCumulativeTurnAngle()) + '°';
 
     if (stuckEl) {
       if (stuckCount > 0) {
