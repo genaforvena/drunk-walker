@@ -9,16 +9,30 @@ import { createControlPanel } from './ui/controller.js';
 import { createExplorationMap } from './ui/exploration-map.js';
 
 // Allow restart by clearing previous instance
-if (window.DRUNK_WALKER_ACTIVE) {
-  console.log('🤪 Drunk Walker: Restarting...');
-  if (window.DRUNK_WALKER) {
-    try { window.DRUNK_WALKER.stop(); } catch(e) {}
+if (window.DRUNK_WALKER) {
+  console.log('🤪 Drunk Walker: Restarting (cleaning up previous instance)...');
+  try {
+    window.DRUNK_WALKER.stop();
+  } catch(e) {
+    console.warn('Error stopping previous instance:', e);
   }
+  // Remove the global immediately to prevent race conditions
+  delete window.DRUNK_WALKER;
+  window.DRUNK_WALKER_ACTIVE = false;
 }
 
-window.DRUNK_WALKER_ACTIVE = true;
-
-console.log(`🤪 DRUNK WALKER v${VERSION} Loaded.`);
+// Small delay to ensure cleanup is processed by browser
+setTimeout(() => {
+  window.DRUNK_WALKER_ACTIVE = true;
+  console.log(`🤪 DRUNK WALKER v${VERSION} Loaded.`);
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+  } else {
+    initialize();
+  }
+}, 100);
 
 // Wait for DOM to be ready before initializing
 const initialize = () => {

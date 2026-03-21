@@ -72,12 +72,8 @@ let content = `
 // ═══════════════════════════════════════════════════════════════════════════════
 
 void function initDrunkWalker(){
-  if (window.DRUNK_WALKER_ACTIVE) {
-    console.log('🤪 Drunk Walker already running. Refresh page to restart.');
-    return;
-  }
-  window.DRUNK_WALKER_ACTIVE = true;
-
+  // Main entry point handles restart logic now
+  
   // === WHEEL ===
   ${stripModuleSyntax(wheel)}
 
