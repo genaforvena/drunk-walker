@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T10:17:36.644Z
+// Built: 2026-03-21T10:22:17.408Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -668,7 +668,7 @@ function createEngine(config = {}) {
     // 5. Decision time
     const context = {
       url: currentUrl,
-      location: currentLocation,
+      currentLocation: currentLocation,  // Match algorithm's expected property name
       visitedUrls,
       breadcrumbs,
       stuckCount,
@@ -731,6 +731,18 @@ function createEngine(config = {}) {
 
   const start = () => {
     console.log(`[DEBUG] start() called - current status=${status}, intervalId=${intervalId ? 'set' : 'null'}`);
+
+    // Aggressively clear any existing interval
+    if (intervalId) {
+      console.log('[DEBUG] start() clearing existing interval before start');
+      clearInterval(intervalId);
+      // Remove from global tracking
+      if (window.__DRUNK_WALKER_INTERVALS__) {
+        window.__DRUNK_WALKER_INTERVALS__.delete(intervalId);
+      }
+      intervalId = null;
+    }
+
     if (status === 'WALKING') {
       console.log('[DEBUG] start() ABORT - already walking');
       return;
@@ -740,11 +752,11 @@ function createEngine(config = {}) {
       stuckCount = 0;
       lastUrl = null;
     }
-    if (intervalId) {
-      console.log('[DEBUG] start() clearing existing interval');
-      clearInterval(intervalId);
-    }
     intervalId = setInterval(tick, cfg.pace);
+    // Track interval globally
+    if (window.__DRUNK_WALKER_INTERVALS__) {
+      window.__DRUNK_WALKER_INTERVALS__.add(intervalId);
+    }
     console.log(`[DEBUG] start() interval set with pace=${cfg.pace}ms`);
     if (onStatusUpdate) onStatusUpdate('WALKING', steps, stuckCount);
   };
@@ -753,6 +765,10 @@ function createEngine(config = {}) {
     status = 'IDLE';
     if (intervalId) {
       clearInterval(intervalId);
+      // Remove from global tracking
+      if (window.__DRUNK_WALKER_INTERVALS__) {
+        window.__DRUNK_WALKER_INTERVALS__.delete(intervalId);
+      }
       intervalId = null;
     }
     if (onWalkStop && isPathCollectionEnabled && walkPath.length > 0) {
@@ -1931,9 +1947,21 @@ function createControlPanel(engine, options = {}) {
  * Combines core engine, input handlers, and UI
  */
 
+// Global interval tracking for cleanup
+window.__DRUNK_WALKER_INTERVALS__ = window.__DRUNK_WALKER_INTERVALS__ || new Set();
+
+// Cleanup function for ALL intervals
+const cleanupAllIntervals = () => {
+  if (window.__DRUNK_WALKER_INTERVALS__) {
+    console.log(`🤪 Cleaning up ${window.__DRUNK_WALKER_INTERVALS__.size} existing interval(s)...`);
+    window.__DRUNK_WALKER_INTERVALS__.forEach(id => clearInterval(id));
+    window.__DRUNK_WALKER_INTERVALS__.clear();
+  }
+};
+
 // Allow restart by clearing previous instance
 if (window.DRUNK_WALKER) {
-  console.log('🤪 Drunk Walker: Restarting (cleaning up previous instance)...');
+  console.log('🤪 Drunk Walker: Stopping previous instance...');
   try {
     window.DRUNK_WALKER.stop();
   } catch(e) {
@@ -1944,9 +1972,13 @@ if (window.DRUNK_WALKER) {
   window.DRUNK_WALKER_ACTIVE = false;
 }
 
+// Aggressive cleanup before new instance
+cleanupAllIntervals();
+
 // Remove any existing UI panel from previous runs
 const existingPanel = document.getElementById('dw-modern-panel');
 if (existingPanel) {
+  console.log('🤪 Removing existing UI panel...');
   existingPanel.remove();
 }
 

@@ -238,7 +238,7 @@ export function createEngine(config = {}) {
     // 5. Decision time
     const context = {
       url: currentUrl,
-      location: currentLocation,
+      currentLocation: currentLocation,  // Match algorithm's expected property name
       visitedUrls,
       breadcrumbs,
       stuckCount,
@@ -301,6 +301,18 @@ export function createEngine(config = {}) {
 
   const start = () => {
     console.log(`[DEBUG] start() called - current status=${status}, intervalId=${intervalId ? 'set' : 'null'}`);
+    
+    // Aggressively clear any existing interval
+    if (intervalId) {
+      console.log('[DEBUG] start() clearing existing interval before start');
+      clearInterval(intervalId);
+      // Remove from global tracking
+      if (window.__DRUNK_WALKER_INTERVALS__) {
+        window.__DRUNK_WALKER_INTERVALS__.delete(intervalId);
+      }
+      intervalId = null;
+    }
+    
     if (status === 'WALKING') {
       console.log('[DEBUG] start() ABORT - already walking');
       return;
@@ -310,11 +322,11 @@ export function createEngine(config = {}) {
       stuckCount = 0;
       lastUrl = null;
     }
-    if (intervalId) {
-      console.log('[DEBUG] start() clearing existing interval');
-      clearInterval(intervalId);
-    }
     intervalId = setInterval(tick, cfg.pace);
+    // Track interval globally
+    if (window.__DRUNK_WALKER_INTERVALS__) {
+      window.__DRUNK_WALKER_INTERVALS__.add(intervalId);
+    }
     console.log(`[DEBUG] start() interval set with pace=${cfg.pace}ms`);
     if (onStatusUpdate) onStatusUpdate('WALKING', steps, stuckCount);
   };
@@ -323,6 +335,10 @@ export function createEngine(config = {}) {
     status = 'IDLE';
     if (intervalId) {
       clearInterval(intervalId);
+      // Remove from global tracking
+      if (window.__DRUNK_WALKER_INTERVALS__) {
+        window.__DRUNK_WALKER_INTERVALS__.delete(intervalId);
+      }
       intervalId = null;
     }
     if (onWalkStop && isPathCollectionEnabled && walkPath.length > 0) {
