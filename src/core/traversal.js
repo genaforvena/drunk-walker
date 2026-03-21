@@ -643,19 +643,37 @@ export function createUnifiedAlgorithm(cfg) {
       // This ensures we explore side paths instead of just passing through
       // ═══════════════════════════════════════════════════════════
       if (currentNode.hasUntriedYaws()) {
-        // Find untried yaw closest to current orientation (within ±60° = forward hemisphere)
+        // Calculate forward bearing (direction of travel from previous node)
+        let forwardBearing = orientation;  // Default to current orientation
+        if (previousLocation) {
+          const prevParts = previousLocation.split(',').map(Number);
+          const dLat = currentParts[0] - prevParts[0];
+          const dLng = currentParts[1] - prevParts[1];
+          forwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+          if (forwardBearing < 0) forwardBearing += 360;
+        }
+        
+        // Find untried yaw closest to FORWARD BEARING (not current orientation!)
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+        let bestUntiredYaw = null;
+        let bestDiff = 90;  // Only consider yaws within 90° of forward
+        
         for (const untriedYaw of untriedYaws) {
-          const diffToOrientation = yawDifference(orientation, untriedYaw);
-          // If untried yaw is within 60° of current direction, try it!
-          if (diffToOrientation <= 60) {
-            console.log(`🎯 FORWARD MOMENTUM: Untired yaw ${untriedYaw}° is ${diffToOrientation}° from current ${Math.round(orientation)}° - trying first!`);
-            const turnAngle = getLeftTurnAngle(orientation, untriedYaw);
-            const turnDirection = getTurnDirection(orientation, untriedYaw);
-            consecutiveStraightMoves = 0;  // Reset on turn
-            lastDecisionWasTurn = true;
-            return { turn: true, angle: turnAngle, direction: turnDirection };
+          const diffToForward = yawDifference(forwardBearing, untriedYaw);
+          if (diffToForward < bestDiff) {
+            bestDiff = diffToForward;
+            bestUntiredYaw = untriedYaw;
           }
+        }
+        
+        // If we found an untried yaw within 90° of forward, try it!
+        if (bestUntiredYaw !== null && bestDiff <= 90) {
+          console.log(`🎯 FORWARD PRIORITY: Untired yaw ${bestUntiredYaw}° is ${Math.round(bestDiff)}° from forward bearing ${Math.round(forwardBearing)}° - trying first!`);
+          const turnAngle = getLeftTurnAngle(orientation, bestUntiredYaw);
+          const turnDirection = getTurnDirection(orientation, bestUntiredYaw);
+          consecutiveStraightMoves = 0;  // Reset on turn
+          lastDecisionWasTurn = true;
+          return { turn: true, angle: turnAngle, direction: turnDirection };
         }
       }
 
