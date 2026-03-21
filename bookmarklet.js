@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T11:15:08.320Z
+// Built: 2026-03-21T11:28:46.285Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -362,9 +362,16 @@ function createUnifiedAlgorithm(cfg) {
         console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}°)`);
         return { turn: true, angle: turnAngle };
       } else {
-        // Truly no info - do random escape turn
-        const turnAngle = 60 + (Math.random() * 60);
-        console.log(`🚨 PANIC! No history. Random escape turn ${Math.round(turnAngle)}°`);
+        // TRULY STUCK - No successful exits recorded (dead end or entry/exit bucket mismatch)
+        // Log the spinning location for debugging
+        console.log(`🚨 SPIN DETECTED! At ${currentLocation} - all ${currentNode.triedYaws.size} buckets tried, no successful exits!`);
+        console.log(`   Tried yaw buckets: ${[...currentNode.triedYaws].join(', ')}`);
+        console.log(`   This is likely a dead-end or the entry yaw bucket differs from exit bucket`);
+
+        // Do a full 360° scan by turning to each cardinal direction
+        const randomTurn = Math.floor(Math.random() * 360);
+        const turnAngle = randomTurn;
+        console.log(`🚨 PANIC! Full scan mode - random turn ${turnAngle}°`);
         return { turn: true, angle: turnAngle };
       }
     }
@@ -1878,7 +1885,7 @@ function createControlPanel(engine, options = {}) {
 
     btn = document.createElement('button');
     btn.style.cssText = CSS.btnMain + 'background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%); color: #000; box-shadow: 0 4px 12px rgba(255,255,255,0.15);';
-    btn.innerHTML = '<span>▶</span> START EXPLORING';
+    btn.innerHTML = '<span>▶</span> START';
     btn.onmouseover = () => btn.style.transform = 'translateY(-1px)';
     btn.onmouseout = () => btn.style.transform = 'translateY(0)';
     btn.onclick = () => {
@@ -1954,11 +1961,39 @@ function createControlPanel(engine, options = {}) {
   const toggleMinimize = () => {
     isMinimized = !isMinimized;
     if (isMinimized) {
-      mainContent.style.display = 'none';
+      mainContent.style.display = 'block';
+      // Hide everything except steps and visited
+      const statusRowEl = container.querySelector('[style*="statusRow"]');
+      const controlsEl = container.querySelector('[style*="controls"]');
+      const paceStat = container.querySelector('[id="dw-pace-display"]')?.closest('[style*="statItem"]');
+      const stuckStat = container.querySelector('[id="dw-stuck-count"]')?.closest('[style*="statItem"]');
+      const turnsStat = container.querySelector('[id="dw-turns"]')?.closest('[style*="statItem"]');
+
+      if (statusRowEl) statusRowEl.style.display = 'none';
+      if (controlsEl) controlsEl.style.display = 'none';
+      if (paceStat) paceStat.style.display = 'none';
+      if (stuckStat) stuckStat.style.display = 'none';
+      if (turnsStat) turnsStat.style.display = 'none';
+
       container.style.width = '200px';
+      container.style.height = 'auto';
     } else {
       mainContent.style.display = 'block';
-      container.style.width = '300px';
+      // Show everything
+      const statusRowEl = container.querySelector('[style*="statusRow"]');
+      const controlsEl = container.querySelector('[style*="controls"]');
+      const paceStat = container.querySelector('[id="dw-pace-display"]')?.closest('[style*="statItem"]');
+      const stuckStat = container.querySelector('[id="dw-stuck-count"]')?.closest('[style*="statItem"]');
+      const turnsStat = container.querySelector('[id="dw-turns"]')?.closest('[style*="statItem"]');
+
+      if (statusRowEl) statusRowEl.style.display = 'flex';
+      if (controlsEl) controlsEl.style.display = 'flex';
+      if (paceStat) paceStat.style.display = 'flex';
+      if (stuckStat) stuckStat.style.display = 'flex';
+      if (turnsStat) turnsStat.style.display = 'flex';
+
+      container.style.width = '500px';
+      container.style.height = 'auto';
     }
   };
 
@@ -1966,7 +2001,7 @@ function createControlPanel(engine, options = {}) {
     if (!btn) return;
     const dot = document.getElementById('dw-status-dot');
     if (engine.isNavigating()) {
-      btn.innerHTML = '<span>⏸</span> PAUSE';
+      btn.innerHTML = '<span>⏹</span> STOP';
       btn.style.background = 'rgba(255, 50, 50, 0.1)';
       btn.style.color = '#ff4d4d';
       btn.style.border = '1px solid rgba(255, 50, 50, 0.3)';
@@ -1976,7 +2011,7 @@ function createControlPanel(engine, options = {}) {
         dot.style.boxShadow = '0 0 8px #00ff80';
       }
     } else {
-      btn.innerHTML = '<span>▶</span> RESUME';
+      btn.innerHTML = '<span>▶</span> START';
       btn.style.background = '#fff';
       btn.style.color = '#000';
       btn.style.border = 'none';

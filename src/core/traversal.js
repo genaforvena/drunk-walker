@@ -288,7 +288,7 @@ export function createUnifiedAlgorithm(cfg) {
       // First, try any untried yaw
       const nextYaw = currentNode.getNextUntriedYaw();
       console.log(`[DEBUG] PANIC MODE: nextYaw=${nextYaw}, successfulYaws=${[...currentNode.successfulYaws].join(',')}`);
-      
+
       if (nextYaw !== null) {
         const turnAngle = getLeftTurnAngle(orientation, nextYaw);
         console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying untried yaw ${nextYaw}° (angle=${Math.round(turnAngle)}°)`);
@@ -302,9 +302,16 @@ export function createUnifiedAlgorithm(cfg) {
         console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}°)`);
         return { turn: true, angle: turnAngle };
       } else {
-        // Truly no info - do random escape turn
-        const turnAngle = 60 + (Math.random() * 60);
-        console.log(`🚨 PANIC! No history. Random escape turn ${Math.round(turnAngle)}°`);
+        // TRULY STUCK - No successful exits recorded (dead end or entry/exit bucket mismatch)
+        // Log the spinning location for debugging
+        console.log(`🚨 SPIN DETECTED! At ${currentLocation} - all ${currentNode.triedYaws.size} buckets tried, no successful exits!`);
+        console.log(`   Tried yaw buckets: ${[...currentNode.triedYaws].join(', ')}`);
+        console.log(`   This is likely a dead-end or the entry yaw bucket differs from exit bucket`);
+        
+        // Do a full 360° scan by turning to each cardinal direction
+        const randomTurn = Math.floor(Math.random() * 360);
+        const turnAngle = randomTurn;
+        console.log(`🚨 PANIC! Full scan mode - random turn ${turnAngle}°`);
         return { turn: true, angle: turnAngle };
       }
     }
