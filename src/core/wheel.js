@@ -13,6 +13,9 @@ export function createWheel(callbacks) {
   };
 
   const turnLeft = (angle, callback) => {
+    // Update orientation IMMEDIATELY (intent-based)
+    orientation = normalizeAngle(orientation - angle);
+
     // Convert angle to duration (10ms per degree as per existing code)
     const duration = Math.round(angle * 10);
     const clampedDuration = Math.max(300, Math.min(900, duration));
@@ -21,7 +24,6 @@ export function createWheel(callbacks) {
     const safeCallback = () => {
       if (callbackCalled) return;
       callbackCalled = true;
-      orientation = normalizeAngle(orientation - angle);
       if (callback) callback();
     };
 

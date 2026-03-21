@@ -239,14 +239,34 @@ export function createEngine(config = {}) {
     // 6. Action: Turn (Independent)
     if (decision.turn) {
       console.log(`   🔄 ACTION: Turning Left ${decision.angle}°`);
-      wheel.turnLeft(decision.angle || 60);
+      // Skip stepping when turning - let the turn complete first
+      previousYaw = wheel.getOrientation();
+      wheel.turnLeft(decision.angle || 60, () => {
+        // After turn completes, update state and trigger next tick
+        previousLocation = currentLocation;
+        previousYaw = wheel.getOrientation();
+        lastUrl = currentUrl;
+        steps++;
+        recordStep();
+        if (onStatusUpdate) {
+          onStatusUpdate(status, steps, stuckCount);
+        }
+        // Trigger immediate step after turn completes
+        if (cfg.kbOn) {
+          if (onKeyPress) onKeyPress('ArrowUp');
+        } else {
+          const target = calculateClickTarget();
+          if (onMouseClick) onMouseClick(target.x, target.y);
+        }
+      });
       cumulativeTurnAngle += decision.angle || 60;
+      return; // Exit tick early - don't step until turn completes
     }
 
     // 7. Action: Always Step (The Heartbeat)
     previousLocation = currentLocation;
-    previousYaw = wheel.getOrientation(); 
-    lastUrl = currentUrl; 
+    previousYaw = wheel.getOrientation();
+    lastUrl = currentUrl;
 
     if (cfg.kbOn) {
       if (onKeyPress) onKeyPress('ArrowUp');

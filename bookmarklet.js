@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T09:26:03.712Z
+// Built: 2026-03-21T09:45:25.179Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -651,14 +651,34 @@ function createEngine(config = {}) {
     // 6. Action: Turn (Independent)
     if (decision.turn) {
       console.log(`   🔄 ACTION: Turning Left ${decision.angle}°`);
-      wheel.turnLeft(decision.angle || 60);
+      // Skip stepping when turning - let the turn complete first
+      previousYaw = wheel.getOrientation();
+      wheel.turnLeft(decision.angle || 60, () => {
+        // After turn completes, update state and trigger next tick
+        previousLocation = currentLocation;
+        previousYaw = wheel.getOrientation();
+        lastUrl = currentUrl;
+        steps++;
+        recordStep();
+        if (onStatusUpdate) {
+          onStatusUpdate(status, steps, stuckCount);
+        }
+        // Trigger immediate step after turn completes
+        if (cfg.kbOn) {
+          if (onKeyPress) onKeyPress('ArrowUp');
+        } else {
+          const target = calculateClickTarget();
+          if (onMouseClick) onMouseClick(target.x, target.y);
+        }
+      });
       cumulativeTurnAngle += decision.angle || 60;
+      return; // Exit tick early - don't step until turn completes
     }
 
     // 7. Action: Always Step (The Heartbeat)
     previousLocation = currentLocation;
-    previousYaw = wheel.getOrientation(); 
-    lastUrl = currentUrl; 
+    previousYaw = wheel.getOrientation();
+    lastUrl = currentUrl;
 
     if (cfg.kbOn) {
       if (onKeyPress) onKeyPress('ArrowUp');
@@ -1310,12 +1330,16 @@ function createControlPanel(engine, options = {}) {
       top: 20px;
       right: 20px;
       width: 300px;
+      min-width: 250px;
+      max-width: 600px;
+      min-height: 200px;
+      max-height: 800px;
       background: rgba(18, 18, 20, 0.75);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 16px;
-      box-shadow: 
+      box-shadow:
         0 20px 40px -10px rgba(0, 0, 0, 0.6),
         0 0 0 1px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -1324,8 +1348,9 @@ function createControlPanel(engine, options = {}) {
       font-size: 13px;
       z-index: 1000000;
       transition: height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s;
-      overflow: hidden;
+      overflow: visible;
       user-select: none;
+      resize: none;
     `,
     header: `
       padding: 16px 20px;
@@ -1513,6 +1538,56 @@ function createControlPanel(engine, options = {}) {
     });
   };
 
+  const makeResizable = (element) => {
+    const resizeHandle = document.createElement('div');
+    resizeHandle.id = 'dw-resize-handle';
+    resizeHandle.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nwse-resize;
+      background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.1) 50%);
+      border-radius: 0 0 16px 0;
+      z-index: 1000001;
+    `;
+
+    let isResizing = false;
+    let startWidth, startHeight, startX, startY;
+
+    resizeHandle.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = element.getBoundingClientRect();
+      startWidth = rect.width;
+      startHeight = rect.height;
+      startX = e.clientX;
+      startY = e.clientY;
+      element.style.transition = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const newWidth = Math.max(250, Math.min(600, startWidth + dx));
+      const newHeight = Math.max(200, Math.min(800, startHeight + dy));
+      element.style.width = `${newWidth}px`;
+      element.style.height = `${newHeight}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        element.style.transition = 'height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s';
+      }
+    });
+
+    element.appendChild(resizeHandle);
+  };
+
   const createUI = () => {
     container = document.createElement('div');
     container.id = 'dw-modern-panel';
@@ -1642,6 +1717,7 @@ function createControlPanel(engine, options = {}) {
     // Minimize logic
     header.querySelector('#dw-min-btn').onclick = toggleMinimize;
     makeDraggable(container, header);
+    makeResizable(container);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
     engine.setSelfAvoiding(true);
