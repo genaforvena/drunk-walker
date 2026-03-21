@@ -279,15 +279,26 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     console.log(`[DEBUG] Checking PANIC: stuckCount=${stuckCount} >= panicThreshold=${panicThreshold}? ${stuckCount >= panicThreshold}`);
     if (stuckCount >= panicThreshold) {
+      // First, try any untried yaw
       const nextYaw = currentNode.getNextUntriedYaw();
-      console.log(`[DEBUG] PANIC MODE: nextYaw=${nextYaw}`);
+      console.log(`[DEBUG] PANIC MODE: nextYaw=${nextYaw}, successfulYaws=${[...currentNode.successfulYaws].join(',')}`);
+      
       if (nextYaw !== null) {
         const turnAngle = getLeftTurnAngle(orientation, nextYaw);
-        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Turning to yaw ${nextYaw}° (angle=${Math.round(turnAngle)}°)`);
+        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying untried yaw ${nextYaw}° (angle=${Math.round(turnAngle)}°)`);
+        return { turn: true, angle: turnAngle };
+      } else if (currentNode.successfulYaws.size > 0) {
+        // All buckets tried but still stuck - retry a successful exit
+        // Pick random successful yaw (one of them must work - we came from somewhere!)
+        const successfulYawsArray = Array.from(currentNode.successfulYaws);
+        const randomSuccessfulYaw = successfulYawsArray[Math.floor(Math.random() * successfulYawsArray.length)];
+        const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
+        console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}°)`);
         return { turn: true, angle: turnAngle };
       } else {
+        // Truly no info - do random escape turn
         const turnAngle = 60 + (Math.random() * 60);
-        console.log(`🚨 PANIC! Node exhausted. Random escape turn ${Math.round(turnAngle)}°`);
+        console.log(`🚨 PANIC! No history. Random escape turn ${Math.round(turnAngle)}°`);
         return { turn: true, angle: turnAngle };
       }
     }
@@ -311,6 +322,22 @@ export function createUnifiedAlgorithm(cfg) {
           return { turn: false };
         }
       }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FALLBACK: All buckets tried but not stuck - retry successful exit
+    // ═══════════════════════════════════════════════════════════
+    if (currentNode.successfulYaws.size > 0) {
+      const successfulYawsArray = Array.from(currentNode.successfulYaws);
+      const randomSuccessfulYaw = successfulYawsArray[Math.floor(Math.random() * successfulYawsArray.length)];
+      const diff = yawDifference(orientation, randomSuccessfulYaw);
+      console.log(`[DEBUG] FALLBACK: Retrying successful yaw ${randomSuccessfulYaw}°, diff=${diff}°`);
+      if (diff > 5 && diff < 355) {
+        const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
+        return { turn: true, angle: turnAngle };
+      }
+      // Already facing it, move forward
+      return { turn: false };
     }
 
     // ═══════════════════════════════════════════════════════════
