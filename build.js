@@ -20,6 +20,8 @@ const engineSource = fs.readFileSync('src/core/engine.js', 'utf8');
 const versionMatch = engineSource.match(/export const VERSION = ['"]([^'"]+)['"]/);
 const VERSION = versionMatch ? versionMatch[1] : '0.0.0-DEV';
 
+console.log(`ℹ️  Building version: ${VERSION}`);
+
 /**
  * Strip ES module syntax from source code
  * This is CRITICAL - any exports/imports left will cause browser errors
@@ -65,6 +67,7 @@ const main = fs.readFileSync('src/main.js', 'utf8');
 let content = `
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v${VERSION} - BUNDLED BOOKMARKLET
+// Built: ${new Date().toISOString()}
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
