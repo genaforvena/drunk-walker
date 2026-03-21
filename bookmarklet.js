@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T10:28:23.303Z
+// Built: 2026-03-21T10:40:49.066Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -245,10 +245,11 @@ function createUnifiedAlgorithm(cfg) {
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned } = context;
 
     console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
     console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
+    console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}`);
 
     if (!preferredYaw) preferredYaw = orientation;
     if (!currentLocation) {
@@ -260,6 +261,14 @@ function createUnifiedAlgorithm(cfg) {
     const currentNode = enhancedGraph.getOrCreate(currentLocation, currentParts[0], currentParts[1]);
 
     console.log(`[DEBUG] currentNode.triedYaws=${[...currentNode.triedYaws].join(',')}, hasUntried=${currentNode.hasUntriedYaws()}`);
+
+    // ═══════════════════════════════════════════════════════════
+    // 🚫 NEW NODE: Never turn at new/unsampled nodes - go straight!
+    // ═══════════════════════════════════════════════════════════
+    if (isNewNode) {
+      console.log('[DEBUG] NEW NODE - going straight (no turn)');
+      return { turn: false };
+    }
 
     // ═══════════════════════════════════════════════════════════
     // MODE DETECTION: Are we returning (retracing) or exploring?
@@ -484,6 +493,10 @@ function createEngine(config = {}) {
   let previousLocation = null;
   let previousYaw = null;
 
+  // Turn state - prevent oscillation
+  let isTurning = false;  // True while executing a turn
+  let turnCompleted = false;  // Set to true when turn finishes
+
   // Action callbacks
   let onKeyPress = null;
   let onMouseClick = null;
@@ -665,27 +678,59 @@ function createEngine(config = {}) {
       }
     }
 
-    // 5. Decision time
-    const context = {
-      url: currentUrl,
-      currentLocation: currentLocation,  // Match algorithm's expected property name
-      visitedUrls,
-      breadcrumbs,
-      stuckCount,
-      orientation: wheel.getOrientation()
-    };
+    // 5. Decision time - ONLY when stationary at a node (not while moving/turning)
+    const isStationary = currentLocation && previousLocation && currentLocation === previousLocation;
 
-    console.log('[DEBUG] Calling algorithm.decide()...');
-    const decision = algorithm.decide(context);
-    console.log(`[DEBUG] decision=${JSON.stringify(decision)}`);
+    // Check if this is a new node or already visited
+    const nodeVisitCount = visitedUrls.get(currentLocation) || 0;
+    const isNewNode = nodeVisitCount === 0;
+
+    // Get node info from graph to check if fully scanned
+    const nodeInfo = currentLocation ? algorithm.enhancedGraph.get(currentLocation) : null;
+    const isFullyScanned = nodeInfo ? nodeInfo.triedYaws.size >= 6 : false;
+
+    console.log(`[DEBUG] isStationary=${isStationary}, isNewNode=${isNewNode}, nodeVisitCount=${nodeVisitCount}, isFullyScanned=${isFullyScanned}, isTurning=${isTurning}`);
+
+    let decision = { turn: false };
+
+    // Only make turn decisions when:
+    // - Stationary at a node (not mid-movement)
+    // - Not already turning
+    // - Either stuck, OR at a known node that needs exploration
+    if (isStationary && !isTurning) {
+      const context = {
+        url: currentUrl,
+        currentLocation: currentLocation,
+        visitedUrls,
+        breadcrumbs,
+        stuckCount,
+        orientation: wheel.getOrientation(),
+        isNewNode,
+        isFullyScanned
+      };
+
+      console.log('[DEBUG] Calling algorithm.decide()...');
+      decision = algorithm.decide(context);
+      console.log(`[DEBUG] decision=${JSON.stringify(decision)}`);
+    } else if (isTurning) {
+      console.log('[DEBUG] Skipping decision - already turning');
+    } else if (!isStationary) {
+      console.log('[DEBUG] Skipping decision - not stationary (moving between nodes)');
+    }
 
     // 6. Action: Turn (Independent)
     if (decision.turn) {
       console.log(`   🔄 ACTION: Turning Left ${decision.angle}°`);
+      isTurning = true;
+      turnCompleted = false;
+
       // Skip stepping when turning - let the turn complete first
       previousYaw = wheel.getOrientation();
       wheel.turnLeft(decision.angle || 60, () => {
         console.log('[DEBUG] Turn callback executed - pressing ArrowUp');
+        isTurning = false;
+        turnCompleted = true;
+
         // After turn completes, update state and trigger next tick
         previousLocation = currentLocation;
         previousYaw = wheel.getOrientation();

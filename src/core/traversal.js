@@ -185,10 +185,11 @@ export function createUnifiedAlgorithm(cfg) {
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
-    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation } = context;
+    const { stuckCount, currentLocation, visitedUrls, breadcrumbs, orientation, isNewNode, isFullyScanned } = context;
 
     console.log(`[DEBUG] decide() called: stuck=${stuckCount}, orientation=${Math.round(orientation)}°, loc=${currentLocation}`);
     console.log(`[DEBUG] breadcrumbs.length=${breadcrumbs.length}, graph.nodes=${enhancedGraph.nodes.size}`);
+    console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}`);
 
     if (!preferredYaw) preferredYaw = orientation;
     if (!currentLocation) {
@@ -198,8 +199,16 @@ export function createUnifiedAlgorithm(cfg) {
 
     const currentParts = currentLocation.split(',').map(Number);
     const currentNode = enhancedGraph.getOrCreate(currentLocation, currentParts[0], currentParts[1]);
-    
+
     console.log(`[DEBUG] currentNode.triedYaws=${[...currentNode.triedYaws].join(',')}, hasUntried=${currentNode.hasUntriedYaws()}`);
+
+    // ═══════════════════════════════════════════════════════════
+    // 🚫 NEW NODE: Never turn at new/unsampled nodes - go straight!
+    // ═══════════════════════════════════════════════════════════
+    if (isNewNode) {
+      console.log('[DEBUG] NEW NODE - going straight (no turn)');
+      return { turn: false };
+    }
 
     // ═══════════════════════════════════════════════════════════
     // MODE DETECTION: Are we returning (retracing) or exploring?
