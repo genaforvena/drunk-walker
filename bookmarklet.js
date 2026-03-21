@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T10:25:07.112Z
+// Built: 2026-03-21T10:28:23.303Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -1954,6 +1954,9 @@ function createControlPanel(engine, options = {}) {
  * Combines core engine, input handlers, and UI
  */
 
+// Global initialization lock
+let __INITIALIZING__ = false;
+
 // Global interval tracking for cleanup
 window.__DRUNK_WALKER_INTERVALS__ = window.__DRUNK_WALKER_INTERVALS__ || new Set();
 
@@ -2004,6 +2007,13 @@ setTimeout(() => {
 
 // Wait for DOM to be ready before initializing
 const initialize = () => {
+  // Prevent double initialization
+  if (__INITIALIZING__) {
+    console.log('🤪 [initialize] Already initializing, skipping...');
+    return;
+  }
+  __INITIALIZING__ = true;
+
   // Double-check and remove any panel that might have appeared
   const existingPanel = document.getElementById('dw-modern-panel');
   if (existingPanel) {
@@ -2152,14 +2162,12 @@ const initialize = () => {
   } catch (error) {
     console.error('🤪 DRUNK WALKER: Initialization failed:', error);
     window.DRUNK_WALKER_ACTIVE = false;
+    __INITIALIZING__ = false;  // Reset lock on error
   }
 };
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
-} else {
-  initialize();
-}
+// NOTE: Initialization is handled by the setTimeout above to ensure
+// proper cleanup of any previous instance. The setTimeout gives the
+// browser time to process the cleanup before creating a new instance.
 
 }();
