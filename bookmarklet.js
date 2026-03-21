@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T20:39:43.253Z
+// Built: 2026-03-21T20:49:32.545Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -429,9 +429,15 @@ function createUnifiedAlgorithm(cfg) {
       console.log(`⚠️ STAGNATION: ${stepsSinceNewNode} steps since new node (graph=${enhancedGraph.nodes.size} nodes)`);
     }
 
-    // Mark node as fully explored if all 6 buckets tried
-    if (currentNode.triedYaws.size >= 6) {
+    // ═══════════════════════════════════════════════════════════
+    // 🗑️ AGGRESSIVE PRUNING: Mark node as fully explored when 5+ yaws tried
+    // (1 yaw is how we arrived, 4+ explored = nothing new to find)
+    // ═══════════════════════════════════════════════════════════
+    if (currentNode.triedYaws.size >= 5) {
       fullyExploredNodes.add(currentLocation);
+    } else if (currentNode.triedYaws.size < 5 && fullyExploredNodes.has(currentLocation)) {
+      // New yaw discovered - remove from fully explored
+      fullyExploredNodes.delete(currentLocation);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -528,53 +534,68 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     const maxRevisits = 5;
     if (nodeVisitCount > maxRevisits) {
-      console.log(`🚨 HIGH REVISIT: ${nodeVisitCount} visits to ${currentLocation}! Finding escape crossroad...`);
+      console.log(`🚨 HIGH REVISIT: ${nodeVisitCount} visits to ${currentLocation}! Finding frontier to explore...`);
 
-      // Priority 1: Find node with untried yaws (unexplored edges) - prefer large turns
-      let bestEscape = null;
-      let bestDistance = Infinity;
+      // FRONTIER EXPLORATION: Find node with MOST untried yaws, preferring distant nodes
+      // This breaks out of tunnels and finds new exploration areas
+      let bestFrontier = null;
+      let bestScore = -Infinity;
       const minStepsBack = 3;  // Don't count immediate neighbors
 
       for (let i = breadcrumbs.length - 1 - minStepsBack; i >= 0; i--) {
         const loc = breadcrumbs[i];
         if (loc === currentLocation) continue;
+        if (fullyExploredNodes.has(loc)) continue;  // Skip fully explored nodes
+
         const node = enhancedGraph.nodes.get(loc);
-        if (node && node.hasUntriedYaws() && !fullyExploredNodes.has(loc)) {
-          const distance = breadcrumbs.length - i;
-          // Score by: untried yaws count * turn angle potential / distance
-          const untriedCount = 6 - node.triedYaws.size;
-          if (!bestEscape || (distance < bestDistance && untriedCount >= 2)) {
-            bestEscape = { location: loc, node, distance, untriedCount };
-            bestDistance = distance;
-          }
+        if (!node || !node.hasUntriedYaws()) continue;
+
+        const distance = breadcrumbs.length - i;
+        const untriedCount = 6 - node.triedYaws.size;
+
+        // Score: prioritize untried yaws, but also consider distance
+        // Higher score = better frontier candidate
+        const score = (untriedCount * 10) - distance;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestFrontier = { location: loc, node, distance, untriedCount };
         }
       }
 
-      // Priority 2: Find nearest crossroad (node with ≥3 exits) that's not fully explored
-      if (!bestEscape) {
-        for (let i = breadcrumbs.length - 1 - minStepsBack; i >= 0; i--) {
-          const loc = breadcrumbs[i];
-          if (loc === currentLocation) continue;
-          const node = enhancedGraph.nodes.get(loc);
-          if (node && node.isCrossroad && !fullyExploredNodes.has(loc)) {
-            bestEscape = { location: loc, node, distance: breadcrumbs.length - i };
-            break;
+      if (bestFrontier) {
+        console.log(`🚨 FRONTIER: Found ${bestFrontier.location} (${bestFrontier.distance} steps away, ${bestFrontier.untriedCount} untried yaws)`);
+        escapeTargetLocation = bestFrontier.location;
+
+        // Get an untried yaw that doesn't lead back to known explored nodes
+        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !bestFrontier.node.triedYaws.has(y));
+        let escapeYaw = orientation;  // Default: face current direction
+
+        // Find untried yaw that's most different from the direction we're coming from
+        if (untriedYaws.length > 0) {
+          // Calculate the yaw we're approaching from (opposite of our current orientation)
+          const approachYaw = (orientation + 180) % 360;
+
+          // Prefer untried yaws that are NOT pointing back along our approach
+          let bestDiff = 0;
+          for (const yaw of untriedYaws) {
+            const diff = yawDifference(approachYaw, yaw);
+            if (diff > bestDiff) {
+              bestDiff = diff;
+              escapeYaw = yaw;
+            }
           }
         }
-      }
 
-      if (bestEscape) {
-        console.log(`🚨 ESCAPE: Found ${bestEscape.node.hasUntriedYaws() ? 'unexplored node' : 'crossroad'} ${bestEscape.location} (${bestEscape.distance} steps away, ${bestEscape.untriedCount || 'N/A'} untried yaws)`);
-        escapeTargetLocation = bestEscape.location;
         navigationTarget = {
-          location: bestEscape.location,
-          targetYaw: bestEscape.node.getNextUntriedYaw(orientation) || orientation,
-          distance: bestEscape.distance
+          location: bestFrontier.location,
+          targetYaw: escapeYaw,
+          distance: bestFrontier.distance
         };
         isReturning = true;
         consecutiveStraightMoves = 0;
       } else {
-        console.log(`🚨 ESCAPE: No escape found! Graph may be fully explored.`);
+        console.log(`🚨 FRONTIER: No unexplored nodes found! Graph may be fully explored.`);
       }
     }
 
@@ -630,27 +651,42 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     if (navigationTarget) {
       if (currentLocation === navigationTarget.location) {
-        // Reached target! Turn to face the untried yaw
-        const diff = yawDifference(orientation, navigationTarget.targetYaw);
-        if (diff > 5 && diff < 355) {
-          console.log(`🎯 Reached crossroad! Turning to ${navigationTarget.targetYaw}°`);
-          const turnAngle = getLeftTurnAngle(orientation, navigationTarget.targetYaw);
-          const turnDirection = getTurnDirection(orientation, navigationTarget.targetYaw);
-          navigationTarget = null;
-          escapeTargetLocation = null;  // Clear escape target
-          // Reset backtrack tracking - starting fresh exploration
-          turnedAtNodes.clear();
-          backtrackCount = 0;
-          lastBacktrackLocation = null;
-          return { turn: true, angle: turnAngle, direction: turnDirection };
+        // Reached target! Try an untried yaw to explore new territory
+        const node = enhancedGraph.nodes.get(currentLocation);
+        if (node && node.hasUntriedYaws()) {
+          const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !node.triedYaws.has(y));
+
+          // Prefer yaw that's different from how we arrived
+          const approachYaw = (orientation + 180) % 360;
+          let bestYaw = null;
+          let bestDiff = 0;
+
+          for (const yaw of untriedYaws) {
+            const diff = yawDifference(approachYaw, yaw);
+            if (diff > bestDiff) {
+              bestDiff = diff;
+              bestYaw = yaw;
+            }
+          }
+
+          if (bestYaw !== null) {
+            console.log(`🎯 Reached escape node! Trying untried yaw ${bestYaw}° (diff=${Math.round(bestDiff)}° from approach)`);
+            const turnAngle = getLeftTurnAngle(orientation, bestYaw);
+            const turnDirection = getTurnDirection(orientation, bestYaw);
+            navigationTarget = null;
+            escapeTargetLocation = null;
+            consecutiveStraightMoves = 0;
+            lastDecisionWasTurn = true;
+            return { turn: true, angle: turnAngle, direction: turnDirection };
+          }
         }
+
+        // No untried yaws - clear target and fall through
         navigationTarget = null;
-        escapeTargetLocation = null;  // Clear escape target
+        escapeTargetLocation = null;
         turnedAtNodes.clear();
         backtrackCount = 0;
         lastBacktrackLocation = null;
-        // Will be caught by FORWARD mode on next tick
-        return { turn: false };
       }
 
       // Navigate by following breadcrumbs back (graph topology, not geometry!)
