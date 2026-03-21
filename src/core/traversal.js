@@ -193,6 +193,7 @@ export function createUnifiedAlgorithm(cfg) {
   let lastSearchAngle = 0;
   let navigationTarget = null;  // {location, targetYaw, path}
   let isReturning = false;
+  let turnedAtNodes = new Set();  // Track nodes where we made exploration turn during backtrack
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -232,11 +233,30 @@ export function createUnifiedAlgorithm(cfg) {
 
     console.log(`[DEBUG] hasBeenHereBefore=${hasBeenHereBefore}, isExhausted=${isExhausted}, navigationTarget=${navigationTarget ? 'set' : 'null'}`);
 
-    if ((hasBeenHereBefore || isExhausted) && !navigationTarget) {
-      // We're retracing! Find nearest crossroad candidate
+    // Detect start of backtrack (hit dead end, now returning)
+    const isBacktracking = (hasBeenHereBefore || isExhausted) && !navigationTarget;
+    
+    if (isBacktracking) {
       isReturning = true;
+      // Check if CURRENT node has untried buckets and we haven't turned here yet
+      if (currentNode.hasUntriedYaws() && !turnedAtNodes.has(currentLocation)) {
+        // Explore this node! One turn only.
+        const targetYaw = currentNode.getNextUntriedYaw();
+        turnedAtNodes.add(currentLocation);
+        const diff = yawDifference(orientation, targetYaw);
+        if (diff > 5 && diff < 355) {
+          const turnAngle = getLeftTurnAngle(orientation, targetYaw);
+          console.log(`🔙 BACKTRACK: Exploring untried yaw ${targetYaw}° at ${currentLocation} (angle=${Math.round(turnAngle)}°)`);
+          return { turn: true, angle: turnAngle };
+        }
+        // Already facing the right way, just move
+        console.log(`🔙 BACKTRACK: Already facing untried yaw ${targetYaw}°, moving forward`);
+        return { turn: false };
+      }
+      
+      // No untried buckets here or already turned - continue backtracking
+      // Find nearest node behind us with untried buckets
       const candidate = enhancedGraph.findNearestCrossroadCandidate(currentLocation, breadcrumbs);
-
       if (candidate) {
         const targetYaw = candidate.node.getNextUntriedYaw();
         if (targetYaw !== null) {
@@ -245,11 +265,13 @@ export function createUnifiedAlgorithm(cfg) {
             targetYaw,
             distance: candidate.distance
           };
-          console.log(`🔙 RETURN MODE: Navigating to crossroad candidate (${candidate.distance} steps away)`);
+          console.log(`🔙 RETURN MODE: Navigating to crossroad ${candidate.location} (${candidate.distance} steps away)`);
         }
       }
     } else if (!hasBeenHereBefore && !isExhausted) {
       isReturning = false;
+      // Reset turnedAtNodes when starting fresh exploration
+      turnedAtNodes.clear();
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -263,9 +285,12 @@ export function createUnifiedAlgorithm(cfg) {
           console.log(`🎯 Reached crossroad! Turning to ${navigationTarget.targetYaw}°`);
           const turnAngle = getLeftTurnAngle(orientation, navigationTarget.targetYaw);
           navigationTarget = null;
+          // Reset turnedAtNodes - we're starting fresh exploration from this crossroad
+          turnedAtNodes.clear();
           return { turn: true, angle: turnAngle };
         }
         navigationTarget = null;
+        turnedAtNodes.clear();
         // Will be caught by smart node exploration on next tick
         return { turn: false };
       }
