@@ -14,7 +14,7 @@ import {
   extractLocationFromUrl
 } from './traversal.js';
 
-export const VERSION = '5.7.0-PANIC-MODE';
+export const VERSION = '5.8.0-VISIBILITY';
 
 export const defaultConfig = {
   pace: 2000,
@@ -199,8 +199,9 @@ export function createEngine(config = {}) {
       lastUrlYaw = currentYaw;
     }
 
-    // 3. Report heartbeat to console
-    console.log(`💓 HEARTBEAT ${steps} | stuck=${stuckCount} | yaw=${Math.round(wheel.getOrientation())}°`);
+    // 3. LOGGING (Critical for debugging)
+    console.log(`💓 [${steps}] STUCK: ${stuckCount} | YAW: ${Math.round(wheel.getOrientation())}° | LOC: ${currentLocation}`);
+    console.log(`   🔗 ${currentUrl}`);
 
     // 4. Record result of PREVIOUS heartbeat in the graph
     if (previousLocation && algorithm.enhancedGraph) {
@@ -236,7 +237,7 @@ export function createEngine(config = {}) {
 
     // 6. Action: Turn (Independent)
     if (decision.turn) {
-      console.log(`🔄 Decision: Turn Left ${decision.angle}°`);
+      console.log(`   🔄 ACTION: Turning Left ${decision.angle}°`);
       wheel.turnLeft(decision.angle || 60);
       cumulativeTurnAngle += decision.angle || 60;
     }
