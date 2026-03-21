@@ -129,10 +129,22 @@ class EnhancedTransitionGraph {
   recordMovement(fromLoc, toLoc, fromYaw, toYaw, step) {
     const fromNode = this.getOrCreate(fromLoc, parseFloat(fromLoc.split(',')[0]), parseFloat(fromLoc.split(',')[1]), step);
     const toNode = this.getOrCreate(toLoc, parseFloat(toLoc.split(',')[0]), parseFloat(toLoc.split(',')[1]), step);
+    
+    // Record forward direction at fromNode
     fromNode.recordAttempt(fromYaw, true, toLoc);
+    
+    // Record reverse direction at toNode (we can always go back the way we came)
+    const reverseYaw = (toYaw + 180) % 360;
+    toNode.recordAttempt(reverseYaw, true, fromLoc);
+    
     toNode.entryYaw = toYaw;
+    
+    // Bidirectional connection tracking
     if (!this.connections.get(fromLoc).has(toLoc)) {
       this.connections.get(fromLoc).add(toLoc);
+    }
+    if (!this.connections.get(toLoc).has(fromLoc)) {
+      this.connections.get(toLoc).add(fromLoc);
     }
   }
   
@@ -302,17 +314,23 @@ export function createUnifiedAlgorithm(cfg) {
         console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}°)`);
         return { turn: true, angle: turnAngle };
       } else {
-        // TRULY STUCK - No successful exits recorded (dead end or entry/exit bucket mismatch)
-        // Log the spinning location for debugging
+        // TRULY STUCK - No successful exits recorded (shouldn't happen with bidirectional recording)
+        // This means we have a data inconsistency - log error and try to recover
         console.log(`🚨 SPIN DETECTED! At ${currentLocation} - all ${currentNode.triedYaws.size} buckets tried, no successful exits!`);
         console.log(`   Tried yaw buckets: ${[...currentNode.triedYaws].join(', ')}`);
-        console.log(`   This is likely a dead-end or the entry yaw bucket differs from exit bucket`);
+        console.log(`   This should not happen - every node should have at least the reverse direction recorded`);
         
-        // Do a full 360° scan by turning to each cardinal direction
-        const randomTurn = Math.floor(Math.random() * 360);
-        const turnAngle = randomTurn;
-        console.log(`🚨 PANIC! Full scan mode - random turn ${turnAngle}°`);
-        return { turn: true, angle: turnAngle };
+        // Emergency: use entryYaw if available (go back the way we came)
+        if (currentNode.entryYaw !== undefined && currentNode.entryYaw !== null) {
+          const reverseYaw = (currentNode.entryYaw + 180) % 360;
+          const turnAngle = getLeftTurnAngle(orientation, reverseYaw);
+          console.log(`🚨 EMERGENCY! Using entryYaw ${currentNode.entryYaw}° → reverse ${reverseYaw}° (angle=${Math.round(turnAngle)}°)`);
+          return { turn: true, angle: turnAngle };
+        }
+        
+        // Last resort: stop the bot - we're truly stuck with no way out
+        console.log(`🛑 CRITICAL: No escape route found. Bot cannot continue from this location.`);
+        return { turn: false };  // Don't turn - let the bot stop naturally
       }
     }
 

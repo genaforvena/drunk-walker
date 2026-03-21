@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-21T15:31:18.852Z
+// Built: 2026-03-21T15:39:58.672Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -189,10 +189,22 @@ class EnhancedTransitionGraph {
   recordMovement(fromLoc, toLoc, fromYaw, toYaw, step) {
     const fromNode = this.getOrCreate(fromLoc, parseFloat(fromLoc.split(',')[0]), parseFloat(fromLoc.split(',')[1]), step);
     const toNode = this.getOrCreate(toLoc, parseFloat(toLoc.split(',')[0]), parseFloat(toLoc.split(',')[1]), step);
+
+    // Record forward direction at fromNode
     fromNode.recordAttempt(fromYaw, true, toLoc);
+
+    // Record reverse direction at toNode (we can always go back the way we came)
+    const reverseYaw = (toYaw + 180) % 360;
+    toNode.recordAttempt(reverseYaw, true, fromLoc);
+
     toNode.entryYaw = toYaw;
+
+    // Bidirectional connection tracking
     if (!this.connections.get(fromLoc).has(toLoc)) {
       this.connections.get(fromLoc).add(toLoc);
+    }
+    if (!this.connections.get(toLoc).has(fromLoc)) {
+      this.connections.get(toLoc).add(fromLoc);
     }
   }
 
@@ -362,17 +374,23 @@ function createUnifiedAlgorithm(cfg) {
         console.log(`🚨 PANIC! All buckets tried. Retrying successful yaw ${randomSuccessfulYaw}° (angle=${Math.round(turnAngle)}°)`);
         return { turn: true, angle: turnAngle };
       } else {
-        // TRULY STUCK - No successful exits recorded (dead end or entry/exit bucket mismatch)
-        // Log the spinning location for debugging
+        // TRULY STUCK - No successful exits recorded (shouldn't happen with bidirectional recording)
+        // This means we have a data inconsistency - log error and try to recover
         console.log(`🚨 SPIN DETECTED! At ${currentLocation} - all ${currentNode.triedYaws.size} buckets tried, no successful exits!`);
         console.log(`   Tried yaw buckets: ${[...currentNode.triedYaws].join(', ')}`);
-        console.log(`   This is likely a dead-end or the entry yaw bucket differs from exit bucket`);
+        console.log(`   This should not happen - every node should have at least the reverse direction recorded`);
 
-        // Do a full 360° scan by turning to each cardinal direction
-        const randomTurn = Math.floor(Math.random() * 360);
-        const turnAngle = randomTurn;
-        console.log(`🚨 PANIC! Full scan mode - random turn ${turnAngle}°`);
-        return { turn: true, angle: turnAngle };
+        // Emergency: use entryYaw if available (go back the way we came)
+        if (currentNode.entryYaw !== undefined && currentNode.entryYaw !== null) {
+          const reverseYaw = (currentNode.entryYaw + 180) % 360;
+          const turnAngle = getLeftTurnAngle(orientation, reverseYaw);
+          console.log(`🚨 EMERGENCY! Using entryYaw ${currentNode.entryYaw}° → reverse ${reverseYaw}° (angle=${Math.round(turnAngle)}°)`);
+          return { turn: true, angle: turnAngle };
+        }
+
+        // Last resort: stop the bot - we're truly stuck with no way out
+        console.log(`🛑 CRITICAL: No escape route found. Bot cannot continue from this location.`);
+        return { turn: false };  // Don't turn - let the bot stop naturally
       }
     }
 
@@ -1457,13 +1475,13 @@ function createExplorationMap() {
 
   // === UI CONTROLLER ===
   /**
- * UI Controller - Floating Buttons
- * v6.2.0-FLOAT
+ * UI Controller - Compact Vertical Layout
+ * v6.3.0-COMPACT
  */
 
 function createControlPanel(engine, options = {}) {
   const {
-    version = '6.2.0',
+    version = '6.3.0',
     autoStart = true,
     onPathCollectionToggle = null
   } = options;
@@ -1473,145 +1491,145 @@ function createControlPanel(engine, options = {}) {
   let paceValEl = null;
   let startStopBtn = null;
 
-  // Session logs storage
-  const sessionLogs = [];
-  const originalConsoleLog = console.log;
-
-  console.log = function(...args) {
-    const timestamp = new Date().toISOString();
-    const message = args.map(arg =>
-      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-    ).join(' ');
-    sessionLogs.push(`[${timestamp}] ${message}`);
-    originalConsoleLog.apply(console, args);
-  };
-
   const CSS = {
     btnBase: `
       position: fixed;
       bottom: 20px;
-      padding: 10px 16px;
-      background: rgba(18, 18, 20, 0.9);
+      left: 20px;
+      padding: 8px 12px;
+      background: rgba(18, 18, 20, 0.95);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      border-radius: 8px;
       color: #f0f0f0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      font-size: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       z-index: 1000000;
     `,
-    statBtn: `
+    statRow: `
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+    `,
+    statBox: `
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      min-width: 70px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      min-width: 45px;
     `,
     statLabel: `
-      font-size: 8px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.4);
+      font-size: 7px;
+      color: rgba(255,255,255,0.4);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     `,
     statValue: `
-      font-size: 16px;
+      font-size: 13px;
       font-weight: 700;
       color: #fff;
-      font-feature-settings: "tnum";
     `,
     actionBtn: `
+      width: 100%;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 10px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 10px;
+    `,
+    btnRow: `
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+    `,
+    iconBtn: `
+      padding: 4px 8px;
+      font-size: 14px;
+      min-width: 28px;
+    `,
+    slider: `
+      width: 100%;
+      -webkit-appearance: none;
+      height: 3px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      outline: none;
+      margin-top: 2px;
     `
   };
 
   const createUI = () => {
-    // Remove any existing UI elements
-    const existing = document.querySelectorAll('.dw-float-ui');
-    existing.forEach(el => el.remove());
+    document.querySelectorAll('.dw-float-ui').forEach(el => el.remove());
 
-    const positions = {
-      steps: { left: '20px' },
-      visited: { left: '110px' },
-      startStop: { left: '50%', transform: 'translateX(-50%)' },
-      pace: { right: '110px' },
-      savePath: { right: '20px' }
-    };
+    const container = document.createElement('div');
+    container.className = 'dw-float-ui';
+    container.style.cssText = CSS.btnBase + `width: 110px; padding: 10px; display: flex; flex-direction: column; gap: 4px; cursor: default;`;
 
-    // Steps button
-    const stepsBtn = document.createElement('div');
-    stepsBtn.className = 'dw-float-ui';
-    stepsBtn.style.cssText = CSS.btnBase + CSS.statBtn + `left: ${positions.steps.left};`;
-    stepsBtn.innerHTML = `
-      <span style="${CSS.statLabel}">Steps</span>
-      <span id="dw-steps" style="${CSS.statValue}">0</span>
+    // Stats row (Steps + Visited)
+    const statRow = document.createElement('div');
+    statRow.style.cssText = CSS.statRow;
+    statRow.innerHTML = `
+      <div style="${CSS.statBox}">
+        <span style="${CSS.statLabel}">Steps</span>
+        <span id="dw-steps" style="${CSS.statValue}">0</span>
+      </div>
+      <div style="${CSS.statBox}">
+        <span style="${CSS.statLabel}">Visited</span>
+        <span id="dw-visited" style="${CSS.statValue}">0</span>
+      </div>
     `;
-    document.body.appendChild(stepsBtn);
-    stepsEl = stepsBtn.querySelector('#dw-steps');
+    container.appendChild(statRow);
+    stepsEl = statRow.querySelector('#dw-steps');
+    visitedEl = statRow.querySelector('#dw-visited');
 
-    // Visited button
-    const visitedBtn = document.createElement('div');
-    visitedBtn.className = 'dw-float-ui';
-    visitedBtn.style.cssText = CSS.btnBase + CSS.statBtn + `left: ${positions.visited.left};`;
-    visitedBtn.innerHTML = `
-      <span style="${CSS.statLabel}">Visited</span>
-      <span id="dw-visited" style="${CSS.statValue}">0</span>
-    `;
-    document.body.appendChild(visitedBtn);
-    visitedEl = visitedBtn.querySelector('#dw-visited');
-
-    // Start/Stop button
+    // START/STOP button
     startStopBtn = document.createElement('button');
-    startStopBtn.className = 'dw-float-ui';
-    startStopBtn.style.cssText = CSS.btnBase + CSS.actionBtn + `left: ${positions.startStop.left};${positions.startStop.transform || ''}`;
+    startStopBtn.style.cssText = CSS.btnBase + CSS.actionBtn + `width: 100%; margin: 0;`;
     startStopBtn.innerHTML = '<span>▶</span> START';
-    startStopBtn.onmouseover = () => startStopBtn.style.transform = positions.startStop.transform + ' translateY(-2px)';
-    startStopBtn.onmouseout = () => startStopBtn.style.transform = positions.startStop.transform + ' translateY(0)';
+    startStopBtn.onmouseover = () => startStopBtn.style.background = 'rgba(255,255,255,0.1)';
+    startStopBtn.onmouseout = () => startStopBtn.style.background = 'rgba(18,18,20,0.95)';
     startStopBtn.onclick = () => {
       if (engine.isNavigating()) engine.stop();
       else engine.start();
       updateStartStopBtn();
     };
-    document.body.appendChild(startStopBtn);
+    container.appendChild(startStopBtn);
 
-    // Pace button with slider
-    const paceBtn = document.createElement('div');
-    paceBtn.className = 'dw-float-ui';
-    paceBtn.style.cssText = CSS.btnBase + CSS.statBtn + `right: ${positions.pace.right}; cursor: default;`;
-    paceBtn.innerHTML = `
-      <span style="${CSS.statLabel}">Pace</span>
-      <span id="dw-pace-val" style="${CSS.statValue}">${(engine.getConfig().pace / 1000).toFixed(1)}s</span>
-      <input type="range" min="500" max="5000" step="100" value="${engine.getConfig().pace}"
-        style="width: 80px; margin-top: 4px; -webkit-appearance: none; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none;"
-      />
+    // Save Path / Save Logs row
+    const saveRow = document.createElement('div');
+    saveRow.style.cssText = CSS.btnRow;
+    saveRow.innerHTML = `
+      <button id="dw-save-path" style="${CSS.btnBase + CSS.iconBtn}margin:0;" title="Save Path">💾</button>
+      <button id="dw-save-logs" style="${CSS.btnBase + CSS.iconBtn}margin:0;" title="Save Logs">📄</button>
     `;
-    const paceSlider = paceBtn.querySelector('input');
+    container.appendChild(saveRow);
+    saveRow.querySelector('#dw-save-path').onclick = exportPath;
+    saveRow.querySelector('#dw-save-logs').onclick = exportLogs;
+
+    // Pace control
+    const paceRow = document.createElement('div');
+    paceRow.style.cssText = `display: flex; flex-direction: column; gap: 2px;`;
+    paceRow.innerHTML = `
+      <span style="${CSS.statLabel}; text-align: center;">Pace: <span id="dw-pace-val">${(engine.getConfig().pace / 1000).toFixed(1)}s</span></span>
+      <input type="range" min="500" max="5000" step="100" value="${engine.getConfig().pace}" style="${CSS.slider}" />
+    `;
+    container.appendChild(paceRow);
+    const paceSlider = paceRow.querySelector('input');
+    paceValEl = paceRow.querySelector('#dw-pace-val');
     paceSlider.oninput = () => {
       paceValEl.innerText = (paceSlider.value / 1000).toFixed(1) + 's';
       engine.setPace(parseInt(paceSlider.value));
     };
-    document.body.appendChild(paceBtn);
-    paceValEl = paceBtn.querySelector('#dw-pace-val');
 
-    // Save Path button
-    const savePathBtn = document.createElement('button');
-    savePathBtn.className = 'dw-float-ui';
-    savePathBtn.style.cssText = CSS.btnBase + CSS.actionBtn + `right: ${positions.savePath.right};`;
-    savePathBtn.innerHTML = '💾 SAVE';
-    savePathBtn.title = 'Export Path';
-    savePathBtn.onmouseover = () => savePathBtn.style.transform = 'translateY(-2px)';
-    savePathBtn.onmouseout = () => savePathBtn.style.transform = 'translateY(0)';
-    savePathBtn.onclick = exportPath;
-    document.body.appendChild(savePathBtn);
+    document.body.appendChild(container);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
     engine.setSelfAvoiding(true);
@@ -1621,14 +1639,14 @@ function createControlPanel(engine, options = {}) {
     if (!startStopBtn) return;
     if (engine.isNavigating()) {
       startStopBtn.innerHTML = '<span>⏹</span> STOP';
-      startStopBtn.style.background = 'rgba(255, 50, 50, 0.15)';
+      startStopBtn.style.background = 'rgba(255, 80, 80, 0.2)';
       startStopBtn.style.color = '#ff6b6b';
-      startStopBtn.style.borderColor = 'rgba(255, 50, 50, 0.3)';
+      startStopBtn.style.borderColor = 'rgba(255, 80, 80, 0.3)';
     } else {
       startStopBtn.innerHTML = '<span>▶</span> START';
-      startStopBtn.style.background = 'rgba(18, 18, 20, 0.9)';
+      startStopBtn.style.background = 'rgba(18,18,20,0.95)';
       startStopBtn.style.color = '#f0f0f0';
-      startStopBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+      startStopBtn.style.borderColor = 'rgba(255,255,255,0.1)';
     }
   };
 
@@ -1639,10 +1657,19 @@ function createControlPanel(engine, options = {}) {
       return;
     }
     const blob = new Blob([JSON.stringify(walkPath, null, 2)], { type: 'application/json' });
+    downloadFile(blob, `dw-path-${Date.now()}.json`);
+  };
+
+  const exportLogs = () => {
+    const blob = new Blob([sessionLogs.join('\n')], { type: 'text/plain' });
+    downloadFile(blob, `dw-logs-${Date.now()}.txt`);
+  };
+
+  const downloadFile = (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dw-path-${Date.now()}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1661,7 +1688,7 @@ function createControlPanel(engine, options = {}) {
       createUI();
       updateStartStopBtn();
       if (autoStart) engine.start();
-      console.log('🟣 UI Initialized (Floating Buttons)');
+      console.log('🟣 UI Initialized (Compact)');
       return { destroy };
     } catch (e) {
       console.error('UI Init Failed:', e);
