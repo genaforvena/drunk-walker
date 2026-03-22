@@ -230,21 +230,15 @@ export function createUnifiedAlgorithm(cfg) {
           const last = recentLocs[recentLocs.length - 1].split(',').map(Number);
           const dLat = last[0] - first[0];
           const dLng = last[1] - first[1];
-          // Only use smoothed bearing if we have meaningful displacement
-          if (Math.abs(dLat) > 0.00001 || Math.abs(dLng) > 0.00001) {
+          // Only use smoothed bearing if we have meaningful displacement (>1m)
+          if (Math.abs(dLat) > 0.0001 || Math.abs(dLng) > 0.0001) {
             currentForwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
-            if (currentForwardBearing < 0) currentForwardBearing += 360;
-          } else {
-            // Fallback to prev→cur if displacement is too small
-            const prevParts = previousLocation.split(',').map(Number);
-            const dLat2 = currentParts[0] - prevParts[0];
-            const dLng2 = currentParts[1] - prevParts[1];
-            currentForwardBearing = Math.atan2(dLng2, dLat2) * 180 / Math.PI;
             if (currentForwardBearing < 0) currentForwardBearing += 360;
           }
         }
-      } else {
-        // Fallback to prev→cur for first few nodes
+      }
+      // Fallback to prev→cur if window calculation didn't work
+      if (currentForwardBearing === orientation) {
         const prevParts = previousLocation.split(',').map(Number);
         const dLat = currentParts[0] - prevParts[0];
         const dLng = currentParts[1] - prevParts[1];
@@ -280,8 +274,9 @@ export function createUnifiedAlgorithm(cfg) {
       }
 
       // Face forward bearing (if not already)
+      // Only turn for SIGNIFICANT direction changes (>45°) to avoid excessive rotation
       const bearingDiff = yawDifference(orientation, currentForwardBearing);
-      if (bearingDiff > 15 && bearingDiff < 165) {
+      if (bearingDiff > 45 && bearingDiff < 165) {
         console.log(`🧭 NEW NODE: Turning to face forward bearing ${Math.round(currentForwardBearing)}° (diff=${Math.round(bearingDiff)}°)`);
         const turnAngle = getLeftTurnAngle(orientation, currentForwardBearing);
         const turnDirection = getTurnDirection(orientation, currentForwardBearing);
