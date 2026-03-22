@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T06:08:16.538Z
+// Built: 2026-03-22T10:09:24.288Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -450,8 +450,30 @@ function createUnifiedAlgorithm(cfg) {
 
     // ═══════════════════════════════════════════════════════════
     // 🚫 NEW NODE: Never turn at new/unsampled nodes - go straight!
+    // But first: ensure we're facing the forward direction (prev→cur)
     // ═══════════════════════════════════════════════════════════
     if (isNewNode) {
+      // Calculate forward bearing from prev→cur
+      let currentForwardBearing = orientation;
+      if (previousLocation) {
+        const prevParts = previousLocation.split(',').map(Number);
+        const currentParts = currentLocation.split(',').map(Number);
+        const dLat = currentParts[0] - prevParts[0];
+        const dLng = currentParts[1] - prevParts[1];
+        currentForwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (currentForwardBearing < 0) currentForwardBearing += 360;
+      }
+
+      // If not facing forward direction, turn to face it
+      const bearingDiff = yawDifference(orientation, currentForwardBearing);
+      if (bearingDiff > 15 && bearingDiff < 165) {
+        console.log(`🧭 NEW NODE: Turning to face forward bearing ${Math.round(currentForwardBearing)}° (diff=${Math.round(bearingDiff)}°)`);
+        const turnAngle = getLeftTurnAngle(orientation, currentForwardBearing);
+        const turnDirection = getTurnDirection(orientation, currentForwardBearing);
+        lastDecisionWasTurn = true;
+        return { turn: true, angle: turnAngle, direction: turnDirection };
+      }
+
       console.log('[DEBUG] NEW NODE - going straight (no turn)');
       // Remove from fully explored if it was there (fresh visit)
       fullyExploredNodes.delete(currentLocation);
@@ -625,6 +647,24 @@ function createUnifiedAlgorithm(cfg) {
       // Facing correct direction, move forward (which is backward along the path)
       console.log(`🧱 WALL-FOLLOW: Moving along left wall`);
       return { turn: false };
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🚨 BREAK THE WALL: When truly stuck (all yaws tried, fully explored)
+    // Retry ANY successful yaw - we need to escape this dead end!
+    // ═══════════════════════════════════════════════════════════
+    if (isExhausted && fullyExploredNodes.has(currentLocation) && currentNode.successfulYaws.size > 0) {
+      const successfulYawsArray = Array.from(currentNode.successfulYaws);
+      const randomSuccessfulYaw = successfulYawsArray[Math.floor(Math.random() * successfulYawsArray.length)];
+      console.log(`🚨 BREAK WALL: All yaws exhausted! Retrying successful yaw ${randomSuccessfulYaw}°`);
+      const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
+      const turnDirection = getTurnDirection(orientation, randomSuccessfulYaw);
+      consecutiveStraightMoves = 0;
+      lastDecisionWasTurn = true;
+      wallFollowMode = false;  // Reset wall-follow - we're breaking out!
+      wallFollowBearing = null;
+      forwardBearing = null;
+      return { turn: true, angle: turnAngle, direction: turnDirection };
     }
 
     // Reset consecutive straight moves counter when we arrive at a visited node
