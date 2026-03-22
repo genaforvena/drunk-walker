@@ -264,8 +264,9 @@ export function createUnifiedAlgorithm(cfg) {
     if (isDeadEnd && !wallFollowMode) {
       wallFollowMode = true;
       forwardBearing = currentForwardBearing;
-      // Turn 120° LEFT from forward direction (face left wall, slightly back)
-      wallFollowBearing = (forwardBearing + 120) % 360;
+      // Turn 105° LEFT from forward direction (face left wall, slightly back)
+      // Reduced from 120° to 105° to better catch side entrances during backtrack
+      wallFollowBearing = (forwardBearing + 105) % 360;
       console.log(`🧱 DEAD END! Forward bearing=${Math.round(forwardBearing)}°, turning to wall-follow bearing=${Math.round(wallFollowBearing)}°`);
     }
 
