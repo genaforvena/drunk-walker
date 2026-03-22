@@ -1,0 +1,1302 @@
+[17:23:01] 🟣 UI Initialized (Draggable Panel)
+[17:23:01] [DEBUG] start() called - current status=IDLE, intervalId=null
+[17:23:01] [DEBUG] start() interval set with pace=2000ms
+[17:23:01] 🎮 Type DRUNK_WALKER.stop() to stop manually
+[17:23:03] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:03] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:03] [DEBUG] currentLocation=56.3193077,44.0499309, currentYaw=283.1353354348571, previousLocation=null
+[17:23:03] [DEBUG] Sync wheel orientation: lastUrlYaw=null, currentYaw=283.1353354348571
+[17:23:03] 💓 [0] STUCK: 0 | YAW: 283° | LOC: 56.3193077,44.0499309
+[17:23:03]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3193077,44.0499309,3a,75y,283.14h,90t/data=!3m7!1e1!3m5!1s92zay0JdyDccu_Tm-FLAPA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D92zay0JdyDccu_Tm-FLAPA%26yaw%3D283.1353354348571!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:03] [DEBUG] isStationary=null, isNewNode=true, justArrived=null, nodeVisitCount=0, isFullyScanned=false
+[17:23:03] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:23:03] [DEBUG] tick() END
+[17:23:05] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:05] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:05] [DEBUG] currentLocation=56.319341,44.0497877, currentYaw=283.1353354348571, previousLocation=56.3193077,44.0499309
+[17:23:05] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:05] 💓 [1] STUCK: 0 | YAW: 283° | LOC: 56.319341,44.0497877
+[17:23:05]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.319341,44.0497877,3a,75y,283.14h,90t/data=!3m7!1e1!3m5!1sTZ8JUbYc8LxN_yjyB1rF5Q!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DTZ8JUbYc8LxN_yjyB1rF5Q%26yaw%3D283.1353354348571!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:05] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:05] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:05] [DEBUG] decide() called: stuck=0, orientation=283°, loc=56.319341,44.0497877
+[17:23:05] [DEBUG] breadcrumbs.length=1, graph.nodes=2
+[17:23:05] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:05] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:05] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:05] [DEBUG] decision={"turn":false}
+[17:23:05] [DEBUG] tick() END
+[17:23:08] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:08] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:08] [DEBUG] currentLocation=56.3193622,44.0497119, currentYaw=283.1353354348571, previousLocation=56.319341,44.0497877
+[17:23:08] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:08] 💓 [2] STUCK: 0 | YAW: 283° | LOC: 56.3193622,44.0497119
+[17:23:08]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3193622,44.0497119,3a,75y,283.14h,90t/data=!3m7!1e1!3m5!1s1lxu0DiniybMpfYsakOt3Q!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D1lxu0DiniybMpfYsakOt3Q%26yaw%3D283.1353354348571!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:08] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:08] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:08] [DEBUG] decide() called: stuck=0, orientation=283°, loc=56.3193622,44.0497119
+[17:23:08] [DEBUG] breadcrumbs.length=2, graph.nodes=3
+[17:23:08] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:08] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:08] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:08] [DEBUG] decision={"turn":false}
+[17:23:08] [DEBUG] tick() END
+[17:23:10] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:10] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:10] [DEBUG] currentLocation=56.3193712,44.0495567, currentYaw=283.1353354348571, previousLocation=56.3193622,44.0497119
+[17:23:10] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:10] 💓 [3] STUCK: 0 | YAW: 283° | LOC: 56.3193712,44.0495567
+[17:23:10]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3193712,44.0495567,3a,75y,283.14h,90t/data=!3m7!1e1!3m5!1slU3d954sQ2NTo1fZlepWUA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DlU3d954sQ2NTo1fZlepWUA%26yaw%3D283.1353354348571!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:10] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:10] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:10] [DEBUG] decide() called: stuck=0, orientation=283°, loc=56.3193712,44.0495567
+[17:23:10] [DEBUG] breadcrumbs.length=3, graph.nodes=4
+[17:23:10] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:10] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:10] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:10] [DEBUG] decision={"turn":false}
+[17:23:10] [DEBUG] tick() END
+[17:23:12] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:12] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:12] [DEBUG] currentLocation=56.3193807,44.0493985, currentYaw=283.1353354348571, previousLocation=56.3193712,44.0495567
+[17:23:12] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:12] 💓 [4] STUCK: 0 | YAW: 283° | LOC: 56.3193807,44.0493985
+[17:23:12]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3193807,44.0493985,3a,75y,283.14h,90t/data=!3m7!1e1!3m5!1seHg4Uxdtdd2gUIXJxYq_mw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DeHg4Uxdtdd2gUIXJxYq_mw%26yaw%3D283.1353354348571!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:12] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:12] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:12] [DEBUG] decide() called: stuck=0, orientation=283°, loc=56.3193807,44.0493985
+[17:23:12] [DEBUG] breadcrumbs.length=4, graph.nodes=5
+[17:23:12] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:12] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:12] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:12] [DEBUG] decision={"turn":false}
+[17:23:12] [DEBUG] tick() END
+[17:23:14] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:14] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:14] [DEBUG] currentLocation=56.3193933,44.0492337, currentYaw=283.1353354348571, previousLocation=56.3193807,44.0493985
+[17:23:14] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:14] 💓 [5] STUCK: 0 | YAW: 283° | LOC: 56.3193933,44.0492337
+[17:23:14]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3193933,44.0492337,3a,75y,283.14h,90t/data=!3m7!1e1!3m5!1snVqUXoVKPXmqHeuU5ne-TQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DnVqUXoVKPXmqHeuU5ne-TQ%26yaw%3D283.1353354348571!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:14] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:14] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:14] [DEBUG] decide() called: stuck=0, orientation=283°, loc=56.3193933,44.0492337
+[17:23:14] [DEBUG] breadcrumbs.length=5, graph.nodes=6
+[17:23:14] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:14] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:14] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:14] [DEBUG] decision={"turn":false}
+[17:23:14] [DEBUG] tick() END
+[17:23:16] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:16] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:16] [DEBUG] currentLocation=56.3194102,44.0490876, currentYaw=283.1353354348571, previousLocation=56.3193933,44.0492337
+[17:23:16] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:16] 💓 [6] STUCK: 0 | YAW: 283° | LOC: 56.3194102,44.0490876
+[17:23:16]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3194102,44.0490876,3a,75y,283.14h,90t/data=!3m7!1e1!3m5!1s_UajZdLf-3PcSWxHe9Q69A!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D_UajZdLf-3PcSWxHe9Q69A%26yaw%3D283.1353354348571!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:16] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:16] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:16] [DEBUG] decide() called: stuck=0, orientation=283°, loc=56.3194102,44.0490876
+[17:23:16] [DEBUG] breadcrumbs.length=6, graph.nodes=7
+[17:23:16] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:16] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:16] 🔍 FULL 360° SCAN: First visit, 5 straight moves, checking yaw 0° (untried: 0,60,180,240,300)
+[17:23:16] [DEBUG] decision={"turn":true,"angle":283.1353354348571,"direction":"right"}
+[17:23:16]    🔄 ACTION: Turning RIGHT 283.1353354348571°
+[17:23:16] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:17] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:18] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:18] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:18] [DEBUG] currentLocation=56.3194444,44.0489675, currentYaw=352.6608091186159, previousLocation=56.3194102,44.0490876
+[17:23:18] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:18] [DEBUG] Sync wheel orientation: lastUrlYaw=283.1353354348571, currentYaw=352.6608091186159
+[17:23:18] 💓 [7] STUCK: 0 | YAW: 353° | LOC: 56.3194444,44.0489675
+[17:23:18]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3194444,44.0489675,3a,75y,352.66h,90t/data=!3m7!1e1!3m5!1sCwmqoBSwfGQwivw2bpyCWA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DCwmqoBSwfGQwivw2bpyCWA%26yaw%3D352.6608091186159!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:18] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:18] [DEBUG] Step succeeded! Location changed.
+[17:23:18] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:18] [DEBUG] decide() called: stuck=0, orientation=353°, loc=56.3194444,44.0489675
+[17:23:18] [DEBUG] breadcrumbs.length=7, graph.nodes=8
+[17:23:18] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:18] [DEBUG] currentNode.triedYaws=180, hasUntried=true
+[17:23:18] 🧭 NEW NODE: Turning to face forward bearing 275° (diff=77°)
+[17:23:18] [DEBUG] decision={"turn":true,"angle":77.24048047137677,"direction":"left"}
+[17:23:18]    🔄 ACTION: Turning LEFT 77.24048047137677°
+[17:23:18] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:19] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:20] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:20] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:20] [DEBUG] currentLocation=56.3195386,44.0489426, currentYaw=297.3970196445929, previousLocation=56.3194444,44.0489675
+[17:23:20] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:20] [DEBUG] Sync wheel orientation: lastUrlYaw=352.6608091186159, currentYaw=297.3970196445929
+[17:23:20] 💓 [8] STUCK: 0 | YAW: 297° | LOC: 56.3195386,44.0489426
+[17:23:20]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3195386,44.0489426,3a,75y,297.4h,90t/data=!3m7!1e1!3m5!1sMHvgQ7lhM6RbdT1VrWZc0w!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DMHvgQ7lhM6RbdT1VrWZc0w%26yaw%3D297.3970196445929!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:20] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:20] [DEBUG] Step succeeded! Location changed.
+[17:23:20] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:20] [DEBUG] decide() called: stuck=0, orientation=297°, loc=56.3195386,44.0489426
+[17:23:20] [DEBUG] breadcrumbs.length=8, graph.nodes=9
+[17:23:20] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:20] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:20] 🧭 NEW NODE: Turning to face forward bearing 281° (diff=17°)
+[17:23:20] [DEBUG] decision={"turn":true,"angle":16.530653188101894,"direction":"left"}
+[17:23:20]    🔄 ACTION: Turning LEFT 16.530653188101894°
+[17:23:20] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:20] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:22] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:22] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:22] [DEBUG] currentLocation=56.319629,44.048962, currentYaw=287.10101964532697, previousLocation=56.3195386,44.0489426
+[17:23:22] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:22] [DEBUG] Sync wheel orientation: lastUrlYaw=297.3970196445929, currentYaw=287.10101964532697
+[17:23:22] 💓 [9] STUCK: 0 | YAW: 287° | LOC: 56.319629,44.048962
+[17:23:22]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.319629,44.048962,3a,75y,287.1h,90t/data=!3m7!1e1!3m5!1sVOW8f53WtcZbwLPNcSEATA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DVOW8f53WtcZbwLPNcSEATA%26yaw%3D287.10101964532697!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:22] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:22] [DEBUG] Step succeeded! Location changed.
+[17:23:22] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:22] [DEBUG] decide() called: stuck=0, orientation=287°, loc=56.319629,44.048962
+[17:23:22] [DEBUG] breadcrumbs.length=9, graph.nodes=10
+[17:23:22] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:22] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:22] 🧭 NEW NODE: Turning to face forward bearing 312° (diff=24°)
+[17:23:22] [DEBUG] decision={"turn":true,"angle":335.57557615459183,"direction":"right"}
+[17:23:22]    🔄 ACTION: Turning RIGHT 335.57557615459183°
+[17:23:22] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:23] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:24] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:24] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:24] [DEBUG] currentLocation=56.3197113,44.0489243, currentYaw=353.8241775397815, previousLocation=56.319629,44.048962
+[17:23:24] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:24] [DEBUG] Sync wheel orientation: lastUrlYaw=287.10101964532697, currentYaw=353.8241775397815
+[17:23:24] 💓 [10] STUCK: 0 | YAW: 354° | LOC: 56.3197113,44.0489243
+[17:23:24]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197113,44.0489243,3a,75y,353.82h,90t/data=!3m7!1e1!3m5!1sdlBUBQ05f6w1Ze0LlRWubQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DdlBUBQ05f6w1Ze0LlRWubQ%26yaw%3D353.8241775397815!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:24] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:24] [DEBUG] Step succeeded! Location changed.
+[17:23:24] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:24] [DEBUG] decide() called: stuck=0, orientation=354°, loc=56.3197113,44.0489243
+[17:23:24] [DEBUG] breadcrumbs.length=10, graph.nodes=11
+[17:23:24] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:24] [DEBUG] currentNode.triedYaws=180, hasUntried=true
+[17:23:24] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:24] [DEBUG] decision={"turn":false}
+[17:23:24] [DEBUG] tick() END
+[17:23:26] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:26] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:26] [DEBUG] currentLocation=56.3197422,44.048777, currentYaw=353.8241775397815, previousLocation=56.3197113,44.0489243
+[17:23:26] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:26] 💓 [11] STUCK: 0 | YAW: 354° | LOC: 56.3197422,44.048777
+[17:23:26]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197422,44.048777,3a,75y,353.82h,90t/data=!3m7!1e1!3m5!1sv3-TlPoa60_e30dQycCWCw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dv3-TlPoa60_e30dQycCWCw%26yaw%3D353.8241775397815!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:26] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:26] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:26] [DEBUG] decide() called: stuck=0, orientation=354°, loc=56.3197422,44.048777
+[17:23:26] [DEBUG] breadcrumbs.length=11, graph.nodes=12
+[17:23:26] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:26] [DEBUG] currentNode.triedYaws=180, hasUntried=true
+[17:23:26] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:26] [DEBUG] decision={"turn":false}
+[17:23:26] [DEBUG] tick() END
+[17:23:28] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:28] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:28] [DEBUG] currentLocation=56.3197485,44.0486106, currentYaw=353.8241775397815, previousLocation=56.3197422,44.048777
+[17:23:28] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:28] 💓 [12] STUCK: 0 | YAW: 354° | LOC: 56.3197485,44.0486106
+[17:23:28]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197485,44.0486106,3a,75y,353.82h,90t/data=!3m7!1e1!3m5!1s0Hsu0Q61Z0Yfp8JcL5Oglw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D0Hsu0Q61Z0Yfp8JcL5Oglw%26yaw%3D353.8241775397815!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:28] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:28] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:28] [DEBUG] decide() called: stuck=0, orientation=354°, loc=56.3197485,44.0486106
+[17:23:28] [DEBUG] breadcrumbs.length=12, graph.nodes=13
+[17:23:28] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:28] [DEBUG] currentNode.triedYaws=180, hasUntried=true
+[17:23:28] 🧭 NEW NODE: Turning to face forward bearing 301° (diff=52°)
+[17:23:28] [DEBUG] decision={"turn":true,"angle":52.362051815918505,"direction":"left"}
+[17:23:28]    🔄 ACTION: Turning LEFT 52.362051815918505°
+[17:23:28] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:28] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:30] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:30] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:30] [DEBUG] currentLocation=56.319754,44.0484431, currentYaw=319.88186175019484, previousLocation=56.3197485,44.0486106
+[17:23:30] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:30] [DEBUG] Sync wheel orientation: lastUrlYaw=353.8241775397815, currentYaw=319.88186175019484
+[17:23:30] 💓 [13] STUCK: 0 | YAW: 320° | LOC: 56.319754,44.0484431
+[17:23:30]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.319754,44.0484431,3a,75y,319.88h,90t/data=!3m7!1e1!3m5!1ss5CpXP2uGDQ-ovstXO0IvA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Ds5CpXP2uGDQ-ovstXO0IvA%26yaw%3D319.88186175019484!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:30] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:30] [DEBUG] Step succeeded! Location changed.
+[17:23:30] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:30] [DEBUG] decide() called: stuck=0, orientation=320°, loc=56.319754,44.0484431
+[17:23:30] [DEBUG] breadcrumbs.length=13, graph.nodes=14
+[17:23:30] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:30] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:30] 🧭 NEW NODE: Turning to face forward bearing 277° (diff=43°)
+[17:23:30] [DEBUG] decision={"turn":true,"angle":43.11904493074462,"direction":"left"}
+[17:23:30]    🔄 ACTION: Turning LEFT 43.11904493074462°
+[17:23:30] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:30] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:32] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:32] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:32] [DEBUG] currentLocation=56.3197583,44.0482796, currentYaw=296.19765122387906, previousLocation=56.319754,44.0484431
+[17:23:32] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:32] [DEBUG] Sync wheel orientation: lastUrlYaw=319.88186175019484, currentYaw=296.19765122387906
+[17:23:32] 💓 [14] STUCK: 0 | YAW: 296° | LOC: 56.3197583,44.0482796
+[17:23:32]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197583,44.0482796,3a,75y,296.2h,90t/data=!3m7!1e1!3m5!1suvOZSXk_1DZO55CMEzppzQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DuvOZSXk_1DZO55CMEzppzQ%26yaw%3D296.19765122387906!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:32] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:32] [DEBUG] Step succeeded! Location changed.
+[17:23:32] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:32] [DEBUG] decide() called: stuck=0, orientation=296°, loc=56.3197583,44.0482796
+[17:23:32] [DEBUG] breadcrumbs.length=14, graph.nodes=15
+[17:23:32] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:32] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:32] 🧭 NEW NODE: Turning to face forward bearing 272° (diff=24°)
+[17:23:32] [DEBUG] decision={"turn":true,"angle":24.17366514866268,"direction":"left"}
+[17:23:32]    🔄 ACTION: Turning LEFT 24.17366514866268°
+[17:23:32] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:32] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:34] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:34] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:34] [DEBUG] currentLocation=56.3197623,44.0481224, currentYaw=288.216256148593, previousLocation=56.3197583,44.0482796
+[17:23:34] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:34] [DEBUG] Sync wheel orientation: lastUrlYaw=296.19765122387906, currentYaw=288.216256148593
+[17:23:34] 💓 [15] STUCK: 0 | YAW: 288° | LOC: 56.3197623,44.0481224
+[17:23:34]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197623,44.0481224,3a,75y,288.22h,90t/data=!3m7!1e1!3m5!1sc6e37EsHQYonDTz4dJnCyw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dc6e37EsHQYonDTz4dJnCyw%26yaw%3D288.216256148593!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:34] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:34] [DEBUG] Step succeeded! Location changed.
+[17:23:34] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:34] [DEBUG] decide() called: stuck=0, orientation=288°, loc=56.3197623,44.0481224
+[17:23:34] [DEBUG] breadcrumbs.length=15, graph.nodes=16
+[17:23:34] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:34] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:34] 🧭 NEW NODE: Turning to face forward bearing 272° (diff=17°)
+[17:23:34] [DEBUG] decision={"turn":true,"angle":16.520381051301115,"direction":"left"}
+[17:23:34]    🔄 ACTION: Turning LEFT 16.520381051301115°
+[17:23:34] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:34] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:36] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:36] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:36] [DEBUG] currentLocation=56.3197666,44.0479619, currentYaw=277.2968877270322, previousLocation=56.3197623,44.0481224
+[17:23:36] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:36] [DEBUG] Sync wheel orientation: lastUrlYaw=288.216256148593, currentYaw=277.2968877270322
+[17:23:36] 💓 [16] STUCK: 0 | YAW: 277° | LOC: 56.3197666,44.0479619
+[17:23:36]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197666,44.0479619,3a,75y,277.3h,90t/data=!3m7!1e1!3m5!1sgIk6lIMWeqZzRKctfVGzIQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DgIk6lIMWeqZzRKctfVGzIQ%26yaw%3D277.2968877270322!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:36] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:36] [DEBUG] Step succeeded! Location changed.
+[17:23:36] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:36] [DEBUG] decide() called: stuck=0, orientation=277°, loc=56.3197666,44.0479619
+[17:23:36] [DEBUG] breadcrumbs.length=16, graph.nodes=17
+[17:23:36] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:36] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:36] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:36] [DEBUG] decision={"turn":false}
+[17:23:36] [DEBUG] tick() END
+[17:23:38] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:38] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:38] [DEBUG] currentLocation=56.3197726,44.0478007, currentYaw=277.2968877270322, previousLocation=56.3197666,44.0479619
+[17:23:38] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:38] 💓 [17] STUCK: 0 | YAW: 277° | LOC: 56.3197726,44.0478007
+[17:23:38]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197726,44.0478007,3a,75y,277.3h,90t/data=!3m7!1e1!3m5!1shZjrvqMHn7RplnyRvC9-lQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DhZjrvqMHn7RplnyRvC9-lQ%26yaw%3D277.2968877270322!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:38] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:38] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:38] [DEBUG] decide() called: stuck=0, orientation=277°, loc=56.3197726,44.0478007
+[17:23:38] [DEBUG] breadcrumbs.length=17, graph.nodes=18
+[17:23:38] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:38] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:38] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:38] [DEBUG] decision={"turn":false}
+[17:23:38] [DEBUG] tick() END
+[17:23:40] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:40] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:40] [DEBUG] currentLocation=56.3197806,44.0476415, currentYaw=277.2968877270322, previousLocation=56.3197726,44.0478007
+[17:23:40] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:40] 💓 [18] STUCK: 0 | YAW: 277° | LOC: 56.3197806,44.0476415
+[17:23:40]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197806,44.0476415,3a,75y,277.3h,90t/data=!3m7!1e1!3m5!1sjNtsFyOHb_XoR3Z-rHZfcQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DjNtsFyOHb_XoR3Z-rHZfcQ%26yaw%3D277.2968877270322!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:40] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:40] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:40] [DEBUG] decide() called: stuck=0, orientation=277°, loc=56.3197806,44.0476415
+[17:23:40] [DEBUG] breadcrumbs.length=18, graph.nodes=19
+[17:23:40] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:40] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:40] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:40] [DEBUG] decision={"turn":false}
+[17:23:40] [DEBUG] tick() END
+[17:23:42] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:42] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:42] [DEBUG] currentLocation=56.3197873,44.0474863, currentYaw=277.2968877270322, previousLocation=56.3197806,44.0476415
+[17:23:42] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:42] 💓 [19] STUCK: 0 | YAW: 277° | LOC: 56.3197873,44.0474863
+[17:23:42]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197873,44.0474863,3a,75y,277.3h,90t/data=!3m7!1e1!3m5!1scOs7-PQCeHry0S0FC9Mgpg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DcOs7-PQCeHry0S0FC9Mgpg%26yaw%3D277.2968877270322!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:42] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:42] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:42] [DEBUG] decide() called: stuck=0, orientation=277°, loc=56.3197873,44.0474863
+[17:23:42] [DEBUG] breadcrumbs.length=19, graph.nodes=20
+[17:23:42] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:42] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:42] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:42] [DEBUG] decision={"turn":false}
+[17:23:42] [DEBUG] tick() END
+[17:23:44] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:44] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:44] [DEBUG] currentLocation=56.3197933,44.0473352, currentYaw=277.2968877270322, previousLocation=56.3197873,44.0474863
+[17:23:44] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:44] 💓 [20] STUCK: 0 | YAW: 277° | LOC: 56.3197933,44.0473352
+[17:23:44]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197933,44.0473352,3a,75y,277.3h,90t/data=!3m7!1e1!3m5!1sONBCTFP8DnSI9KFQiPn_KA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DONBCTFP8DnSI9KFQiPn_KA%26yaw%3D277.2968877270322!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:44] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:44] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:44] [DEBUG] decide() called: stuck=0, orientation=277°, loc=56.3197933,44.0473352
+[17:23:44] [DEBUG] breadcrumbs.length=20, graph.nodes=21
+[17:23:44] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:44] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:44] [DEBUG] NEW NODE - going straight (no turn)
+[17:23:44] [DEBUG] decision={"turn":false}
+[17:23:44] [DEBUG] tick() END
+[17:23:46] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:46] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:46] [DEBUG] currentLocation=56.3198028,44.0471504, currentYaw=277.2968877270322, previousLocation=56.3197933,44.0473352
+[17:23:46] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:46] 💓 [21] STUCK: 0 | YAW: 277° | LOC: 56.3198028,44.0471504
+[17:23:46]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3198028,44.0471504,3a,75y,277.3h,90t/data=!3m7!1e1!3m5!1srigb9tMnWrkG9JpEyBQiRQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Drigb9tMnWrkG9JpEyBQiRQ%26yaw%3D277.2968877270322!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:46] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:46] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:46] [DEBUG] decide() called: stuck=0, orientation=277°, loc=56.3198028,44.0471504
+[17:23:46] [DEBUG] breadcrumbs.length=21, graph.nodes=22
+[17:23:46] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:46] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:46] 🔍 FULL 360° SCAN: First visit, 5 straight moves, checking yaw 0° (untried: 0,60,180,240,300)
+[17:23:46] [DEBUG] decision={"turn":true,"angle":277.2968877270322,"direction":"right"}
+[17:23:46]    🔄 ACTION: Turning RIGHT 277.2968877270322°
+[17:23:46] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:47] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:48] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:48] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:48] [DEBUG] currentLocation=56.3198028,44.0471504, currentYaw=344.00109825419497, previousLocation=56.3198028,44.0471504
+[17:23:48] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:23:48] [DEBUG] Sync wheel orientation: lastUrlYaw=277.2968877270322, currentYaw=344.00109825419497
+[17:23:48] 💓 [22] STUCK: 1 | YAW: 344° | LOC: 56.3198028,44.0471504
+[17:23:48]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3198028,44.0471504,3a,75y,344h,90t/data=!3m7!1e1!3m5!1srigb9tMnWrkG9JpEyBQiRQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Drigb9tMnWrkG9JpEyBQiRQ%26yaw%3D344.00109825419497!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:48] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:23:48] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:23:48] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:23:48] [DEBUG] tick() END
+[17:23:50] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:50] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:50] [DEBUG] currentLocation=56.3198028,44.0471504, currentYaw=344.00109825419497, previousLocation=56.3198028,44.0471504
+[17:23:50] [DEBUG] STUCK DETECTED - same location, stuckCount=2
+[17:23:50] 💓 [23] STUCK: 2 | YAW: 344° | LOC: 56.3198028,44.0471504
+[17:23:50]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3198028,44.0471504,3a,75y,344h,90t/data=!3m7!1e1!3m5!1srigb9tMnWrkG9JpEyBQiRQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Drigb9tMnWrkG9JpEyBQiRQ%26yaw%3D344.00109825419497!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:50] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=2, isFullyScanned=false
+[17:23:50] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:50] [DEBUG] decide() called: stuck=2, orientation=344°, loc=56.3198028,44.0471504
+[17:23:50] [DEBUG] breadcrumbs.length=22, graph.nodes=22
+[17:23:50] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=false
+[17:23:50] [DEBUG] currentNode.triedYaws=120,180,0, hasUntried=true
+[17:23:50] 🚨 PANIC! Stuck 2x. Trying untried yaw 300°
+[17:23:50] [DEBUG] decision={"turn":true,"angle":44.00109825419497,"direction":"left"}
+[17:23:50]    🔄 ACTION: Turning LEFT 44.00109825419497°
+[17:23:50] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:51] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:52] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:52] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:52] [DEBUG] currentLocation=56.3197596,44.0470303, currentYaw=320.5063614120897, previousLocation=56.3198028,44.0471504
+[17:23:52] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:52] [DEBUG] Sync wheel orientation: lastUrlYaw=344.00109825419497, currentYaw=320.5063614120897
+[17:23:52] 💓 [24] STUCK: 0 | YAW: 321° | LOC: 56.3197596,44.0470303
+[17:23:52]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197596,44.0470303,3a,75y,320.51h,90t/data=!3m7!1e1!3m5!1skPDAyD3QsnfqeY10f5uS_Q!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DkPDAyD3QsnfqeY10f5uS_Q%26yaw%3D320.5063614120897!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:52] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:52] [DEBUG] Step succeeded! Location changed.
+[17:23:52] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:52] [DEBUG] decide() called: stuck=0, orientation=321°, loc=56.3197596,44.0470303
+[17:23:52] [DEBUG] breadcrumbs.length=22, graph.nodes=23
+[17:23:52] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:52] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:52] 🧭 NEW NODE: Turning to face forward bearing 273° (diff=48°)
+[17:23:52] [DEBUG] decision={"turn":true,"angle":47.86433984608158,"direction":"left"}
+[17:23:52]    🔄 ACTION: Turning LEFT 47.86433984608158°
+[17:23:52] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:53] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:54] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:54] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:54] [DEBUG] currentLocation=56.3198875,44.047068, currentYaw=296.8221508857739, previousLocation=56.3197596,44.0470303
+[17:23:54] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:54] [DEBUG] Sync wheel orientation: lastUrlYaw=320.5063614120897, currentYaw=296.8221508857739
+[17:23:54] 💓 [25] STUCK: 0 | YAW: 297° | LOC: 56.3198875,44.047068
+[17:23:54]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3198875,44.047068,3a,75y,296.82h,90t/data=!3m7!1e1!3m5!1sfgVTEYzD-2t3LnC_5DfE4Q!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DfgVTEYzD-2t3LnC_5DfE4Q%26yaw%3D296.8221508857739!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:54] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:54] [DEBUG] Step succeeded! Location changed.
+[17:23:54] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:54] [DEBUG] decide() called: stuck=0, orientation=297°, loc=56.3198875,44.047068
+[17:23:54] [DEBUG] breadcrumbs.length=23, graph.nodes=24
+[17:23:54] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:54] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:54] 🧭 NEW NODE: Turning to face forward bearing 264° (diff=33°)
+[17:23:54] [DEBUG] decision={"turn":true,"angle":33.1293405309907,"direction":"left"}
+[17:23:54]    🔄 ACTION: Turning LEFT 33.1293405309907°
+[17:23:54] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:55] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:56] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:56] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:56] [DEBUG] currentLocation=56.3199774,44.047072, currentYaw=284.19183509697785, previousLocation=56.3198875,44.047068
+[17:23:56] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:23:56] [DEBUG] Sync wheel orientation: lastUrlYaw=296.8221508857739, currentYaw=284.19183509697785
+[17:23:56] 💓 [26] STUCK: 0 | YAW: 284° | LOC: 56.3199774,44.047072
+[17:23:56]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3199774,44.047072,3a,75y,284.19h,90t/data=!3m7!1e1!3m5!1sML11cmL2JLQFsXYN_qIMnQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DML11cmL2JLQFsXYN_qIMnQ%26yaw%3D284.19183509697785!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:56] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:23:56] [DEBUG] Step succeeded! Location changed.
+[17:23:56] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:23:56] [DEBUG] decide() called: stuck=0, orientation=284°, loc=56.3199774,44.047072
+[17:23:56] [DEBUG] breadcrumbs.length=24, graph.nodes=25
+[17:23:56] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:23:56] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:23:56] 🧭 NEW NODE: Turning to face forward bearing 316° (diff=32°)
+[17:23:56] [DEBUG] decision={"turn":true,"angle":328.4032535765492,"direction":"right"}
+[17:23:56]    🔄 ACTION: Turning RIGHT 328.4032535765492°
+[17:23:56] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:23:57] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:23:58] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:23:58] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:23:58] [DEBUG] currentLocation=56.3199774,44.047072, currentYaw=352.08594035979695, previousLocation=56.3199774,44.047072
+[17:23:58] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:23:58] [DEBUG] Sync wheel orientation: lastUrlYaw=284.19183509697785, currentYaw=352.08594035979695
+[17:23:58] 💓 [27] STUCK: 1 | YAW: 352° | LOC: 56.3199774,44.047072
+[17:23:58]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3199774,44.047072,3a,75y,352.09h,90t/data=!3m7!1e1!3m5!1sML11cmL2JLQFsXYN_qIMnQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DML11cmL2JLQFsXYN_qIMnQ%26yaw%3D352.08594035979695!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:23:58] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:23:58] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:23:58] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:23:58] [DEBUG] tick() END
+[17:24:00] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:00] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:00] [DEBUG] currentLocation=56.3200662,44.0470905, currentYaw=352.08594035979695, previousLocation=56.3199774,44.047072
+[17:24:00] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:00] 💓 [28] STUCK: 0 | YAW: 352° | LOC: 56.3200662,44.0470905
+[17:24:00]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200662,44.0470905,3a,75y,352.09h,90t/data=!3m7!1e1!3m5!1sVImB5RinS__OqE_BNT3v0A!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DVImB5RinS__OqE_BNT3v0A%26yaw%3D352.08594035979695!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:00] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:00] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:00] [DEBUG] decide() called: stuck=0, orientation=352°, loc=56.3200662,44.0470905
+[17:24:00] [DEBUG] breadcrumbs.length=25, graph.nodes=26
+[17:24:00] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:00] [DEBUG] currentNode.triedYaws=180, hasUntried=true
+[17:24:00] 🧭 NEW NODE: Turning to face forward bearing 11° (diff=19°)
+[17:24:00] [DEBUG] decision={"turn":true,"angle":341.2472546665458,"direction":"right"}
+[17:24:00]    🔄 ACTION: Turning RIGHT 341.2472546665458°
+[17:24:00] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:01] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:02] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:02] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:02] [DEBUG] currentLocation=56.3200662,44.0470905, currentYaw=60.946361412372084, previousLocation=56.3200662,44.0470905
+[17:24:02] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:24:02] [DEBUG] Sync wheel orientation: lastUrlYaw=352.08594035979695, currentYaw=60.946361412372084
+[17:24:02] 💓 [29] STUCK: 1 | YAW: 61° | LOC: 56.3200662,44.0470905
+[17:24:02]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200662,44.0470905,3a,75y,60.95h,90t/data=!3m7!1e1!3m5!1sVImB5RinS__OqE_BNT3v0A!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DVImB5RinS__OqE_BNT3v0A%26yaw%3D60.946361412372084!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:02] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:24:02] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:24:02] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:24:02] [DEBUG] tick() END
+[17:24:05] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:05] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:05] [DEBUG] currentLocation=56.3200025,44.0476226, currentYaw=60.946361412372084, previousLocation=56.3200662,44.0470905
+[17:24:05] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:05] 💓 [30] STUCK: 0 | YAW: 61° | LOC: 56.3200025,44.0476226
+[17:24:05]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200025,44.0476226,3a,75y,60.95h,90t/data=!3m7!1e1!3m5!1sax2mD19nxN10JqBZq-InDQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dax2mD19nxN10JqBZq-InDQ%26yaw%3D60.946361412372084!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:05] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:05] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:05] [DEBUG] decide() called: stuck=0, orientation=61°, loc=56.3200025,44.0476226
+[17:24:05] [DEBUG] breadcrumbs.length=26, graph.nodes=27
+[17:24:05] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:05] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:05] 🧭 NEW NODE: Turning to face forward bearing 7° (diff=54°)
+[17:24:05] [DEBUG] decision={"turn":true,"angle":53.77005073558365,"direction":"left"}
+[17:24:05]    🔄 ACTION: Turning LEFT 53.77005073558365°
+[17:24:05] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:05] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:07] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:07] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:07] [DEBUG] currentLocation=56.3200761,44.0476754, currentYaw=32.52151930789947, previousLocation=56.3200025,44.0476226
+[17:24:07] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:07] [DEBUG] Sync wheel orientation: lastUrlYaw=60.946361412372084, currentYaw=32.52151930789947
+[17:24:07] 💓 [31] STUCK: 0 | YAW: 33° | LOC: 56.3200761,44.0476754
+[17:24:07]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200761,44.0476754,3a,75y,32.52h,90t/data=!3m7!1e1!3m5!1sGyo_2xqnyqDmDzEQtdEzRg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DGyo_2xqnyqDmDzEQtdEzRg%26yaw%3D32.52151930789947!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:07] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:07] [DEBUG] Step succeeded! Location changed.
+[17:24:07] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:07] [DEBUG] decide() called: stuck=0, orientation=33°, loc=56.3200761,44.0476754
+[17:24:07] [DEBUG] breadcrumbs.length=27, graph.nodes=28
+[17:24:07] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:07] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:07] 🔍 FORWARD: Trying yaw 60° (diff=27° from orientation, 21° from forward)
+[17:24:07] [DEBUG] decision={"turn":true,"angle":332.52151930789944,"direction":"right"}
+[17:24:07]    🔄 ACTION: Turning RIGHT 332.52151930789944°
+[17:24:07] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:08] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:09] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:09] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:09] [DEBUG] currentLocation=56.3201675,44.0479366, currentYaw=83.05036141310616, previousLocation=56.3200761,44.0476754
+[17:24:09] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:09] [DEBUG] Sync wheel orientation: lastUrlYaw=32.52151930789947, currentYaw=83.05036141310616
+[17:24:09] 💓 [32] STUCK: 0 | YAW: 83° | LOC: 56.3201675,44.0479366
+[17:24:09]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3201675,44.0479366,3a,75y,83.05h,90t/data=!3m7!1e1!3m5!1srPp2sii59I0K6Ez0ta5zVQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DrPp2sii59I0K6Ez0ta5zVQ%26yaw%3D83.05036141310616!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:09] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:09] [DEBUG] Step succeeded! Location changed.
+[17:24:09] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:09] [DEBUG] decide() called: stuck=0, orientation=83°, loc=56.3201675,44.0479366
+[17:24:09] [DEBUG] breadcrumbs.length=28, graph.nodes=29
+[17:24:09] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:09] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:09] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:09] [DEBUG] decision={"turn":false}
+[17:24:09] [DEBUG] tick() END
+[17:24:11] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:11] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:11] [DEBUG] currentLocation=56.3201546,44.0481295, currentYaw=83.05036141310616, previousLocation=56.3201675,44.0479366
+[17:24:11] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:11] 💓 [33] STUCK: 0 | YAW: 83° | LOC: 56.3201546,44.0481295
+[17:24:11]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3201546,44.0481295,3a,75y,83.05h,90t/data=!3m7!1e1!3m5!1sZ5vZxx2tgqksdBcpKDbbeA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DZ5vZxx2tgqksdBcpKDbbeA%26yaw%3D83.05036141310616!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:11] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:11] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:11] [DEBUG] decide() called: stuck=0, orientation=83°, loc=56.3201546,44.0481295
+[17:24:11] [DEBUG] breadcrumbs.length=29, graph.nodes=30
+[17:24:11] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:11] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:11] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:11] [DEBUG] decision={"turn":false}
+[17:24:11] [DEBUG] tick() END
+[17:24:13] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:13] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:13] [DEBUG] currentLocation=56.3201334,44.0482979, currentYaw=83.05036141310616, previousLocation=56.3201546,44.0481295
+[17:24:13] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:13] 💓 [34] STUCK: 0 | YAW: 83° | LOC: 56.3201334,44.0482979
+[17:24:13]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3201334,44.0482979,3a,75y,83.05h,90t/data=!3m7!1e1!3m5!1ssnJ4UEdsGxBIx0p8PumviA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DsnJ4UEdsGxBIx0p8PumviA%26yaw%3D83.05036141310616!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:13] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:13] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:13] [DEBUG] decide() called: stuck=0, orientation=83°, loc=56.3201334,44.0482979
+[17:24:13] [DEBUG] breadcrumbs.length=30, graph.nodes=31
+[17:24:13] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:13] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:13] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:13] [DEBUG] decision={"turn":false}
+[17:24:13] [DEBUG] tick() END
+[17:24:15] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:15] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:15] [DEBUG] currentLocation=56.3201109,44.0484659, currentYaw=83.05036141310616, previousLocation=56.3201334,44.0482979
+[17:24:15] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:15] 💓 [35] STUCK: 0 | YAW: 83° | LOC: 56.3201109,44.0484659
+[17:24:15]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3201109,44.0484659,3a,75y,83.05h,90t/data=!3m7!1e1!3m5!1sx74tT65iLVI4Yljf6TyS4g!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dx74tT65iLVI4Yljf6TyS4g%26yaw%3D83.05036141310616!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:15] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:15] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:15] [DEBUG] decide() called: stuck=0, orientation=83°, loc=56.3201109,44.0484659
+[17:24:15] [DEBUG] breadcrumbs.length=31, graph.nodes=32
+[17:24:15] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:15] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:15] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:15] [DEBUG] decision={"turn":false}
+[17:24:15] [DEBUG] tick() END
+[17:24:17] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:17] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:17] [DEBUG] currentLocation=56.3200896,44.0486341, currentYaw=83.05036141310616, previousLocation=56.3201109,44.0484659
+[17:24:17] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:17] 💓 [36] STUCK: 0 | YAW: 83° | LOC: 56.3200896,44.0486341
+[17:24:17]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200896,44.0486341,3a,75y,83.05h,90t/data=!3m7!1e1!3m5!1sMthh8ii12w_V_FAkjSBEPQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DMthh8ii12w_V_FAkjSBEPQ%26yaw%3D83.05036141310616!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:17] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:17] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:17] [DEBUG] decide() called: stuck=0, orientation=83°, loc=56.3200896,44.0486341
+[17:24:17] [DEBUG] breadcrumbs.length=32, graph.nodes=33
+[17:24:17] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:17] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:17] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:17] [DEBUG] decision={"turn":false}
+[17:24:17] [DEBUG] tick() END
+[17:24:19] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:19] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:19] [DEBUG] currentLocation=56.3200684,44.0488003, currentYaw=83.05036141310616, previousLocation=56.3200896,44.0486341
+[17:24:19] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:19] 💓 [37] STUCK: 0 | YAW: 83° | LOC: 56.3200684,44.0488003
+[17:24:19]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200684,44.0488003,3a,75y,83.05h,90t/data=!3m7!1e1!3m5!1sM3PbQmOansaiyDT3Was-Dg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DM3PbQmOansaiyDT3Was-Dg%26yaw%3D83.05036141310616!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:19] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:19] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:19] [DEBUG] decide() called: stuck=0, orientation=83°, loc=56.3200684,44.0488003
+[17:24:19] [DEBUG] breadcrumbs.length=33, graph.nodes=34
+[17:24:19] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:19] [DEBUG] currentNode.triedYaws=240, hasUntried=true
+[17:24:19] 🔍 FULL 360° SCAN: First visit, 5 straight moves, checking yaw 0° (untried: 0,60,120,180,300)
+[17:24:19] [DEBUG] decision={"turn":true,"angle":83.05036141310615,"direction":"left"}
+[17:24:19]    🔄 ACTION: Turning LEFT 83.05036141310615°
+[17:24:19] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:20] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:21] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:21] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:21] [DEBUG] currentLocation=56.3200684,44.0488003, currentYaw=22.87730878045432, previousLocation=56.3200684,44.0488003
+[17:24:21] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:24:21] [DEBUG] Sync wheel orientation: lastUrlYaw=83.05036141310616, currentYaw=22.87730878045432
+[17:24:21] 💓 [38] STUCK: 1 | YAW: 23° | LOC: 56.3200684,44.0488003
+[17:24:21]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200684,44.0488003,3a,75y,22.88h,90t/data=!3m7!1e1!3m5!1sM3PbQmOansaiyDT3Was-Dg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DM3PbQmOansaiyDT3Was-Dg%26yaw%3D22.87730878045432!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:21] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:24:21] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:24:21] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:24:21] [DEBUG] tick() END
+[17:24:23] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:23] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:23] [DEBUG] currentLocation=56.3200224,44.0491603, currentYaw=22.87730878045432, previousLocation=56.3200684,44.0488003
+[17:24:23] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:23] 💓 [39] STUCK: 0 | YAW: 23° | LOC: 56.3200224,44.0491603
+[17:24:23]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3200224,44.0491603,3a,75y,22.88h,90t/data=!3m7!1e1!3m5!1sPrubjGB3x9c5Pky4oN335w!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DPrubjGB3x9c5Pky4oN335w%26yaw%3D22.87730878045432!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:23] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:23] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:23] [DEBUG] decide() called: stuck=0, orientation=23°, loc=56.3200224,44.0491603
+[17:24:23] [DEBUG] breadcrumbs.length=34, graph.nodes=35
+[17:24:23] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:23] [DEBUG] currentNode.triedYaws=180, hasUntried=true
+[17:24:23] 🧭 NEW NODE: Turning to face forward bearing 97° (diff=74°)
+[17:24:23] [DEBUG] decision={"turn":true,"angle":285.63423086711055,"direction":"right"}
+[17:24:23]    🔄 ACTION: Turning RIGHT 285.63423086711055°
+[17:24:23] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:24] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:25] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:25] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:25] [DEBUG] currentLocation=56.3199679,44.0493106, currentYaw=92.34972983240829, previousLocation=56.3200224,44.0491603
+[17:24:25] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:25] [DEBUG] Sync wheel orientation: lastUrlYaw=22.87730878045432, currentYaw=92.34972983240829
+[17:24:25] 💓 [40] STUCK: 0 | YAW: 92° | LOC: 56.3199679,44.0493106
+[17:24:25]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3199679,44.0493106,3a,75y,92.35h,90t/data=!3m7!1e1!3m5!1smpVOjUcXBhvWjTJnQfGvcQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DmpVOjUcXBhvWjTJnQfGvcQ%26yaw%3D92.34972983240829!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:25] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:25] [DEBUG] Step succeeded! Location changed.
+[17:24:25] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:25] [DEBUG] decide() called: stuck=0, orientation=92°, loc=56.3199679,44.0493106
+[17:24:25] [DEBUG] breadcrumbs.length=35, graph.nodes=36
+[17:24:25] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:25] [DEBUG] currentNode.triedYaws=300, hasUntried=true
+[17:24:25] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:25] [DEBUG] decision={"turn":false}
+[17:24:25] [DEBUG] tick() END
+[17:24:27] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:27] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:27] [DEBUG] currentLocation=56.3198619,44.0493494, currentYaw=92.34972983240829, previousLocation=56.3199679,44.0493106
+[17:24:27] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:27] 💓 [41] STUCK: 0 | YAW: 92° | LOC: 56.3198619,44.0493494
+[17:24:27]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3198619,44.0493494,3a,75y,92.35h,90t/data=!3m7!1e1!3m5!1sRlEaKTkWtlip7mkkWOiICw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DRlEaKTkWtlip7mkkWOiICw%26yaw%3D92.34972983240829!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:27] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:27] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:27] [DEBUG] decide() called: stuck=0, orientation=92°, loc=56.3198619,44.0493494
+[17:24:27] [DEBUG] breadcrumbs.length=36, graph.nodes=37
+[17:24:27] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:27] [DEBUG] currentNode.triedYaws=300, hasUntried=true
+[17:24:27] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:27] [DEBUG] decision={"turn":false}
+[17:24:27] [DEBUG] tick() END
+[17:24:29] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:29] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:29] [DEBUG] currentLocation=56.3197747,44.0493434, currentYaw=92.34972983240829, previousLocation=56.3198619,44.0493494
+[17:24:29] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:29] 💓 [42] STUCK: 0 | YAW: 92° | LOC: 56.3197747,44.0493434
+[17:24:29]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197747,44.0493434,3a,75y,92.35h,90t/data=!3m7!1e1!3m5!1sum1qBIt325EPp_XUBZJj5g!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dum1qBIt325EPp_XUBZJj5g%26yaw%3D92.34972983240829!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:29] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:29] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:29] [DEBUG] decide() called: stuck=0, orientation=92°, loc=56.3197747,44.0493434
+[17:24:29] [DEBUG] breadcrumbs.length=37, graph.nodes=38
+[17:24:29] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:29] [DEBUG] currentNode.triedYaws=300, hasUntried=true
+[17:24:29] 🧭 NEW NODE: Turning to face forward bearing 130° (diff=38°)
+[17:24:29] [DEBUG] decision={"turn":true,"angle":322.026555691878,"direction":"right"}
+[17:24:29]    🔄 ACTION: Turning RIGHT 322.026555691878°
+[17:24:29] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:30] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:31] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:31] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:31] [DEBUG] currentLocation=56.3196766,44.0493359, currentYaw=158.6200456214867, previousLocation=56.3197747,44.0493434
+[17:24:31] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:31] [DEBUG] Sync wheel orientation: lastUrlYaw=92.34972983240829, currentYaw=158.6200456214867
+[17:24:31] 💓 [43] STUCK: 0 | YAW: 159° | LOC: 56.3196766,44.0493359
+[17:24:31]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3196766,44.0493359,3a,75y,158.62h,90t/data=!3m7!1e1!3m5!1sdQMGGc6VS2vvOT4HwlYkzw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DdQMGGc6VS2vvOT4HwlYkzw%26yaw%3D158.6200456214867!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:31] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:31] [DEBUG] Step succeeded! Location changed.
+[17:24:31] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:31] [DEBUG] decide() called: stuck=0, orientation=159°, loc=56.3196766,44.0493359
+[17:24:31] [DEBUG] breadcrumbs.length=38, graph.nodes=39
+[17:24:31] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:31] [DEBUG] currentNode.triedYaws=0, hasUntried=true
+[17:24:31] [DEBUG] NEW NODE - going straight (no turn)
+[17:24:31] [DEBUG] decision={"turn":false}
+[17:24:31] [DEBUG] tick() END
+[17:24:33] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:33] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:33] [DEBUG] currentLocation=56.3195776,44.0493286, currentYaw=158.6200456214867, previousLocation=56.3196766,44.0493359
+[17:24:33] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:33] 💓 [44] STUCK: 0 | YAW: 159° | LOC: 56.3195776,44.0493286
+[17:24:33]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3195776,44.0493286,3a,75y,158.62h,90t/data=!3m7!1e1!3m5!1s9oNV73oEX2jV21SV1VCoOQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D9oNV73oEX2jV21SV1VCoOQ%26yaw%3D158.6200456214867!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:33] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:33] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:33] [DEBUG] decide() called: stuck=0, orientation=159°, loc=56.3195776,44.0493286
+[17:24:33] [DEBUG] breadcrumbs.length=39, graph.nodes=40
+[17:24:33] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:33] [DEBUG] currentNode.triedYaws=0, hasUntried=true
+[17:24:33] 🧭 NEW NODE: Turning to face forward bearing 184° (diff=26°)
+[17:24:33] [DEBUG] decision={"turn":true,"angle":334.4531333560285,"direction":"right"}
+[17:24:33]    🔄 ACTION: Turning RIGHT 334.4531333560285°
+[17:24:33] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:34] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:35] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:35] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:35] [DEBUG] currentLocation=56.3195776,44.0493286, currentYaw=224.12867719941767, previousLocation=56.3195776,44.0493286
+[17:24:35] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:24:35] [DEBUG] Sync wheel orientation: lastUrlYaw=158.6200456214867, currentYaw=224.12867719941767
+[17:24:35] 💓 [45] STUCK: 1 | YAW: 224° | LOC: 56.3195776,44.0493286
+[17:24:35]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3195776,44.0493286,3a,75y,224.13h,90t/data=!3m7!1e1!3m5!1s9oNV73oEX2jV21SV1VCoOQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D9oNV73oEX2jV21SV1VCoOQ%26yaw%3D224.12867719941767!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:35] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:24:35] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:24:35] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:24:35] [DEBUG] tick() END
+[17:24:37] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:37] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:37] [DEBUG] currentLocation=56.3193933,44.0492337, currentYaw=224.12867719941767, previousLocation=56.3195776,44.0493286
+[17:24:37] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:37] 💓 [46] STUCK: 0 | YAW: 224° | LOC: 56.3193933,44.0492337
+[17:24:37]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3193933,44.0492337,3a,75y,224.13h,90t/data=!3m7!1e1!3m5!1snVqUXoVKPXmqHeuU5ne-TQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DnVqUXoVKPXmqHeuU5ne-TQ%26yaw%3D224.12867719941767!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:37] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:37] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:37] [DEBUG] decide() called: stuck=0, orientation=224°, loc=56.3193933,44.0492337
+[17:24:37] [DEBUG] breadcrumbs.length=40, graph.nodes=40
+[17:24:37] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:37] [DEBUG] currentNode.triedYaws=120,300,60, hasUntried=true
+[17:24:37] 🔍 FORWARD: Trying yaw 180° (diff=44° from orientation, 4° from forward)
+[17:24:37] [DEBUG] decision={"turn":true,"angle":44.128677199417666,"direction":"left"}
+[17:24:37]    🔄 ACTION: Turning LEFT 44.128677199417666°
+[17:24:37] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:38] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:39] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:39] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:39] [DEBUG] currentLocation=56.3194102,44.0490876, currentYaw=199.22046667293247, previousLocation=56.3193933,44.0492337
+[17:24:39] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:39] [DEBUG] Sync wheel orientation: lastUrlYaw=224.12867719941767, currentYaw=199.22046667293247
+[17:24:39] 💓 [47] STUCK: 0 | YAW: 199° | LOC: 56.3194102,44.0490876
+[17:24:39]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3194102,44.0490876,3a,75y,199.22h,90t/data=!3m7!1e1!3m5!1s_UajZdLf-3PcSWxHe9Q69A!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D_UajZdLf-3PcSWxHe9Q69A%26yaw%3D199.22046667293247!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:39] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:39] [DEBUG] Step succeeded! Location changed.
+[17:24:39] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:39] [DEBUG] decide() called: stuck=0, orientation=199°, loc=56.3194102,44.0490876
+[17:24:39] [DEBUG] breadcrumbs.length=41, graph.nodes=40
+[17:24:39] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:39] [DEBUG] currentNode.triedYaws=120,180,0, hasUntried=true
+[17:24:39] 🔍 FORWARD: Trying yaw 240° (diff=41° from orientation, 40° from forward)
+[17:24:39] [DEBUG] decision={"turn":true,"angle":319.2204666729325,"direction":"right"}
+[17:24:39]    🔄 ACTION: Turning RIGHT 319.2204666729325°
+[17:24:39] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:40] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:41] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:41] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:41] [DEBUG] currentLocation=56.3194444,44.0489675, currentYaw=273.81815088362816, previousLocation=56.3194102,44.0490876
+[17:24:41] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:41] [DEBUG] Sync wheel orientation: lastUrlYaw=199.22046667293247, currentYaw=273.81815088362816
+[17:24:41] 💓 [48] STUCK: 0 | YAW: 274° | LOC: 56.3194444,44.0489675
+[17:24:41]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3194444,44.0489675,3a,75y,273.82h,90t/data=!3m7!1e1!3m5!1sCwmqoBSwfGQwivw2bpyCWA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DCwmqoBSwfGQwivw2bpyCWA%26yaw%3D273.81815088362816!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:41] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:41] [DEBUG] Step succeeded! Location changed.
+[17:24:41] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:41] [DEBUG] decide() called: stuck=0, orientation=274°, loc=56.3194444,44.0489675
+[17:24:41] [DEBUG] breadcrumbs.length=42, graph.nodes=40
+[17:24:41] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:41] [DEBUG] currentNode.triedYaws=180,300,120, hasUntried=true
+[17:24:41] 🔍 FORWARD: Trying yaw 240° (diff=34° from orientation, 5° from forward)
+[17:24:41] [DEBUG] decision={"turn":true,"angle":33.818150883628164,"direction":"left"}
+[17:24:41]    🔄 ACTION: Turning LEFT 33.818150883628164°
+[17:24:41] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:42] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:43] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:43] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:43] [DEBUG] currentLocation=56.3193776,44.0488656, currentYaw=259.6076245678387, previousLocation=56.3194444,44.0489675
+[17:24:43] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:43] [DEBUG] Sync wheel orientation: lastUrlYaw=273.81815088362816, currentYaw=259.6076245678387
+[17:24:43] 💓 [49] STUCK: 0 | YAW: 260° | LOC: 56.3193776,44.0488656
+[17:24:43]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3193776,44.0488656,3a,75y,259.61h,90t/data=!3m7!1e1!3m5!1s_bSgyxAMgj2C0_vGI6ZkZQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D_bSgyxAMgj2C0_vGI6ZkZQ%26yaw%3D259.6076245678387!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:43] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:24:43] [DEBUG] Step succeeded! Location changed.
+[17:24:43] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:43] [DEBUG] decide() called: stuck=0, orientation=260°, loc=56.3193776,44.0488656
+[17:24:43] [DEBUG] breadcrumbs.length=43, graph.nodes=41
+[17:24:43] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:24:43] [DEBUG] currentNode.triedYaws=60, hasUntried=true
+[17:24:43] 🧭 NEW NODE: Turning to face forward bearing 281° (diff=21°)
+[17:24:43] [DEBUG] decision={"turn":true,"angle":338.7412581113477,"direction":"right"}
+[17:24:43]    🔄 ACTION: Turning RIGHT 338.7412581113477°
+[17:24:43] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:44] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:45] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:45] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:45] [DEBUG] currentLocation=56.3194444,44.0489675, currentYaw=325.9234140415229, previousLocation=56.3193776,44.0488656
+[17:24:45] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:45] [DEBUG] Sync wheel orientation: lastUrlYaw=259.6076245678387, currentYaw=325.9234140415229
+[17:24:45] 💓 [50] STUCK: 0 | YAW: 326° | LOC: 56.3194444,44.0489675
+[17:24:45]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3194444,44.0489675,3a,75y,325.92h,90t/data=!3m7!1e1!3m5!1sCwmqoBSwfGQwivw2bpyCWA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DCwmqoBSwfGQwivw2bpyCWA%26yaw%3D325.9234140415229!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:45] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[17:24:45] [DEBUG] Step succeeded! Location changed.
+[17:24:45] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:45] [DEBUG] decide() called: stuck=0, orientation=326°, loc=56.3194444,44.0489675
+[17:24:45] [DEBUG] breadcrumbs.length=44, graph.nodes=41
+[17:24:45] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:45] [DEBUG] currentNode.triedYaws=180,300,120,240, hasUntried=true
+[17:24:45] 🔍 FORWARD: Trying yaw 0° (diff=34° from orientation, 98° from forward)
+[17:24:45] [DEBUG] decision={"turn":true,"angle":325.92341404152285,"direction":"right"}
+[17:24:45]    🔄 ACTION: Turning RIGHT 325.92341404152285°
+[17:24:45] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:46] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:47] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:47] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:47] [DEBUG] currentLocation=56.3195386,44.0489426, currentYaw=31.845098252388027, previousLocation=56.3194444,44.0489675
+[17:24:47] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:47] [DEBUG] Sync wheel orientation: lastUrlYaw=325.9234140415229, currentYaw=31.845098252388027
+[17:24:47] 💓 [51] STUCK: 0 | YAW: 32° | LOC: 56.3195386,44.0489426
+[17:24:47]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3195386,44.0489426,3a,75y,31.85h,90t/data=!3m7!1e1!3m5!1sMHvgQ7lhM6RbdT1VrWZc0w!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DMHvgQ7lhM6RbdT1VrWZc0w%26yaw%3D31.845098252388027!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:47] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:47] [DEBUG] Step succeeded! Location changed.
+[17:24:47] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:47] [DEBUG] decide() called: stuck=0, orientation=32°, loc=56.3195386,44.0489426
+[17:24:47] [DEBUG] breadcrumbs.length=45, graph.nodes=41
+[17:24:47] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:47] [DEBUG] currentNode.triedYaws=120,300,240, hasUntried=true
+[17:24:47] 🔍 FORWARD: Trying yaw 0° (diff=32° from orientation, 15° from forward)
+[17:24:47] [DEBUG] decision={"turn":true,"angle":31.845098252388027,"direction":"left"}
+[17:24:47]    🔄 ACTION: Turning LEFT 31.845098252388027°
+[17:24:47] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:48] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:49] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:49] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:49] [DEBUG] currentLocation=56.319629,44.048962, currentYaw=22.8023925150111, previousLocation=56.3195386,44.0489426
+[17:24:49] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:49] [DEBUG] Sync wheel orientation: lastUrlYaw=31.845098252388027, currentYaw=22.8023925150111
+[17:24:49] 💓 [52] STUCK: 0 | YAW: 23° | LOC: 56.319629,44.048962
+[17:24:49]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.319629,44.048962,3a,75y,22.8h,90t/data=!3m7!1e1!3m5!1sVOW8f53WtcZbwLPNcSEATA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DVOW8f53WtcZbwLPNcSEATA%26yaw%3D22.8023925150111!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:49] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:49] [DEBUG] Step succeeded! Location changed.
+[17:24:49] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:49] [DEBUG] decide() called: stuck=0, orientation=23°, loc=56.319629,44.048962
+[17:24:49] [DEBUG] breadcrumbs.length=46, graph.nodes=41
+[17:24:49] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:49] [DEBUG] currentNode.triedYaws=120,240,180, hasUntried=true
+[17:24:49] 🔍 FORWARD: Trying yaw 0° (diff=23° from orientation, 26° from forward)
+[17:24:49] [DEBUG] decision={"turn":true,"angle":22.802392515011093,"direction":"left"}
+[17:24:49]    🔄 ACTION: Turning LEFT 22.802392515011093°
+[17:24:49] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:50] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:51] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:51] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:51] [DEBUG] currentLocation=56.3197113,44.0489243, currentYaw=14.523286680343459, previousLocation=56.319629,44.048962
+[17:24:51] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:51] [DEBUG] Sync wheel orientation: lastUrlYaw=22.8023925150111, currentYaw=14.523286680343459
+[17:24:51] 💓 [53] STUCK: 0 | YAW: 15° | LOC: 56.3197113,44.0489243
+[17:24:51]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197113,44.0489243,3a,75y,14.52h,90t/data=!3m7!1e1!3m5!1sdlBUBQ05f6w1Ze0LlRWubQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DdlBUBQ05f6w1Ze0LlRWubQ%26yaw%3D14.523286680343459!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:51] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:51] [DEBUG] Step succeeded! Location changed.
+[17:24:51] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:51] [DEBUG] decide() called: stuck=0, orientation=15°, loc=56.3197113,44.0489243
+[17:24:51] [DEBUG] breadcrumbs.length=47, graph.nodes=41
+[17:24:51] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:51] [DEBUG] currentNode.triedYaws=180,0, hasUntried=true
+[17:24:51] 🔍 FORWARD: Trying yaw 300° (diff=75° from orientation, 58° from forward)
+[17:24:51] [DEBUG] decision={"turn":true,"angle":74.52328668034346,"direction":"left"}
+[17:24:51]    🔄 ACTION: Turning LEFT 74.52328668034346°
+[17:24:51] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:52] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:53] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:53] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:53] [DEBUG] currentLocation=56.3197422,44.048777, currentYaw=321.1845498386335, previousLocation=56.3197113,44.0489243
+[17:24:53] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:53] [DEBUG] Sync wheel orientation: lastUrlYaw=14.523286680343459, currentYaw=321.1845498386335
+[17:24:53] 💓 [54] STUCK: 0 | YAW: 321° | LOC: 56.3197422,44.048777
+[17:24:53]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197422,44.048777,3a,75y,321.18h,90t/data=!3m7!1e1!3m5!1sv3-TlPoa60_e30dQycCWCw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dv3-TlPoa60_e30dQycCWCw%26yaw%3D321.1845498386335!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:53] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:53] [DEBUG] Step succeeded! Location changed.
+[17:24:53] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:53] [DEBUG] decide() called: stuck=0, orientation=321°, loc=56.3197422,44.048777
+[17:24:53] [DEBUG] breadcrumbs.length=48, graph.nodes=41
+[17:24:53] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:53] [DEBUG] currentNode.triedYaws=180,0,120, hasUntried=true
+[17:24:53] 🔍 FORWARD: Trying yaw 300° (diff=21° from orientation, 54° from forward)
+[17:24:53] [DEBUG] decision={"turn":true,"angle":21.184549838633473,"direction":"left"}
+[17:24:53]    🔄 ACTION: Turning LEFT 21.184549838633473°
+[17:24:53] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:54] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:55] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:55] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:55] [DEBUG] currentLocation=56.3197485,44.0486106, currentYaw=299.07865510145257, previousLocation=56.3197422,44.048777
+[17:24:55] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:55] [DEBUG] Sync wheel orientation: lastUrlYaw=321.1845498386335, currentYaw=299.07865510145257
+[17:24:55] 💓 [55] STUCK: 0 | YAW: 299° | LOC: 56.3197485,44.0486106
+[17:24:55]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197485,44.0486106,3a,75y,299.08h,90t/data=!3m7!1e1!3m5!1s0Hsu0Q61Z0Yfp8JcL5Oglw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D0Hsu0Q61Z0Yfp8JcL5Oglw%26yaw%3D299.07865510145257!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:55] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:24:55] [DEBUG] Step succeeded! Location changed.
+[17:24:55] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:55] [DEBUG] decide() called: stuck=0, orientation=299°, loc=56.3197485,44.0486106
+[17:24:55] [DEBUG] breadcrumbs.length=49, graph.nodes=41
+[17:24:55] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:55] [DEBUG] currentNode.triedYaws=180,300,120, hasUntried=true
+[17:24:55] 🔍 FORWARD: Trying yaw 0° (diff=61° from orientation, 59° from forward)
+[17:24:55] [DEBUG] decision={"turn":true,"angle":299.07865510145257,"direction":"right"}
+[17:24:55]    🔄 ACTION: Turning RIGHT 299.07865510145257°
+[17:24:55] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:56] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:57] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:57] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:57] [DEBUG] currentLocation=56.3197422,44.048777, currentYaw=5.360339312035364, previousLocation=56.3197485,44.0486106
+[17:24:57] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:57] [DEBUG] Sync wheel orientation: lastUrlYaw=299.07865510145257, currentYaw=5.360339312035364
+[17:24:57] 💓 [56] STUCK: 0 | YAW: 5° | LOC: 56.3197422,44.048777
+[17:24:57]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197422,44.048777,3a,75y,5.36h,90t/data=!3m7!1e1!3m5!1sv3-TlPoa60_e30dQycCWCw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dv3-TlPoa60_e30dQycCWCw%26yaw%3D5.360339312035364!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:57] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[17:24:57] [DEBUG] Step succeeded! Location changed.
+[17:24:57] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:57] [DEBUG] decide() called: stuck=0, orientation=5°, loc=56.3197422,44.048777
+[17:24:57] [DEBUG] breadcrumbs.length=50, graph.nodes=41
+[17:24:57] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:57] [DEBUG] currentNode.triedYaws=180,0,120,300, hasUntried=true
+[17:24:57] 🔍 FORWARD: Trying yaw 240° (diff=125° from orientation, 37° from forward)
+[17:24:57] [DEBUG] decision={"turn":true,"angle":125.36033931203536,"direction":"left"}
+[17:24:57]    🔄 ACTION: Turning LEFT 125.36033931203536°
+[17:24:57] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:24:58] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:24:59] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:24:59] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:24:59] [DEBUG] currentLocation=56.3197485,44.0486106, currentYaw=295.9144445759838, previousLocation=56.3197422,44.048777
+[17:24:59] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:24:59] [DEBUG] Sync wheel orientation: lastUrlYaw=5.360339312035364, currentYaw=295.9144445759838
+[17:24:59] 💓 [57] STUCK: 0 | YAW: 296° | LOC: 56.3197485,44.0486106
+[17:24:59]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197485,44.0486106,3a,75y,295.91h,90t/data=!3m7!1e1!3m5!1s0Hsu0Q61Z0Yfp8JcL5Oglw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D0Hsu0Q61Z0Yfp8JcL5Oglw%26yaw%3D295.9144445759838!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:24:59] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[17:24:59] [DEBUG] Step succeeded! Location changed.
+[17:24:59] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:24:59] [DEBUG] decide() called: stuck=0, orientation=296°, loc=56.3197485,44.0486106
+[17:24:59] [DEBUG] breadcrumbs.length=51, graph.nodes=41
+[17:24:59] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:24:59] [DEBUG] currentNode.triedYaws=180,300,120,240, hasUntried=true
+[17:24:59] 🔍 FORWARD: Trying yaw 0° (diff=64° from orientation, 88° from forward)
+[17:24:59] [DEBUG] decision={"turn":true,"angle":295.9144445759838,"direction":"right"}
+[17:24:59]    🔄 ACTION: Turning RIGHT 295.9144445759838°
+[17:24:59] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:00] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:01] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:01] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:01] [DEBUG] currentLocation=56.319754,44.0484431, currentYaw=1.4628656277683376, previousLocation=56.3197485,44.0486106
+[17:25:01] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:01] [DEBUG] Sync wheel orientation: lastUrlYaw=295.9144445759838, currentYaw=1.4628656277683376
+[17:25:01] 💓 [58] STUCK: 0 | YAW: 1° | LOC: 56.319754,44.0484431
+[17:25:01]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.319754,44.0484431,3a,75y,1.46h,90t/data=!3m7!1e1!3m5!1ss5CpXP2uGDQ-ovstXO0IvA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Ds5CpXP2uGDQ-ovstXO0IvA%26yaw%3D1.4628656277683376!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:01] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:01] [DEBUG] Step succeeded! Location changed.
+[17:25:01] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:01] [DEBUG] decide() called: stuck=0, orientation=1°, loc=56.319754,44.0484431
+[17:25:01] [DEBUG] breadcrumbs.length=52, graph.nodes=41
+[17:25:01] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:01] [DEBUG] currentNode.triedYaws=120,300,180, hasUntried=true
+[17:25:01] 🔍 FORWARD: Trying yaw 240° (diff=121° from orientation, 32° from forward)
+[17:25:01] [DEBUG] decision={"turn":true,"angle":121.46286562776834,"direction":"left"}
+[17:25:01]    🔄 ACTION: Turning LEFT 121.46286562776834°
+[17:25:01] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:02] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:03] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:03] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:03] [DEBUG] currentLocation=56.319754,44.0484431, currentYaw=298.3056024688007, previousLocation=56.319754,44.0484431
+[17:25:03] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:25:03] [DEBUG] Sync wheel orientation: lastUrlYaw=1.4628656277683376, currentYaw=298.3056024688007
+[17:25:03] 💓 [59] STUCK: 1 | YAW: 298° | LOC: 56.319754,44.0484431
+[17:25:03]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.319754,44.0484431,3a,75y,298.31h,90t/data=!3m7!1e1!3m5!1ss5CpXP2uGDQ-ovstXO0IvA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Ds5CpXP2uGDQ-ovstXO0IvA%26yaw%3D298.3056024688007!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:03] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=2, isFullyScanned=false
+[17:25:03] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:25:03] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:25:03] [DEBUG] tick() END
+[17:25:05] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:05] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:05] [DEBUG] currentLocation=56.3197623,44.0481224, currentYaw=298.3056024688007, previousLocation=56.319754,44.0484431
+[17:25:05] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:05] 💓 [60] STUCK: 0 | YAW: 298° | LOC: 56.3197623,44.0481224
+[17:25:05]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197623,44.0481224,3a,75y,298.31h,90t/data=!3m7!1e1!3m5!1sc6e37EsHQYonDTz4dJnCyw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dc6e37EsHQYonDTz4dJnCyw%26yaw%3D298.3056024688007!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:05] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:05] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:05] [DEBUG] decide() called: stuck=0, orientation=298°, loc=56.3197623,44.0481224
+[17:25:05] [DEBUG] breadcrumbs.length=53, graph.nodes=41
+[17:25:05] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:05] [DEBUG] currentNode.triedYaws=120,300, hasUntried=true
+[17:25:05] 🔍 FORWARD: Trying yaw 240° (diff=58° from orientation, 32° from forward)
+[17:25:05] [DEBUG] decision={"turn":true,"angle":58.305602468800714,"direction":"left"}
+[17:25:05]    🔄 ACTION: Turning LEFT 58.305602468800714°
+[17:25:05] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:06] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:07] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:07] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:07] [DEBUG] currentLocation=56.3197666,44.0479619, currentYaw=259.0561287848725, previousLocation=56.3197623,44.0481224
+[17:25:07] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:07] [DEBUG] Sync wheel orientation: lastUrlYaw=298.3056024688007, currentYaw=259.0561287848725
+[17:25:07] 💓 [61] STUCK: 0 | YAW: 259° | LOC: 56.3197666,44.0479619
+[17:25:07]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197666,44.0479619,3a,75y,259.06h,90t/data=!3m7!1e1!3m5!1sgIk6lIMWeqZzRKctfVGzIQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DgIk6lIMWeqZzRKctfVGzIQ%26yaw%3D259.0561287848725!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:07] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:07] [DEBUG] Step succeeded! Location changed.
+[17:25:07] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:07] [DEBUG] decide() called: stuck=0, orientation=259°, loc=56.3197666,44.0479619
+[17:25:07] [DEBUG] breadcrumbs.length=54, graph.nodes=41
+[17:25:07] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:07] [DEBUG] currentNode.triedYaws=120,300,60, hasUntried=true
+[17:25:07] 🔍 FORWARD: Trying yaw 240° (diff=19° from orientation, 32° from forward)
+[17:25:07] [DEBUG] decision={"turn":true,"angle":19.0561287848725,"direction":"left"}
+[17:25:07]    🔄 ACTION: Turning LEFT 19.0561287848725°
+[17:25:07] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:08] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:10] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:10] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:10] [DEBUG] currentLocation=56.3197726,44.0478007, currentYaw=248.90602352165814, previousLocation=56.3197666,44.0479619
+[17:25:10] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:10] [DEBUG] Sync wheel orientation: lastUrlYaw=259.0561287848725, currentYaw=248.90602352165814
+[17:25:10] 💓 [62] STUCK: 0 | YAW: 249° | LOC: 56.3197726,44.0478007
+[17:25:10]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197726,44.0478007,3a,75y,248.91h,90t/data=!3m7!1e1!3m5!1shZjrvqMHn7RplnyRvC9-lQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DhZjrvqMHn7RplnyRvC9-lQ%26yaw%3D248.90602352165814!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:10] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:10] [DEBUG] Step succeeded! Location changed.
+[17:25:10] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:10] [DEBUG] decide() called: stuck=0, orientation=249°, loc=56.3197726,44.0478007
+[17:25:10] [DEBUG] breadcrumbs.length=55, graph.nodes=41
+[17:25:10] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:10] [DEBUG] currentNode.triedYaws=120,300,60, hasUntried=true
+[17:25:10] 🔍 FORWARD: Trying yaw 240° (diff=9° from orientation, 31° from forward)
+[17:25:10] [DEBUG] decision={"turn":true,"angle":8.906023521658142,"direction":"left"}
+[17:25:10]    🔄 ACTION: Turning LEFT 8.906023521658142°
+[17:25:10] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:10] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:12] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:12] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:12] [DEBUG] currentLocation=56.3197806,44.0476415, currentYaw=235.85318141628204, previousLocation=56.3197726,44.0478007
+[17:25:12] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:12] [DEBUG] Sync wheel orientation: lastUrlYaw=248.90602352165814, currentYaw=235.85318141628204
+[17:25:12] 💓 [63] STUCK: 0 | YAW: 236° | LOC: 56.3197806,44.0476415
+[17:25:12]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197806,44.0476415,3a,75y,235.85h,90t/data=!3m7!1e1!3m5!1sjNtsFyOHb_XoR3Z-rHZfcQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DjNtsFyOHb_XoR3Z-rHZfcQ%26yaw%3D235.85318141628204!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:12] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:12] [DEBUG] Step succeeded! Location changed.
+[17:25:12] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:12] [DEBUG] decide() called: stuck=0, orientation=236°, loc=56.3197806,44.0476415
+[17:25:12] [DEBUG] breadcrumbs.length=56, graph.nodes=41
+[17:25:12] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:12] [DEBUG] currentNode.triedYaws=120,300,60, hasUntried=true
+[17:25:12] [DEBUG] Already facing target yaw, moving forward
+[17:25:12] [DEBUG] decision={"turn":false}
+[17:25:12] [DEBUG] tick() END
+[17:25:14] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:14] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:14] [DEBUG] currentLocation=56.3197873,44.0474863, currentYaw=235.85318141628204, previousLocation=56.3197806,44.0476415
+[17:25:14] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:14] 💓 [64] STUCK: 0 | YAW: 236° | LOC: 56.3197873,44.0474863
+[17:25:14]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197873,44.0474863,3a,75y,235.85h,90t/data=!3m7!1e1!3m5!1scOs7-PQCeHry0S0FC9Mgpg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DcOs7-PQCeHry0S0FC9Mgpg%26yaw%3D235.85318141628204!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:14] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:14] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:14] [DEBUG] decide() called: stuck=0, orientation=236°, loc=56.3197873,44.0474863
+[17:25:14] [DEBUG] breadcrumbs.length=57, graph.nodes=41
+[17:25:14] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:14] [DEBUG] currentNode.triedYaws=120,300,60, hasUntried=true
+[17:25:14] [DEBUG] Already facing target yaw, moving forward
+[17:25:14] [DEBUG] decision={"turn":false}
+[17:25:14] [DEBUG] tick() END
+[17:25:16] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:16] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:16] [DEBUG] currentLocation=56.3197933,44.0473352, currentYaw=235.85318141628204, previousLocation=56.3197873,44.0474863
+[17:25:16] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:16] 💓 [65] STUCK: 0 | YAW: 236° | LOC: 56.3197933,44.0473352
+[17:25:16]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197933,44.0473352,3a,75y,235.85h,90t/data=!3m7!1e1!3m5!1sONBCTFP8DnSI9KFQiPn_KA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DONBCTFP8DnSI9KFQiPn_KA%26yaw%3D235.85318141628204!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:16] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:16] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:16] [DEBUG] decide() called: stuck=0, orientation=236°, loc=56.3197933,44.0473352
+[17:25:16] [DEBUG] breadcrumbs.length=58, graph.nodes=41
+[17:25:16] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:16] [DEBUG] currentNode.triedYaws=120,300,60, hasUntried=true
+[17:25:16] [DEBUG] Already facing target yaw, moving forward
+[17:25:16] [DEBUG] decision={"turn":false}
+[17:25:16] [DEBUG] tick() END
+[17:25:18] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:18] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:18] [DEBUG] currentLocation=56.3198028,44.0471504, currentYaw=235.85318141628204, previousLocation=56.3197933,44.0473352
+[17:25:18] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:18] 💓 [66] STUCK: 0 | YAW: 236° | LOC: 56.3198028,44.0471504
+[17:25:18]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3198028,44.0471504,3a,75y,235.85h,90t/data=!3m7!1e1!3m5!1srigb9tMnWrkG9JpEyBQiRQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Drigb9tMnWrkG9JpEyBQiRQ%26yaw%3D235.85318141628204!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:18] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=3, isFullyScanned=false
+[17:25:18] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:18] [DEBUG] decide() called: stuck=0, orientation=236°, loc=56.3198028,44.0471504
+[17:25:18] [DEBUG] breadcrumbs.length=59, graph.nodes=41
+[17:25:18] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:18] [DEBUG] currentNode.triedYaws=120,180,0,300,60, hasUntried=true
+[17:25:18] [DEBUG] Already facing target yaw, moving forward
+[17:25:18] [DEBUG] decision={"turn":false}
+[17:25:18] [DEBUG] tick() END
+[17:25:20] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:20] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:20] [DEBUG] currentLocation=56.3197596,44.0470303, currentYaw=235.85318141628204, previousLocation=56.3198028,44.0471504
+[17:25:20] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:20] 💓 [67] STUCK: 0 | YAW: 236° | LOC: 56.3197596,44.0470303
+[17:25:20]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197596,44.0470303,3a,75y,235.85h,90t/data=!3m7!1e1!3m5!1skPDAyD3QsnfqeY10f5uS_Q!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DkPDAyD3QsnfqeY10f5uS_Q%26yaw%3D235.85318141628204!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:20] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[17:25:20] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:20] [DEBUG] decide() called: stuck=0, orientation=236°, loc=56.3197596,44.0470303
+[17:25:20] [DEBUG] breadcrumbs.length=60, graph.nodes=41
+[17:25:20] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[17:25:20] [DEBUG] currentNode.triedYaws=120,300,60, hasUntried=true
+[17:25:20] [DEBUG] Already facing target yaw, moving forward
+[17:25:20] [DEBUG] decision={"turn":false}
+[17:25:20] [DEBUG] tick() END
+[17:25:22] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:22] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:22] [DEBUG] currentLocation=56.3196502,44.0469889, currentYaw=235.85318141628204, previousLocation=56.3197596,44.0470303
+[17:25:22] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:22] 💓 [68] STUCK: 0 | YAW: 236° | LOC: 56.3196502,44.0469889
+[17:25:22]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3196502,44.0469889,3a,75y,235.85h,90t/data=!3m7!1e1!3m5!1sk-vyD9ypxdR8D08SwyZ1Xg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dk-vyD9ypxdR8D08SwyZ1Xg%26yaw%3D235.85318141628204!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:22] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:22] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:22] [DEBUG] decide() called: stuck=0, orientation=236°, loc=56.3196502,44.0469889
+[17:25:22] [DEBUG] breadcrumbs.length=61, graph.nodes=42
+[17:25:22] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:22] [DEBUG] currentNode.triedYaws=60, hasUntried=true
+[17:25:22] 🧭 NEW NODE: Turning to face forward bearing 264° (diff=28°)
+[17:25:22] [DEBUG] decision={"turn":true,"angle":332.16037106149884,"direction":"right"}
+[17:25:22]    🔄 ACTION: Turning RIGHT 332.16037106149884°
+[17:25:22] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:23] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:24] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:24] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:24] [DEBUG] currentLocation=56.3196502,44.0469889, currentYaw=304.4824445743462, previousLocation=56.3196502,44.0469889
+[17:25:24] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:25:24] [DEBUG] Sync wheel orientation: lastUrlYaw=235.85318141628204, currentYaw=304.4824445743462
+[17:25:24] 💓 [69] STUCK: 1 | YAW: 304° | LOC: 56.3196502,44.0469889
+[17:25:24]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3196502,44.0469889,3a,75y,304.48h,90t/data=!3m7!1e1!3m5!1sk-vyD9ypxdR8D08SwyZ1Xg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3Dk-vyD9ypxdR8D08SwyZ1Xg%26yaw%3D304.4824445743462!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:24] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:25:24] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:25:24] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:25:24] [DEBUG] tick() END
+[17:25:26] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:26] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:26] [DEBUG] currentLocation=56.3196932,44.0468636, currentYaw=304.4824445743462, previousLocation=56.3196502,44.0469889
+[17:25:26] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:26] 💓 [70] STUCK: 0 | YAW: 304° | LOC: 56.3196932,44.0468636
+[17:25:26]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3196932,44.0468636,3a,75y,304.48h,90t/data=!3m7!1e1!3m5!1srULDf-0aDaIQHSYN202iDw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DrULDf-0aDaIQHSYN202iDw%26yaw%3D304.4824445743462!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:26] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:26] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:26] [DEBUG] decide() called: stuck=0, orientation=304°, loc=56.3196932,44.0468636
+[17:25:26] [DEBUG] breadcrumbs.length=62, graph.nodes=43
+[17:25:26] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:26] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:25:26] 🧭 NEW NODE: Turning to face forward bearing 227° (diff=78°)
+[17:25:26] [DEBUG] decision={"turn":true,"angle":77.85940721761278,"direction":"left"}
+[17:25:26]    🔄 ACTION: Turning LEFT 77.85940721761278°
+[17:25:26] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:27] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:28] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:28] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:28] [DEBUG] currentLocation=56.3196932,44.0468636, currentYaw=250.4578129948906, previousLocation=56.3196932,44.0468636
+[17:25:28] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:25:28] [DEBUG] Sync wheel orientation: lastUrlYaw=304.4824445743462, currentYaw=250.4578129948906
+[17:25:28] 💓 [71] STUCK: 1 | YAW: 250° | LOC: 56.3196932,44.0468636
+[17:25:28]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3196932,44.0468636,3a,75y,250.46h,90t/data=!3m7!1e1!3m5!1srULDf-0aDaIQHSYN202iDw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DrULDf-0aDaIQHSYN202iDw%26yaw%3D250.4578129948906!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:28] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:25:28] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:25:28] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:25:28] [DEBUG] tick() END
+[17:25:30] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:30] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:30] [DEBUG] currentLocation=56.3197207,44.0465279, currentYaw=250.4578129948906, previousLocation=56.3196932,44.0468636
+[17:25:30] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:30] 💓 [72] STUCK: 0 | YAW: 250° | LOC: 56.3197207,44.0465279
+[17:25:30]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197207,44.0465279,3a,75y,250.46h,90t/data=!3m7!1e1!3m5!1sA4Pt_hSTBCGyQYEJETc8hQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DA4Pt_hSTBCGyQYEJETc8hQ%26yaw%3D250.4578129948906!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:30] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:30] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:30] [DEBUG] decide() called: stuck=0, orientation=250°, loc=56.3197207,44.0465279
+[17:25:30] [DEBUG] breadcrumbs.length=63, graph.nodes=44
+[17:25:30] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:30] [DEBUG] currentNode.triedYaws=60, hasUntried=true
+[17:25:30] [DEBUG] NEW NODE - going straight (no turn)
+[17:25:30] [DEBUG] decision={"turn":false}
+[17:25:30] [DEBUG] tick() END
+[17:25:32] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:32] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:32] [DEBUG] currentLocation=56.3197337,44.0463657, currentYaw=250.4578129948906, previousLocation=56.3197207,44.0465279
+[17:25:32] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:32] 💓 [73] STUCK: 0 | YAW: 250° | LOC: 56.3197337,44.0463657
+[17:25:32]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197337,44.0463657,3a,75y,250.46h,90t/data=!3m7!1e1!3m5!1s956cgvs-eoBXBD_4bAC4JA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D956cgvs-eoBXBD_4bAC4JA%26yaw%3D250.4578129948906!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:32] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:32] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:32] [DEBUG] decide() called: stuck=0, orientation=250°, loc=56.3197337,44.0463657
+[17:25:32] [DEBUG] breadcrumbs.length=64, graph.nodes=45
+[17:25:32] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:32] [DEBUG] currentNode.triedYaws=60, hasUntried=true
+[17:25:32] 🧭 NEW NODE: Turning to face forward bearing 279° (diff=28°)
+[17:25:32] [DEBUG] decision={"turn":true,"angle":331.7630245020283,"direction":"right"}
+[17:25:32]    🔄 ACTION: Turning RIGHT 331.7630245020283°
+[17:25:32] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:33] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:34] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:34] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:34] [DEBUG] currentLocation=56.3197337,44.0463657, currentYaw=318.70623404667515, previousLocation=56.3197337,44.0463657
+[17:25:34] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:25:34] [DEBUG] Sync wheel orientation: lastUrlYaw=250.4578129948906, currentYaw=318.70623404667515
+[17:25:34] 💓 [74] STUCK: 1 | YAW: 319° | LOC: 56.3197337,44.0463657
+[17:25:34]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197337,44.0463657,3a,75y,318.71h,90t/data=!3m7!1e1!3m5!1s956cgvs-eoBXBD_4bAC4JA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D956cgvs-eoBXBD_4bAC4JA%26yaw%3D318.70623404667515!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:34] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:25:34] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:25:34] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:25:34] [DEBUG] tick() END
+[17:25:36] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:36] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:36] [DEBUG] currentLocation=56.3197579,44.0460456, currentYaw=318.70623404667515, previousLocation=56.3197337,44.0463657
+[17:25:36] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:36] 💓 [75] STUCK: 0 | YAW: 319° | LOC: 56.3197579,44.0460456
+[17:25:36]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197579,44.0460456,3a,75y,318.71h,90t/data=!3m7!1e1!3m5!1sVokEbitMbgKiCCFVSPOteA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DVokEbitMbgKiCCFVSPOteA%26yaw%3D318.70623404667515!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:36] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:36] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:36] [DEBUG] decide() called: stuck=0, orientation=319°, loc=56.3197579,44.0460456
+[17:25:36] [DEBUG] breadcrumbs.length=65, graph.nodes=46
+[17:25:36] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:36] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:25:36] 🧭 NEW NODE: Turning to face forward bearing 275° (diff=44°)
+[17:25:36] [DEBUG] decision={"turn":true,"angle":44.0559398013977,"direction":"left"}
+[17:25:36]    🔄 ACTION: Turning LEFT 44.0559398013977°
+[17:25:36] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:37] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:38] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:38] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:38] [DEBUG] currentLocation=56.3197579,44.0460456, currentYaw=295.9940235194559, previousLocation=56.3197579,44.0460456
+[17:25:38] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[17:25:38] [DEBUG] Sync wheel orientation: lastUrlYaw=318.70623404667515, currentYaw=295.9940235194559
+[17:25:38] 💓 [76] STUCK: 1 | YAW: 296° | LOC: 56.3197579,44.0460456
+[17:25:38]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197579,44.0460456,3a,75y,295.99h,90t/data=!3m7!1e1!3m5!1sVokEbitMbgKiCCFVSPOteA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DVokEbitMbgKiCCFVSPOteA%26yaw%3D295.9940235194559!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:38] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[17:25:38] [DEBUG] Step failed! Still at same location - record failed attempt.
+[17:25:38] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[17:25:38] [DEBUG] tick() END
+[17:25:40] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:40] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:40] [DEBUG] currentLocation=56.3197695,44.0458922, currentYaw=295.9940235194559, previousLocation=56.3197579,44.0460456
+[17:25:40] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:40] 💓 [77] STUCK: 0 | YAW: 296° | LOC: 56.3197695,44.0458922
+[17:25:40]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3197695,44.0458922,3a,75y,295.99h,90t/data=!3m7!1e1!3m5!1s_f4dvDKJx7nT1Q6eMDcMCQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D_f4dvDKJx7nT1Q6eMDcMCQ%26yaw%3D295.9940235194559!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:40] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:40] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:40] [DEBUG] decide() called: stuck=0, orientation=296°, loc=56.3197695,44.0458922
+[17:25:40] [DEBUG] breadcrumbs.length=66, graph.nodes=47
+[17:25:40] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:40] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:25:40] 🧭 NEW NODE: Turning to face forward bearing 274° (diff=22°)
+[17:25:40] [DEBUG] decision={"turn":true,"angle":21.583508535124793,"direction":"left"}
+[17:25:40]    🔄 ACTION: Turning LEFT 21.583508535124793°
+[17:25:40] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[17:25:40] [DEBUG] Turn callback executed - pressing ArrowUp
+[17:25:42] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:42] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:42] [DEBUG] currentLocation=56.319783,44.0456921, currentYaw=288.0126284441698, previousLocation=56.3197695,44.0458922
+[17:25:42] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:42] [DEBUG] Sync wheel orientation: lastUrlYaw=295.9940235194559, currentYaw=288.0126284441698
+[17:25:42] 💓 [78] STUCK: 0 | YAW: 288° | LOC: 56.319783,44.0456921
+[17:25:42]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.319783,44.0456921,3a,75y,288.01h,90t/data=!3m7!1e1!3m5!1s8STRJNN2eMsH5zKOdHnUBw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D8STRJNN2eMsH5zKOdHnUBw%26yaw%3D288.0126284441698!7i16384!8i8192!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:42] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:42] [DEBUG] Step succeeded! Location changed.
+[17:25:42] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:42] [DEBUG] decide() called: stuck=0, orientation=288°, loc=56.319783,44.0456921
+[17:25:42] [DEBUG] breadcrumbs.length=67, graph.nodes=48
+[17:25:42] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:42] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:25:42] [DEBUG] NEW NODE - going straight (no turn)
+[17:25:42] [DEBUG] decision={"turn":false}
+[17:25:42] [DEBUG] tick() END
+[17:25:44] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[17:25:44] [DEBUG] currentUrl=https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgor...
+[17:25:44] [DEBUG] currentLocation=56.3198471,44.0455986, currentYaw=288.0126284441698, previousLocation=56.319783,44.0456921
+[17:25:44] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[17:25:44] 💓 [79] STUCK: 0 | YAW: 288° | LOC: 56.3198471,44.0455986
+[17:25:44]    🔗 https://www.google.com/maps/place/Ulitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089/@56.3198471,44.0455986,3a,75y,288.01h,90t/data=!3m7!1e1!3m5!1s0Uhi_FDIIw94skMosXMTaA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D0Uhi_FDIIw94skMosXMTaA%26yaw%3D288.0126284441698!7i13312!8i6656!4m15!1m8!3m7!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!2sUlitsa+Borisa+Panina,+7%D0%BA4,+Nizhnij+Novgorod,+Nizhegorodskaya+oblast',+Russia,+603089!3b1!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm!3m5!1s0x4151d4fc181c8eb3:0x33e5825c33ffe6fe!8m2!3d56.3074169!4d44.0309311!16s%2Fg%2F11vjlrl7hm?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[17:25:44] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[17:25:44] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[17:25:44] [DEBUG] decide() called: stuck=0, orientation=288°, loc=56.3198471,44.0455986
+[17:25:44] [DEBUG] breadcrumbs.length=68, graph.nodes=49
+[17:25:44] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[17:25:44] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[17:25:44] [DEBUG] NEW NODE - going straight (no turn)
+[17:25:44] [DEBUG] decision={"turn":false}
+[17:25:44] [DEBUG] tick() END
