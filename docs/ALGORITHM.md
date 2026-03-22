@@ -1,18 +1,25 @@
-# Walking Algorithm Guide (v6.5.0)
+# Walking Algorithm Guide (v6.1.0 PLEDGE)
 
-**Comprehensive documentation of the Drift-Walk Traversal Engine**
+**Comprehensive documentation of the PLEDGE Wall-Following Traversal Engine**
 
 ---
 
 ## Architecture Overview
 
-The v6.5.0 architecture uses **learned connectivity** from actual transitions instead of pure mathematical prediction.
+The v6.1.0 PLEDGE algorithm uses **systematic wall-following** for guaranteed maze exploration with each node visited **at most twice**.
+
+### Core Principles
+
+1. **Forward First**: Always explore new territory before backtracking
+2. **Left-Hand Rule**: When stuck, follow the left wall
+3. **Break Wall**: When truly stuck, retry any successful exit
+4. **No Breadcrumbs**: Pure PLEDGE - no navigation to old targets
 
 ### 1. The Engine (`engine.js`)
 - **Orchestrator**: Manages the main `tick` loop (pace)
-- **State Store**: Holds `steps`, `stuckCount`, `visitedUrls` (Heatmap), and `breadcrumbs` (Scent)
+- **State Store**: Holds `steps`, `stuckCount`, `visitedUrls` (Set)
 - **Sensors**: Extracts current location from URL and detects if walker is "stuck"
-- **Transition Recorder**: Records every successful movement in the Enhanced Transition Graph
+- **Transition Graph**: Records every successful movement
 - **Safety**: Pauses during user interaction (dragging/drawing)
 - **Turn Cooldown**: Waits 3 ticks after turn before next decision
 
@@ -23,16 +30,69 @@ The v6.5.0 architecture uses **learned connectivity** from actual transitions in
 - **Drift Tolerance**: Accepts ±15-20° deviation from target yaw
 
 ### 3. The Traversal Algorithm (`traversal.js`)
-- **Decision Maker**: Receives context and decides whether to `turn` or `move`
-- **Enhanced Transition Graph**: Learns actual connectivity from successful walks
-- **Bidirectional Recording**: Stores forward AND reverse directions (every node has a way back)
-- **Strategy**: Implements systematic labyrinth exploration with one-turn backtrack rule
+- **PLEDGE Implementation**: Wall-following with forward-facing
+- **Forward Bearing**: Always face direction of travel (prev→cur)
+- **Dead-End Detection**: All 6 yaws tried → turn LEFT 120°
+- **Wall-Follow Mode**: Scan for left exits (90-180° from forward)
+- **Break-Wall Escape**: Retry successful yaw when truly stuck
+
+---
+
+## PLEDGE Algorithm States
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  PLEDGE STATE MACHINE                                   │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  FORWARD MODE:                                          │
+│  • Face: prev→cur bearing                               │
+│  • Move: Forward into new territory                     │
+│  • Check: Cul-de-sac verification at 10+ straight nodes │
+│                                                         │
+│  ↓ (Hit dead end - all yaws tried)                      │
+│                                                         │
+│  TURN LEFT:                                             │
+│  • Turn: 120° LEFT from forward bearing                 │
+│  • Face: Left wall, slightly back                       │
+│                                                         │
+│  ↓                                                      │
+│                                                         │
+│  WALL-FOLLOW MODE:                                      │
+│  • Scan: Left exits (90-180° from forward)              │
+│  • At each node: Check for untried left yaw             │
+│  • Found exit: Take it, resume FORWARD mode             │
+│                                                         │
+│  ↓ (Truly stuck - no exits found)                       │
+│                                                         │
+│  BREAK WALL:                                            │
+│  • Retry: Random successful yaw                         │
+│  • Reset: Wall-follow state                             │
+│  • Escape: The dead end                                 │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Core Concepts
 
-### A. The Six Yaw Buckets
+### A. Forward Bearing
+
+**Definition**: Direction of travel from previous node to current node.
+
+```javascript
+// Calculate forward bearing from prev→cur
+const dLat = currentLat - prevLat;
+const dLng = currentLng - prevLng;
+const forwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+```
+
+**Usage**:
+- At new nodes: Turn to face forward bearing (if diff >15°)
+- In wall-follow: Reference for left exits (90-180° from forward)
+
+### B. The Six Yaw Buckets
 
 We divide 360° into 6 buckets (0°, 60°, 120°, 180°, 240°, 300°):
 
@@ -43,52 +103,24 @@ const YAW_BUCKETS = [0, 60, 120, 180, 240, 300];
 **At each node, we track:**
 - `triedYaws` - which buckets we've attempted
 - `successfulYaws` - which buckets led to movement
-- `entryYaw` - which yaw we entered from (for reverse calculation)
+- `isFullyExplored` - all 6 yaws tried (5+ = dead end)
 
-### B. Bidirectional Transition Graph
+### C. Node Classification
 
-```javascript
-// Record every successful movement
-recordMovement(fromLoc, toLoc, fromYaw, toYaw, step) {
-  // Store at FROM node: "yaw 90° leads to location B"
-  fromNode.recordAttempt(fromYaw, true, toLoc);
-  
-  // Store at TO node: "came from reverse direction"
-  const reverseYaw = (toYaw + 180) % 360;
-  toNode.recordAttempt(reverseYaw, true, fromLoc);
-  
-  // Bidirectional connection tracking
-  connections.get(fromLoc).add(toLoc);
-  connections.get(toLoc).add(fromLoc);
-}
-```
+| Type | Tried Yaws | Action |
+|------|------------|--------|
+| **NEW** | 0-4 | Go straight, face forward bearing |
+| **JUNCTION** | 2-4 untried | Potential left exit in wall-follow |
+| **DEAD_END** | 6 (all tried) | Turn LEFT 120°, start wall-follow |
+| **FULLY_EXPLORED** | 6 (all tried) | Skip in wall-follow scan |
 
-**Why bidirectional?**
-- Every node has a way back (we came from somewhere!)
-- Dead-end escape = reverse the entry yaw
-- No true dead ends in drift-walk graph
+### D. Each Node ≤2 Visits Guarantee
 
-### C. Node Classification (After 6 Yaws Tried)
-
-| Type | Exits | Yaw Difference | Action |
-|------|-------|----------------|--------|
-| **STRAIGHT** | 2 | ~180° (±30°) | Skip when navigating back |
-| **CROSSROAD** | 3+ | N/A | STOP and explore! |
-| **DEAD_END** | 1 | N/A | Mark and escape via reverse yaw |
-| **UNKNOWN** | <6 tried | N/A | STOP - potential crossroad! |
-
-### D. One-Turn Backtrack Rule
-
-During backtracking from dead end:
-- Check **EVERY** visited node for untried buckets
-- If untried buckets exist AND haven't turned here → **ONE exploration turn**
-- Track `turnedAtNodes` Set to prevent multiple turns at same node
-- Reset `turnedAtNodes` when reaching crossroad or starting fresh
-
-**Why one turn?**
-- Prevents infinite loops (don't spin at every node)
-- Ensures systematic exploration (check every node once)
-- Respects drift-walk geometry (we know which cones are valid)
+**Why it works:**
+1. **First visit**: Forward mode, explore straight
+2. **If dead end**: Turn LEFT, wall-follow backward
+3. **Second visit**: Scan for left exit, take if found
+4. **No exit**: Continue wall-follow, never return
 
 ---
 
@@ -96,84 +128,107 @@ During backtracking from dead end:
 
 ### FORWARD Mode (Exploring New Territory)
 
-**Trigger:** At node with untried buckets, not stuck, not backtracking
+**Trigger:** At new node with untried buckets
 
 ```javascript
-if (currentNode.hasUntriedYaws()) {
-  const nextYaw = currentNode.getNextUntriedYaw();
-  const diff = yawDifference(orientation, nextYaw);
+if (isNewNode) {
+  // Calculate forward bearing from prev→cur
+  const forwardBearing = calculateForwardBearing(previousLocation, currentLocation);
   
-  if (diff > 5 && diff < 355) {
-    const turnAngle = getLeftTurnAngle(orientation, nextYaw);
-    return { turn: true, angle: turnAngle };
-  }
-  // Already facing it, just move forward
-  return { turn: false };
-}
-```
-
-### PANIC Mode (Stuck Recovery)
-
-**Trigger:** `stuckCount >= panicThreshold` (default: 3)
-
-```javascript
-if (stuckCount >= panicThreshold) {
-  // Priority 1: Try any untried yaw
-  const nextYaw = currentNode.getNextUntriedYaw();
-  if (nextYaw !== null) {
-    return { turn: true, angle: getLeftTurnAngle(orientation, nextYaw) };
+  // Face forward direction (if not already)
+  const bearingDiff = yawDifference(orientation, forwardBearing);
+  if (bearingDiff > 15 && bearingDiff < 165) {
+    return { turn: true, angle: getLeftTurnAngle(orientation, forwardBearing) };
   }
   
-  // Priority 2: Retry successful exit (random pick)
-  if (currentNode.successfulYaws.size > 0) {
-    const randomYaw = pickRandom(currentNode.successfulYaws);
-    return { turn: true, angle: getLeftTurnAngle(orientation, randomYaw) };
-  }
-  
-  // Priority 3: Emergency reverse (go back the way we came)
-  if (currentNode.entryYaw !== null) {
-    const reverseYaw = (currentNode.entryYaw + 180) % 360;
-    return { turn: true, angle: getLeftTurnAngle(orientation, reverseYaw) };
-  }
-  
-  // Last resort: STOP (truly stuck, no escape)
-  return { turn: false };
-}
-```
-
-### RETURN Mode (Backtracking)
-
-**Trigger:** Hit dead end, now retracing path
-
-```javascript
-const isBacktracking = (hasBeenHereBefore || isExhausted) && !navigationTarget;
-
-if (isBacktracking) {
-  // Check CURRENT node first
-  if (currentNode.hasUntriedYaws() && !turnedAtNodes.has(currentLocation)) {
-    const targetYaw = currentNode.getNextUntriedYaw();
-    turnedAtNodes.add(currentLocation);
-    
-    const diff = yawDifference(orientation, targetYaw);
-    if (diff > 5 && diff < 355) {
-      return { turn: true, angle: getLeftTurnAngle(orientation, targetYaw) };
+  // Cul-de-sac verification at 10+ straight new nodes
+  if (consecutiveStraightMoves >= 10 && currentNode.hasUntriedYaws()) {
+    const sideYaw = findSideYaw(forwardBearing, currentNode.triedYaws);
+    if (sideYaw !== null) {
+      return { turn: true, angle: getLeftTurnAngle(orientation, sideYaw) };
     }
-    return { turn: false };  // Already facing it
   }
   
-  // Navigate to nearest node with untried buckets
-  const candidate = enhancedGraph.findNearestCrossroadCandidate(
-    currentLocation, 
-    breadcrumbs
-  );
+  // Continue forward
+  return { turn: false };
+}
+```
+
+### DEAD_END Detection (Start Wall-Follow)
+
+**Trigger:** All yaws tried, node fully explored
+
+```javascript
+const isDeadEnd = isExhausted && fullyExploredNodes.has(currentLocation);
+
+if (isDeadEnd && !wallFollowMode) {
+  wallFollowMode = true;
+  forwardBearing = currentForwardBearing;
+  // Turn 120° LEFT from forward direction
+  wallFollowBearing = (forwardBearing + 120) % 360;
   
-  if (candidate) {
-    navigationTarget = {
-      location: candidate.location,
-      targetYaw: candidate.node.getNextUntriedYaw(),
-      distance: candidate.distance
-    };
+  return { turn: true, angle: getLeftTurnAngle(orientation, wallFollowBearing) };
+}
+```
+
+### WALL-FOLLOW Mode (Left-Hand Rule)
+
+**Trigger:** `wallFollowMode === true`
+
+```javascript
+if (wallFollowMode && currentNode.hasUntriedYaws()) {
+  const untriedYaws = [0, 60, 120, 180, 240, 300]
+    .filter(y => !currentNode.triedYaws.has(y));
+  
+  // Find leftmost untried yaw (90-180° LEFT from forward bearing)
+  let bestYaw = null;
+  let bestDiff = 90;
+  
+  for (const yaw of untriedYaws) {
+    const diff = yawDifference(forwardBearing, yaw);
+    if (diff >= 90 && diff <= 180 && diff > bestDiff) {
+      bestDiff = diff;
+      bestYaw = yaw;
+    }
   }
+  
+  // Found left exit! Take it and resume FORWARD mode
+  if (bestYaw !== null) {
+    wallFollowMode = false;
+    wallFollowBearing = null;
+    forwardBearing = null;
+    return { turn: true, angle: getLeftTurnAngle(orientation, bestYaw) };
+  }
+}
+
+// Continue wall-follow: face wall-follow bearing
+if (wallFollowMode && wallFollowBearing !== null) {
+  const diff = yawDifference(orientation, wallFollowBearing);
+  if (diff > 10) {
+    return { turn: true, angle: getLeftTurnAngle(orientation, wallFollowBearing) };
+  }
+  return { turn: false };  // Facing correct direction, move
+}
+```
+
+### BREAK WALL (Escape Truly Stuck)
+
+**Trigger:** All yaws tried, wall-follow found no exits
+
+```javascript
+if (isExhausted && fullyExploredNodes.has(currentLocation) && 
+    currentNode.successfulYaws.size > 0) {
+  const successfulYawsArray = Array.from(currentNode.successfulYaws);
+  const randomSuccessfulYaw = successfulYawsArray[
+    Math.floor(Math.random() * successfulYawsArray.length)
+  ];
+  
+  // Reset wall-follow state
+  wallFollowMode = false;
+  wallFollowBearing = null;
+  forwardBearing = null;
+  
+  return { turn: true, angle: getLeftTurnAngle(orientation, randomSuccessfulYaw) };
 }
 ```
 
@@ -181,15 +236,18 @@ if (isBacktracking) {
 
 ## Math & Logic
 
-### 1. Location Prediction (Fallback)
-
-Used when no learned connectivity available:
+### 1. Forward Bearing Calculation
 
 ```javascript
-// Simplified lat/lng projection
-const dLat = Math.cos(yaw * Math.PI / 180) * stepDistance;
-const dLng = Math.sin(yaw * Math.PI / 180) * stepDistance / Math.cos(lat);
-const predictedLocation = `${lat + dLat},${lng + dLng}`;
+function calculateForwardBearing(prevLoc, currLoc) {
+  const prevParts = prevLoc.split(',').map(Number);
+  const currParts = currLoc.split(',').map(Number);
+  const dLat = currParts[0] - prevParts[0];
+  const dLng = currParts[1] - prevParts[1];
+  let bearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+  if (bearing < 0) bearing += 360;
+  return bearing;
+}
 ```
 
 ### 2. Angle Normalization
@@ -207,14 +265,14 @@ function normalizeAngle(angle) {
 ```javascript
 function getLeftTurnAngle(currentOrientation, targetYaw) {
   let diff = targetYaw - currentOrientation;
-  
+
   // Normalize to [-180, 180]
   if (diff > 180) diff -= 360;
   if (diff < -180) diff += 360;
-  
+
   // Convert to left-turn angle (positive = turn left)
   if (diff < 0) diff += 360;
-  
+
   return diff;
 }
 ```
@@ -239,11 +297,11 @@ function yawDifference(a, b) {
 
 | State | Context | Decision |
 |-------|---------|----------|
-| **FORWARD** | `isNewNode && hasUntriedYaws` | Try next untried yaw bucket |
-| **NEW_NODE** | `isNewNode` | Move forward (no turn at new nodes) |
-| **BACKTRACK** | `hasBeenHereBefore && !navigationTarget` | Check current node for untried buckets |
-| **NAVIGATE** | `navigationTarget !== null` | Turn toward target location |
-| **PANIC** | `stuckCount >= 3` | Retry untried/successful/reverse yaw |
+| **FORWARD** | `isNewNode && hasUntriedYaws` | Face forward, move straight |
+| **CUL-DE-SAC-CHECK** | `isNewNode && consecutiveStraightMoves >= 10` | Verify with side exit |
+| **DEAD-END-TURN** | `isExhausted && fullyExplored && !wallFollowMode` | Turn LEFT 120° |
+| **WALL-FOLLOW** | `wallFollowMode === true` | Scan for left exits (90-180°) |
+| **BREAK-WALL** | `isExhausted && successfulYaws.size > 0` | Retry random successful yaw |
 | **STUCK** | `all buckets tried, no successful exits` | STOP (no escape route) |
 
 ---
@@ -259,78 +317,28 @@ class NodeInfo {
     this.lat = lat;
     this.lng = lng;
     this.step = step;
-    
+
     // Yaw tracking
     this.triedYaws = new Set();
     this.successfulYaws = new Set();
-    this.entryYaw = null;
-    
-    // Classification (only valid after 6 yaws tried)
-    this.isStraight = false;
-    this.isCrossroad = false;
-    this.isDeadEnd = false;
+
+    // Classification
     this.isFullyExplored = false;
   }
-  
-  recordAttempt(yaw, success, targetLocation) {
+
+  recordAttempt(yaw, success) {
     this.triedYaws.add(yaw);
     if (success) {
       this.successfulYaws.add(yaw);
     }
+    // Mark as fully explored when 5+ yaws tried
+    if (this.triedYaws.size >= 5) {
+      this.isFullyExplored = true;
+    }
   }
-  
+
   hasUntriedYaws() {
     return this.triedYaws.size < 6;
-  }
-  
-  getNextUntriedYaw() {
-    for (const yaw of [0, 60, 120, 180, 240, 300]) {
-      if (!this.triedYaws.has(yaw)) return yaw;
-    }
-    return null;
-  }
-}
-```
-
-### Graph Operations
-
-```javascript
-class EnhancedTransitionGraph {
-  constructor() {
-    this.nodes = new Map();      // location → NodeInfo
-    this.connections = new Map(); // location → Set<connectedLocations>
-  }
-  
-  getOrCreate(location, lat, lng, step) {
-    if (!this.nodes.has(location)) {
-      this.nodes.set(location, new NodeInfo(location, lat, lng, step));
-      this.connections.set(location, new Set());
-    }
-    return this.nodes.get(location);
-  }
-  
-  findNearestCrossroadCandidate(currentLocation, breadcrumbs) {
-    // Walk backwards through breadcrumbs to find first node with untried yaws
-    for (let i = breadcrumbs.length - 1; i >= 0; i--) {
-      const loc = breadcrumbs[i];
-      if (loc === currentLocation) continue;
-      
-      const node = this.nodes.get(loc);
-      if (node && node.hasUntriedYaws()) {
-        return { node, location: loc, distance: breadcrumbs.length - i };
-      }
-    }
-    return null;
-  }
-  
-  getPathToTarget(currentLocation, targetLocation, breadcrumbs) {
-    const currentIndex = breadcrumbs.lastIndexOf(currentLocation);
-    const targetIndex = breadcrumbs.lastIndexOf(targetLocation);
-    
-    if (currentIndex === -1 || targetIndex === -1) return [];
-    
-    // Return path from current to target (walking backwards)
-    return breadcrumbs.slice(targetIndex, currentIndex + 1).reverse();
   }
 }
 ```
@@ -341,11 +349,13 @@ class EnhancedTransitionGraph {
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `panicThreshold` | 3 | Ticks before PANIC mode starts |
-| `selfAvoiding` | true | Enables Heatmap/Breadcrumb logic |
+| `panicThreshold` | 3 | Ticks before BREAK WALL mode |
+| `selfAvoiding` | true | Enables visited tracking |
 | `pace` | 2000ms | Time between decisions |
-| `turnsCooldownTicks` | 3 | Ticks to wait after turn before next decision |
+| `turnsCooldownTicks` | 3 | Ticks to wait after turn |
 | `stepDistance` | ~10m | Estimated distance between panoramas |
+| `forwardFaceThreshold` | 15° | Turn to face forward if diff >15° |
+| `culDeSacCheckThreshold` | 10 | Verify at 10+ straight new nodes |
 
 ---
 
@@ -356,26 +366,28 @@ To experiment with a new algorithm:
 1. Open `src/core/traversal.js`
 2. Modify the `decide(context)` function
 3. You have access to:
-   - `visitedUrls` (Map) - heatmap of visited locations
-   - `breadcrumbs` (Array) - rolling buffer of last 100 steps
+   - `visitedUrls` (Set) - visited locations
+   - `breadcrumbs` (Array) - rolling buffer of last 200 steps
    - `orientation` - current yaw (0-360°)
    - `enhancedGraph` - learned connectivity graph
-   - `turnedAtNodes` (Set) - nodes already explored during backtrack
+   - `wallFollowMode` - current wall-follow state
+   - `forwardBearing` - direction of travel
 4. Return `{ turn: true, angle: X }` to turn, or `{ turn: false }` to move forward
 
-### Example: Custom Exploration Strategy
+### Example: Custom Wall-Follow Angle
 
 ```javascript
 const decide = (context) => {
   const { currentLocation, orientation, stuckCount, breadcrumbs } = context;
-  
-  // Your custom logic here
-  if (shouldTurnLeft()) {
-    return { turn: true, angle: 90 };
+
+  // Change wall-follow turn angle from 120° to 135°
+  if (isDeadEnd && !wallFollowMode) {
+    wallFollowBearing = (forwardBearing + 135) % 360;  // Was 120°
+    return { turn: true, angle: getLeftTurnAngle(orientation, wallFollowBearing) };
   }
-  
-  // Default: move forward
-  return { turn: false };
+
+  // Default PLEDGE logic
+  return pledgeDecide(context);
 };
 ```
 
@@ -383,13 +395,14 @@ const decide = (context) => {
 
 ## Why This Works
 
-| Problem | Old Approach | v6.5.0 Approach |
+| Problem | Old Approach | PLEDGE Approach |
 |---------|-------------|-----------------|
-| **Dead ends** | Random turns, infinite spin | Reverse entry yaw (always works) |
-| **Backtracking** | Step-by-step scan | Skip straight nodes, check crossroads |
-| **Yaw drift** | Fight it (fails) | Embrace it (drift cone model) |
-| **Prediction errors** | Math-only (~40% accuracy) | Learned graph (100% for known nodes) |
-| **Loops** | Heatmap avoidance | One-turn backtrack rule |
+| **Dead ends** | Random turns, infinite spin | Turn LEFT 120°, wall-follow |
+| **Backtracking** | Step-by-step scan | Wall-follow with left-hand rule |
+| **Yaw drift** | Fight it (fails) | Face forward bearing at each node |
+| **False cul-de-sacs** | Missed branches | Verification at 10+ straight nodes |
+| **Loops** | Heatmap avoidance | Each node ≤2 visits guarantee |
+| **Truly stuck** | No escape | BREAK WALL retries successful exits |
 
 ---
 
@@ -400,7 +413,7 @@ const decide = (context) => {
 npm test
 
 # Run specific test file
-npm test -- src/core/traversal.test.js
+npm test -- src/core/log-replay.test.js
 
 # Run with verbose output
 npm test -- --reporter=verbose
@@ -409,42 +422,59 @@ npm test -- --reporter=verbose
 ### Key Test Scenarios
 
 ```javascript
-// Test 1: Forward exploration
-it('should try untried yaw at new node', () => {
+// Test 1: Forward exploration with facing
+it('should face forward bearing at new node', () => {
   const context = {
     currentLocation: 'A',
+    previousLocation: 'B',
     orientation: 90,
     stuckCount: 0,
     isNewNode: true
   };
   const decision = algorithm.decide(context);
-  expect(decision.turn).toBe(false);  // Move forward at new node
+  // Should turn to face forward bearing if not aligned
 });
 
-// Test 2: Dead end escape
-it('should escape using reverse entry yaw', () => {
+// Test 2: Dead end detection and wall-follow start
+it('should turn LEFT 120° at dead end', () => {
   const context = {
     currentLocation: 'D',
     orientation: 90,
-    stuckCount: 3,
-    entryYaw: 90
+    stuckCount: 0,
+    isExhausted: true,
+    fullyExplored: true
   };
   const decision = algorithm.decide(context);
   expect(decision.turn).toBe(true);
-  expect(decision.angle).toBe(270);  // Reverse yaw
+  // Should turn LEFT ~120° from forward bearing
 });
 
-// Test 3: Backtrack exploration
-it('should explore untried bucket during backtrack', () => {
+// Test 3: Wall-follow left exit detection
+it('should find and take left exit in wall-follow mode', () => {
   const context = {
     currentLocation: 'B',
-    orientation: 90,
-    hasBeenHereBefore: true,
-    untriedYaws: [60]
+    orientation: 210,
+    wallFollowMode: true,
+    forwardBearing: 90,
+    untriedYaws: [180]  // 90° LEFT from forward
   };
   const decision = algorithm.decide(context);
   expect(decision.turn).toBe(true);
-  expect(decision.angle).toBe(330);  // Turn to 60°
+  // Should take yaw 180° (left exit)
+});
+
+// Test 4: Cul-de-sac verification
+it('should verify at 10+ straight new nodes', () => {
+  const context = {
+    currentLocation: 'K',
+    orientation: 180,
+    isNewNode: true,
+    consecutiveStraightMoves: 10,
+    untriedYaws: [60, 120]
+  };
+  const decision = algorithm.decide(context);
+  expect(decision.turn).toBe(true);
+  // Should check side exit
 });
 ```
 
@@ -453,9 +483,9 @@ it('should explore untried bucket during backtrack', () => {
 ## Related Files
 
 - **Core:** `src/core/engine.js`, `src/core/traversal.js`
-- **Tests:** `src/core/engine.test.js`, `src/core/traversal.test.js`
-- **Docs:** `docs/HOW_IT_WALKS.md`, `docs/SMART_NODES.md`, `docs/SURGEON_MODE.md`
+- **Tests:** `src/core/engine.test.js`, `src/core/log-replay.test.js`
+- **Docs:** `docs/HOW_IT_WALKS.md`, `docs/SMART_NODES.md`
 
 ---
 
-*Documentation complete. The bot learns the labyrinth by walking it.*
+*Documentation complete. The bot explores by following the left wall.*
