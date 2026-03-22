@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T18:12:51.593Z
+// Built: 2026-03-22T18:34:15.451Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -352,14 +352,15 @@ function createUnifiedAlgorithm(cfg) {
       if (nodeVisitCount === 0 && currentNode.triedYaws.size < 6 && consecutiveStraightMoves >= 5) {
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
         if (untriedYaws.length > 0) {
-          // Try side yaws first (perpendicular to forward bearing), then any untried yaw
-          let chosenYaw = null;
-          const sideYaws = untriedYaws.filter(y => {
-            const diff = yawDifference(currentForwardBearing, y);
-            return diff >= 60 && diff <= 120;  // Side exits (60-120° from forward)
+          // 🎯 SMART SCAN: Sort untried yaws by turn cost (smallest turn first)
+          // This finds exits faster with fewer wasted turns
+          const sortedYaws = [...untriedYaws].sort((a, b) => {
+            const turnA = yawDifference(orientation, a);
+            const turnB = yawDifference(orientation, b);
+            return turnA - turnB;  // Smallest turn first
           });
-          chosenYaw = sideYaws.length > 0 ? sideYaws[0] : untriedYaws[0];
-          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking yaw ${chosenYaw}° (untried: ${untriedYaws.join(',')})`);
+          const chosenYaw = sortedYaws[0];
+          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking yaw ${chosenYaw}° (turn=${yawDifference(orientation, chosenYaw).toFixed(0)}°, untried: ${untriedYaws.join(',')})`);
           const turnAngle = getLeftTurnAngle(orientation, chosenYaw);
           const turnDirection = getTurnDirection(orientation, chosenYaw);
           consecutiveStraightMoves = 0;  // Reset counter
