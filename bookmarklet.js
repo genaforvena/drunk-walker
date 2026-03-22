@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T05:57:29.685Z
+// Built: 2026-03-22T06:08:16.538Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -547,9 +547,10 @@ function createUnifiedAlgorithm(cfg) {
     console.log(`[DEBUG] hasBeenHereBefore=${hasBeenHereBefore}, isExhausted=${isExhausted}, fullyExplored=${fullyExploredNodes.has(currentLocation)}`);
 
     // ═══════════════════════════════════════════════════════════
-    // 🧱 SIMPLE WALL-FOLLOWING: Forward → Left Turn → Backward
+    // 🧱 PLEDGE ALGORITHM: Simple wall-following
     // Each node visited AT MOST TWICE!
     // ═══════════════════════════════════════════════════════════
+    // NO breadcrumb navigation - pure PLEDGE only!
 
     // Calculate forward bearing from prev→cur
     let currentForwardBearing = orientation;
@@ -569,8 +570,8 @@ function createUnifiedAlgorithm(cfg) {
     if (isDeadEnd && !wallFollowMode) {
       wallFollowMode = true;
       forwardBearing = currentForwardBearing;
-      // Turn 90-135° LEFT from forward direction (face left wall, slightly back)
-      wallFollowBearing = (forwardBearing + 120) % 360;  // 120° left is good compromise
+      // Turn 120° LEFT from forward direction (face left wall, slightly back)
+      wallFollowBearing = (forwardBearing + 120) % 360;
       console.log(`🧱 DEAD END! Forward bearing=${Math.round(forwardBearing)}°, turning to wall-follow bearing=${Math.round(wallFollowBearing)}°`);
     }
 
@@ -624,74 +625,6 @@ function createUnifiedAlgorithm(cfg) {
       // Facing correct direction, move forward (which is backward along the path)
       console.log(`🧱 WALL-FOLLOW: Moving along left wall`);
       return { turn: false };
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // 🚨 HIGH REVISIT DETECTION: If we've visited this node too many
-    // times, we're stuck in a loop. ESCAPE to nearest crossroad!
-    // ═══════════════════════════════════════════════════════════
-    const maxRevisits = 5;
-    if (nodeVisitCount > maxRevisits) {
-      console.log(`🚨 HIGH REVISIT: ${nodeVisitCount} visits to ${currentLocation}! Finding frontier to explore...`);
-
-      // WALL-FOLLOWING: Find node with untried yaws by searching breadcrumbs backward
-      // This gives us the most recently discovered unexplored branch
-      const minStepsBack = 3;  // Don't count immediate neighbors
-
-      for (let i = breadcrumbs.length - 1 - minStepsBack; i >= 0; i--) {
-        const loc = breadcrumbs[i];
-        if (loc === currentLocation) continue;
-        if (fullyExploredNodes.has(loc)) continue;  // Skip fully explored nodes
-
-        const node = enhancedGraph.nodes.get(loc);
-        if (node && node.hasUntriedYaws()) {
-          const untriedCount = 6 - node.triedYaws.size;
-          if (untriedCount >= 1) {
-            console.log(`🧱 WALL-FOLLOW: Found frontier ${loc} (${untriedCount} untried yaws)`);
-            escapeTargetLocation = loc;
-
-            // Navigate there
-            const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !node.triedYaws.has(y));
-
-            // Find untried yaw that's LEFT of our approach direction (90-180°)
-            const approachYaw = (orientation + 180) % 360;
-            let bestYaw = null;
-            let bestDiff = 90;  // Minimum for "left" turn
-
-            for (const yaw of untriedYaws) {
-              const diff = yawDifference(approachYaw, yaw);
-              // Prefer left turns (90-180° from approach)
-              if (diff >= 90 && diff <= 180 && diff > bestDiff) {
-                bestDiff = diff;
-                bestYaw = yaw;
-              }
-            }
-
-            // Fallback: any untried yaw
-            if (bestYaw === null && untriedYaws.length > 0) {
-              bestYaw = untriedYaws[0];
-              bestDiff = yawDifference(approachYaw, bestYaw);
-            }
-
-            if (bestYaw !== null) {
-              navigationTarget = {
-                location: loc,
-                targetYaw: bestYaw,
-                distance: breadcrumbs.length - i
-              };
-              isReturning = true;
-              consecutiveStraightMoves = 0;
-              wallFollowMode = true;
-              console.log(`🧱 WALL-FOLLOW: Targeting yaw ${bestYaw}° (diff=${Math.round(bestDiff)}° from approach)`);
-              break;
-            }
-          }
-        }
-      }
-
-      if (!escapeTargetLocation) {
-        console.log(`🧱 WALL-FOLLOW: No unexplored nodes found! Graph may be fully explored.`);
-      }
     }
 
     // Reset consecutive straight moves counter when we arrive at a visited node
