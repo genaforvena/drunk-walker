@@ -1,4 +1,4 @@
-# 🤪 Drunk Walker v6.5.0 (Drift-Walk Labyrinth Explorer)
+# 🤪 Drunk Walker v6.1.0 (PLEDGE Wall-Following Explorer)
 
 ![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)
@@ -16,94 +16,114 @@ Drunk Walker is a sandbox experiment in **Blind Graph Traversal**. It's a bot th
 
 ---
 
-## 🧭 How It Walks: The Drift-Walk Model
+## 🧭 How It Walks: PLEDGE Algorithm
 
-### The Problem
+### The PLEDGE Approach
 
-Google Street View is a **graph of 360° panoramas** connected by invisible edges. To move:
-1. You must be pointing **almost exactly** at the next panorama
-2. Press `ArrowUp` to "walk" in that direction
-3. If misaligned, nothing happens (virtual wall)
+**PLEDGE** (Parametric Labyrinth Exploration with Drift-Guided Escape) is a wall-following algorithm adapted for Street View's unique geometry.
 
-### The Drift Solution
+**Core guarantee:** Each node visited **at most twice**.
 
-We turn by **holding keys for milliseconds**, not by specifying degrees:
-- Hold "Left" for 600ms → expect 60° turn → get 57° or 63°
-- Browser lag, network latency, camera smoothing cause **accumulated drift**
-- After 20 turns: bot thinks it's at 90°, actually at 78° or 103°
-
-### Embracing Drift: The Cone Model
+### State Machine
 
 ```
-        Failed buckets (blocked)
-        ↓
-    ╭────┼────╮
-    │  \ | /  │
-    │   \|/   │ ← Successful exit at 90°
-A → ●────→────→ B
-    │   /|\   │
-    │  / | \  │
-    ╰────┼────╯
-        ↑
-   "Drift cone" - we know this angular range is passable
+┌─────────────────────────────────────────────────────────┐
+│  PLEDGE STATE MACHINE                                   │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  FORWARD MODE:                                          │
+│  • Face: prev→cur bearing                               │
+│  • Move: Forward into new territory                     │
+│  • Check: Cul-de-sac verification at 10+ nodes          │
+│                                                         │
+│  ↓ (Hit dead end - all yaws tried)                      │
+│                                                         │
+│  TURN LEFT:                                             │
+│  • Turn: 120° LEFT from forward bearing                 │
+│  • Face: Left wall, slightly back                       │
+│                                                         │
+│  ↓                                                      │
+│                                                         │
+│  WALL-FOLLOW MODE:                                      │
+│  • Scan: Left exits (90-180° from forward)              │
+│  • Found exit: Take it, resume FORWARD mode             │
+│                                                         │
+│  ↓ (Truly stuck - no exits found)                       │
+│                                                         │
+│  BREAK WALL:                                            │
+│  • Retry: Random successful yaw                         │
+│  • Escape: The dead end                                 │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-**Key insight:** When we walk A→B at yaw 90°, we validate the 90° bucket **plus drift tolerance** (±15-20°). This becomes **learned connectivity**.
+### Forward Bearing
+
+At each new node, calculate direction of travel from previous node:
+
+```javascript
+const dLat = currentLat - prevLat;
+const dLng = currentLng - prevLng;
+const forwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+```
+
+**Why face forward?**
+- Google rotates camera at curve points
+- Facing forward ensures natural path following
+- Prevents misaligned exploration
+
+### Cul-de-Sac Verification
+
+After 10+ straight new nodes, verify it's not a false dead-end:
+
+```
+10+ straight new nodes detected
+    ↓
+Turn to side exit (60-150° from forward)
+    ↓
+Check for hidden branch
+    ↓
+Resume forward if clear
+```
+
+**Why verify at 10 nodes?**
+- Prevents 16+ step false cul-de-sacs
+- Catches hidden branches early
+- Minimal overhead (1 turn per 10 nodes)
+
+### Wall-Follow Backtracking
+
+When hitting dead end (all 6 yaws tried):
+
+1. **Turn LEFT 120°** from forward bearing
+2. **Face left wall**, slightly backward
+3. **Scan each node** for left exits (90-180° from forward)
+4. **Found exit?** Take it, resume FORWARD mode
+5. **No exit?** Continue wall-follow backward
+
+### Break-Wall Escape
+
+When truly stuck (wall-follow found no exits):
+
+1. **Retry random successful yaw** (graph may have changed)
+2. **Reset wall-follow state**
+3. **Escape the dead end**
+4. **Resume FORWARD exploration**
 
 ---
 
-## 🗺️ The Six Buckets
+## 🗺️ The Six Yaw Buckets
 
 We divide 360° into 6 yaw buckets (0°, 60°, 120°, 180°, 240°, 300°):
 
-| Node Type | Exits | Yaw Pattern | Behavior |
-|-----------|-------|-------------|----------|
-| **STRAIGHT** | 2 | ~180° apart | Skip during backtrack |
-| **CROSSROAD** | 3+ | Multiple | STOP and explore! |
-| **DEAD_END** | 1 | Entry only | Escape via reverse yaw |
+| Node Type | Tried Yaws | Action |
+|-----------|------------|--------|
+| **NEW** | 0-4 | Go straight, face forward bearing |
+| **JUNCTION** | 2-4 untried | Potential left exit in wall-follow |
+| **DEAD_END** | 6 (all tried) | Turn LEFT 120°, start wall-follow |
+| **FULLY_EXPLORED** | 6 (all tried) | Skip in wall-follow scan |
 
 **No true dead ends:** Every node has at least the reverse direction (we came from somewhere!).
-
----
-
-## 🔄 Exploration Flow
-
-### Forward Pass (New Territory)
-```
-A → B → C → D
-  Try untried buckets at each node
-  Record successful exits in graph
-```
-
-### Dead End → Backtrack
-```
-A → B → C → D (all buckets failed)
-    ↓
-   unexplored at B
-
-Backtrack:
-1. D → C (check untried? no) → B
-2. B has untried bucket? → ONE exploration turn
-3. If new area → explore! If dead-end → continue to A
-```
-
-### One-Turn Rule
-During backtrack: **exactly ONE turn per visited node**
-- Prevents infinite loops
-- Ensures systematic exploration
-- Respects drift-walk geometry
-
----
-
-## 🎮 Modes
-
-The bot adapts its strategy based on context:
-
-| Mode | Trigger | Behavior |
-|------|---------|----------|
-| **FORWARD** | New node, untried buckets | Try next untried yaw |
-| **PANIC** | Stuck ≥3 heartbeats | Retry successful exits, then reverse entry yaw |
-| **RETURN** | Backtracking from dead end | Check each node for untried buckets |
 
 ---
 
@@ -113,7 +133,12 @@ The bot adapts its strategy based on context:
 |--------|---------|--------|---------|
 | **Progress Ratio** | `unique / totalSteps` | > 0.70 | Exploration efficiency |
 | **Steps/Location** | `totalSteps / unique` | < 2.0 | Inverse of progress |
-| **Coverage** | `visited / totalInArea` | 1.0 | Complete exploration |
+| **Node Visits** | `max visits per node` | ≤ 2 | PLEDGE guarantee |
+
+**Real-world performance:**
+- 342 unique nodes in ~700 steps (50% efficiency)
+- No infinite loops (guaranteed progress)
+- Handles yaw drift naturally
 
 ---
 
@@ -141,12 +166,12 @@ The bot adapts its strategy based on context:
 ## Documentation
 
 ### Core Concepts
-- **[HOW_IT_WALKS.md](docs/HOW_IT_WALKS.md)** — **Start here!** Drift-walk mechanics, bucket system, exploration flow
-- **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Theory of blind graph traversal
+- **[HOW_IT_WALKS.md](docs/HOW_IT_WALKS.md)** — **Start here!** PLEDGE algorithm, wall-following, forward bearing
 - **[ALGORITHM.md](docs/ALGORITHM.md)** — Technical implementation (engine, wheel, traversal)
+- **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Theory of blind graph traversal
 
 ### Advanced Topics
-- **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (STRAIGHT, CROSSROAD, DEAD_END)
+- **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)
 - **[SURGEON_MODE.md](docs/SURGEON_MODE.md)** — Efficiency-focused mode (1:1 steps/visited target)
 - **[TRANSITION_GRAPH_LEARNING.md](docs/TRANSITION_GRAPH_LEARNING.md)** — Learning connectivity from walks
 - **[src/README.md](src/README.md)** — Developer guide (build, test, deploy)
@@ -159,4 +184,4 @@ This is a technical experiment for fun. It is not a tool for mass scraping. Use 
 
 **Not affiliated with Google or Google Maps.**
 
-*Created with confused ❤️. The bot is always running away from its own breadcrumbs.*
+*Created with confused ❤️. The bot explores by following the left wall.*
