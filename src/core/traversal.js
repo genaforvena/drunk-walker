@@ -300,6 +300,11 @@ export function createUnifiedAlgorithm(cfg) {
   let traversedSegments = new Set();  // Segments traversed bidirectionally (format: "loc1|loc2")
   let escapeTargetLocation = null;  // Emergency escape target when stuck in loop
   let aggressiveScanCooldown = 0;  // Cooldown after aggressive scan to prevent immediate return mode
+  
+  // Wall-following DFS state
+  let dfsStack = [];  // Stack of nodes to explore (LIFO for DFS)
+  let dfsEntryPoint = null;  // Entry point of current DFS branch
+  let wallFollowMode = false;  // True when following left wall back
 
   const enhancedGraph = new EnhancedTransitionGraph();
 
@@ -447,6 +452,31 @@ export function createUnifiedAlgorithm(cfg) {
     console.log(`[DEBUG] hasBeenHereBefore=${hasBeenHereBefore}, isExhausted=${isExhausted}, fullyExplored=${fullyExploredNodes.has(currentLocation)}`);
 
     // ═══════════════════════════════════════════════════════════
+    // 🧱 WALL-FOLLOWING DFS: When hitting dead end, turn LEFT
+    // and follow the wall back, exploring missed side paths
+    // ═══════════════════════════════════════════════════════════
+    
+    // Push nodes with untried yaws onto DFS stack as we pass them
+    if (currentNode.hasUntriedYaws() && !fullyExploredNodes.has(currentLocation)) {
+      const untriedCount = 6 - currentNode.triedYaws.size;
+      // Only push if not already in stack (avoid duplicates)
+      const alreadyInStack = dfsStack.some(n => n.location === currentLocation);
+      if (!alreadyInStack && untriedCount >= 1) {
+        dfsStack.push({ location: currentLocation, untriedCount, orientation });
+        console.log(`📚 DFS: Pushed ${currentLocation} to stack (${dfsStack.length} nodes)`);
+      }
+    }
+    
+    // When at fully-explored node with no untried yaws, pop from stack
+    if (isExhausted && fullyExploredNodes.has(currentLocation) && dfsStack.length > 0) {
+      // Check if current node is the top of stack - if so, pop it (we've explored it)
+      if (dfsStack[dfsStack.length - 1].location === currentLocation) {
+        dfsStack.pop();
+        console.log(`📚 DFS: Popped ${currentLocation} from stack (${dfsStack.length} nodes remaining)`);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // 🚨 HIGH REVISIT DETECTION: If we've visited this node too many
     // times, we're stuck in a loop. ESCAPE to nearest crossroad!
     // ═══════════════════════════════════════════════════════════
@@ -454,69 +484,61 @@ export function createUnifiedAlgorithm(cfg) {
     if (nodeVisitCount > maxRevisits) {
       console.log(`🚨 HIGH REVISIT: ${nodeVisitCount} visits to ${currentLocation}! Finding frontier to explore...`);
       
-      // FRONTIER EXPLORATION: Find node with MOST untried yaws, preferring distant nodes
-      // This breaks out of tunnels and finds new exploration areas
-      let bestFrontier = null;
-      let bestScore = -Infinity;
-      const minStepsBack = 3;  // Don't count immediate neighbors
-      
-      for (let i = breadcrumbs.length - 1 - minStepsBack; i >= 0; i--) {
-        const loc = breadcrumbs[i];
-        if (loc === currentLocation) continue;
-        if (fullyExploredNodes.has(loc)) continue;  // Skip fully explored nodes
+      // WALL-FOLLOWING: Find node with untried yaws by popping from DFS stack
+      // This gives us the most recently discovered unexplored branch
+      while (dfsStack.length > 0) {
+        const candidate = dfsStack[dfsStack.length - 1];  // Peek top
+        const node = enhancedGraph.nodes.get(candidate.location);
         
-        const node = enhancedGraph.nodes.get(loc);
-        if (!node || !node.hasUntriedYaws()) continue;
-        
-        const distance = breadcrumbs.length - i;
-        const untriedCount = 6 - node.triedYaws.size;
-        
-        // Skip dead-end nodes (only 1 untried yaw = arrival yaw, nothing to explore)
-        if (untriedCount <= 1) continue;
-        
-        // Score: prioritize untried yaws, but also consider distance
-        // Higher score = better frontier candidate
-        const score = (untriedCount * 10) - distance;
-        
-        if (score > bestScore) {
-          bestScore = score;
-          bestFrontier = { location: loc, node, distance, untriedCount };
-        }
-      }
-      
-      if (bestFrontier) {
-        console.log(`🚨 FRONTIER: Found ${bestFrontier.location} (${bestFrontier.distance} steps away, ${bestFrontier.untriedCount} untried yaws)`);
-        escapeTargetLocation = bestFrontier.location;
-
-        // Get an untried yaw that doesn't lead back to known explored nodes
-        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !bestFrontier.node.triedYaws.has(y));
-        let escapeYaw = orientation;  // Default: face current direction
-
-        // Find untried yaw that's most different from the direction we're coming from
-        if (untriedYaws.length > 0) {
-          // Calculate the yaw we're approaching from (opposite of our current orientation)
-          const approachYaw = (orientation + 180) % 360;
-
-          // Prefer untried yaws that are NOT pointing back along our approach
-          let bestDiff = 0;
-          for (const yaw of untriedYaws) {
-            const diff = yawDifference(approachYaw, yaw);
-            if (diff > bestDiff) {
-              bestDiff = diff;
-              escapeYaw = yaw;
+        if (node && node.hasUntriedYaws() && !fullyExploredNodes.has(candidate.location)) {
+          // Found valid frontier! Navigate there
+          const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !node.triedYaws.has(y));
+          if (untriedYaws.length >= 1) {
+            console.log(`🧱 WALL-FOLLOW: Found frontier ${candidate.location} (${untriedYaws.length} untried yaws)`);
+            escapeTargetLocation = candidate.location;
+            
+            // Find untried yaw that's LEFT of our approach direction (90-180°)
+            const approachYaw = (orientation + 180) % 360;
+            let bestYaw = null;
+            let bestDiff = 90;  // Minimum for "left" turn
+            
+            for (const yaw of untriedYaws) {
+              const diff = yawDifference(approachYaw, yaw);
+              // Prefer left turns (90-180° from approach)
+              if (diff >= 90 && diff <= 180 && diff > bestDiff) {
+                bestDiff = diff;
+                bestYaw = yaw;
+              }
+            }
+            
+            // Fallback: any untried yaw
+            if (bestYaw === null && untriedYaws.length > 0) {
+              bestYaw = untriedYaws[0];
+              bestDiff = yawDifference(approachYaw, bestYaw);
+            }
+            
+            if (bestYaw !== null) {
+              navigationTarget = {
+                location: candidate.location,
+                targetYaw: bestYaw,
+                distance: dfsStack.length
+              };
+              isReturning = true;
+              consecutiveStraightMoves = 0;
+              wallFollowMode = true;
+              console.log(`🧱 WALL-FOLLOW: Targeting yaw ${bestYaw}° (diff=${Math.round(bestDiff)}° from approach)`);
+              break;
             }
           }
         }
-
-        navigationTarget = {
-          location: bestFrontier.location,
-          targetYaw: escapeYaw,
-          distance: bestFrontier.distance
-        };
-        isReturning = true;
-        consecutiveStraightMoves = 0;
-      } else {
-        console.log(`🚨 FRONTIER: No unexplored nodes found! Graph may be fully explored.`);
+        
+        // Pop invalid entries (fully explored or no untried yaws)
+        dfsStack.pop();
+        console.log(`📚 DFS: Popped invalid entry, ${dfsStack.length} nodes remaining`);
+      }
+      
+      if (dfsStack.length === 0) {
+        console.log(`🧱 WALL-FOLLOW: DFS stack empty! Graph may be fully explored.`);
       }
     }
 
@@ -823,6 +845,60 @@ export function createUnifiedAlgorithm(cfg) {
           console.log('[DEBUG] Already facing target yaw, moving forward');
           return { turn: false };
         }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🧱 WALL-FOLLOWING: At dead end - turn LEFT (90-180°) to follow wall
+    // ═══════════════════════════════════════════════════════════
+    if (isExhausted && fullyExploredNodes.has(currentLocation)) {
+      // Calculate approach direction (where we came from)
+      let approachYaw = orientation;
+      if (previousLocation) {
+        const prevParts = previousLocation.split(',').map(Number);
+        const currentParts = currentLocation.split(',').map(Number);
+        const dLat = currentParts[0] - prevParts[0];
+        const dLng = currentParts[1] - prevParts[1];
+        approachYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (approachYaw < 0) approachYaw += 360;
+        // Approach yaw is opposite of travel direction
+        approachYaw = (approachYaw + 180) % 360;
+      }
+      
+      // Try to find untried yaw that's LEFT of approach (90-180°)
+      const allYaws = [0, 60, 120, 180, 240, 300];
+      let bestYaw = null;
+      let bestDiff = 90;
+      
+      for (const yaw of allYaws) {
+        const diff = yawDifference(approachYaw, yaw);
+        // Prefer left turns (90-180° from approach)
+        if (diff >= 90 && diff <= 180 && diff > bestDiff) {
+          bestDiff = diff;
+          bestYaw = yaw;
+        }
+      }
+      
+      // Fallback: try any yaw we haven't tried recently
+      if (bestYaw === null) {
+        for (const yaw of allYaws) {
+          const diff = yawDifference(approachYaw, yaw);
+          if (diff > bestDiff) {
+            bestDiff = diff;
+            bestYaw = yaw;
+          }
+        }
+      }
+      
+      if (bestYaw !== null) {
+        const diff = yawDifference(orientation, bestYaw);
+        console.log(`🧱 WALL-FOLLOW: Dead end! Turning LEFT to yaw ${bestYaw}° (diff=${Math.round(diff)}° from orientation)`);
+        const turnAngle = getLeftTurnAngle(orientation, bestYaw);
+        const turnDirection = getTurnDirection(orientation, bestYaw);
+        consecutiveStraightMoves = 0;
+        lastDecisionWasTurn = true;
+        wallFollowMode = true;
+        return { turn: true, angle: turnAngle, direction: turnDirection };
       }
     }
 
