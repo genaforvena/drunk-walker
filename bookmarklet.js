@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T21:16:01.317Z
+// Built: 2026-03-22T21:30:09.826Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -477,6 +477,8 @@ function createUnifiedAlgorithm(cfg) {
 
     // ═══════════════════════════════════════════════════════════
     // 🔄 WALL-FOLLOW MODE: Scan for LEFT exits (90-180° from forward)
+    // OPTIMIZATION: When stuck ≥1, try ANY untried yaw (not just left exits)
+    // This catches interior branches earlier without breaking PLEDGE guarantees
     // ═══════════════════════════════════════════════════════════
     if (wallFollowMode && currentNode.hasUntriedYaws()) {
       const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
@@ -491,6 +493,24 @@ function createUnifiedAlgorithm(cfg) {
           bestDiff = diff;
           bestYaw = yaw;
         }
+      }
+
+      // OPTIMIZATION: If stuck ≥1, try ANY untried yaw (aggressive branch detection)
+      // This catches interior branches that aren't on the left wall
+      if (bestYaw === null && stuckCount >= 1 && untriedYaws.length > 0) {
+        // Pick untried yaw closest to forward bearing (most likely to be new territory)
+        let closestYaw = null;
+        let closestDiff = Infinity;
+        for (const yaw of untriedYaws) {
+          const diff = yawDifference(currentForwardBearing, yaw);
+          if (diff < closestDiff) {
+            closestDiff = diff;
+            closestYaw = yaw;
+          }
+        }
+        bestYaw = closestYaw;
+        bestDiff = closestDiff;
+        console.log(`🧱 WALL-FOLLOW+STUCK: Trying any untried yaw ${bestYaw}° (diff=${Math.round(bestDiff)}° from forward)`);
       }
 
       // Fallback: any untried yaw
