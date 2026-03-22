@@ -257,21 +257,22 @@ export function createUnifiedAlgorithm(cfg) {
     // 🆕 NEW NODE: Face forward bearing, go straight
     // ═══════════════════════════════════════════════════════════
     if (isNewNode) {
-      // 🚨 FULL 360° SCAN: On FIRST forward pass, verify ALL 6 yaws before continuing
+      // 🚨 FULL 360° SCAN: On FIRST forward pass, verify ALL untried yaws before continuing
       // This catches side branches that were missed during forward pass
       // Only applies to unexplored nodes (nodeVisitCount === 0)
       if (nodeVisitCount === 0 && currentNode.triedYaws.size < 6 && consecutiveStraightMoves >= 5) {
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
-        // Try side yaws first (perpendicular to forward bearing)
-        const sideYaws = untriedYaws.filter(y => {
-          const diff = yawDifference(currentForwardBearing, y);
-          return diff >= 60 && diff <= 120;  // Side exits (60-120° from forward)
-        });
-        if (sideYaws.length > 0) {
-          const sideYaw = sideYaws[0];
-          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking side yaw ${sideYaw}°`);
-          const turnAngle = getLeftTurnAngle(orientation, sideYaw);
-          const turnDirection = getTurnDirection(orientation, sideYaw);
+        if (untriedYaws.length > 0) {
+          // Try side yaws first (perpendicular to forward bearing), then any untried yaw
+          let chosenYaw = null;
+          const sideYaws = untriedYaws.filter(y => {
+            const diff = yawDifference(currentForwardBearing, y);
+            return diff >= 60 && diff <= 120;  // Side exits (60-120° from forward)
+          });
+          chosenYaw = sideYaws.length > 0 ? sideYaws[0] : untriedYaws[0];
+          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking yaw ${chosenYaw}° (untried: ${untriedYaws.join(',')})`);
+          const turnAngle = getLeftTurnAngle(orientation, chosenYaw);
+          const turnDirection = getTurnDirection(orientation, chosenYaw);
           consecutiveStraightMoves = 0;  // Reset counter
           lastDecisionWasTurn = true;
           return { turn: true, angle: turnAngle, direction: turnDirection };
