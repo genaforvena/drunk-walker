@@ -259,8 +259,12 @@ export function createUnifiedAlgorithm(cfg) {
     // 🧭 COMMITTED DIRECTION: Apply hysteresis to prevent oscillation
     // Only update committed direction when bearing differs by >45°
     // This prevents micro-adjustments on straight roads
+    // EXCEPTION: When justArrived, always update to current movement bearing
     // ═══════════════════════════════════════════════════════════
     if (committedDirection === null) {
+      committedDirection = currentForwardBearing;
+    } else if (justArrived && !isNewNode) {
+      // Just moved successfully - update committed direction to match actual movement
       committedDirection = currentForwardBearing;
     } else {
       const committedDiff = yawDifference(committedDirection, currentForwardBearing);
@@ -473,6 +477,8 @@ export function createUnifiedAlgorithm(cfg) {
 
     // ═══════════════════════════════════════════════════════════
     // FORWARD MODE: At node with untried yaws - try them
+    // Pick untried yaw closest to effective bearing (committed direction)
+    // Only align if turn is reasonable (<90°) - don't do massive realignments
     // ═══════════════════════════════════════════════════════════
     if (currentNode.hasUntriedYaws()) {
       const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
@@ -492,12 +498,12 @@ export function createUnifiedAlgorithm(cfg) {
       const nextYaw = bestUntiredYaw;
       if (nextYaw !== null) {
         // ═══════════════════════════════════════════════════════════
-        // 🎯 WIDENED YAW TOLERANCE: Accept ±20° drift (was ±5°)
-        // Changed from (diff > 5 && diff < 355) to (diff > 20 && diff < 340)
-        // This prevents micro-adjustments when already roughly aligned
+        // 🎯 YAW ALIGNMENT: Only turn if angle is reasonable (<90°)
+        // Prevents massive realignments that waste time and cause stuck detection
+        // Also use ±20° tolerance to avoid micro-adjustments
         // ═══════════════════════════════════════════════════════════
         const diff = yawDifference(orientation, nextYaw);
-        if (diff > 20 && diff < 340) {
+        if (diff > 20 && diff < 90) {
           console.log(`🔍 FORWARD: Trying yaw ${nextYaw}° (diff=${Math.round(diff)}° from orientation, ${Math.round(bestDiff)}° from effective bearing)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           const turnDirection = getTurnDirection(orientation, nextYaw);
@@ -505,8 +511,12 @@ export function createUnifiedAlgorithm(cfg) {
           lastDecisionWasTurn = true;
           linearSegmentStart = null;
           return { turn: true, angle: turnAngle, direction: turnDirection };
-        } else {
+        } else if (diff <= 20) {
           console.log('[DEBUG] Already facing target yaw (within ±20° tolerance), moving forward');
+          return { turn: false };
+        } else {
+          // Turn too large (>90°) - don't realign, just go straight
+          console.log(`[DEBUG] Skipping yaw ${nextYaw}° alignment - turn too large (${Math.round(diff)}° > 90°)`);
           return { turn: false };
         }
       }
