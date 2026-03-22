@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T20:25:49.722Z
+// Built: 2026-03-22T20:37:17.702Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -372,19 +372,38 @@ function createUnifiedAlgorithm(cfg) {
     // 🆕 NEW NODE: Face forward bearing, go straight
     // ═══════════════════════════════════════════════════════════
     if (isNewNode) {
+      // ═══════════════════════════════════════════════════════════
+      // 🧭 CAMERA ALIGNMENT: Keep camera aligned with direction
+      // Reduced threshold from 60° to 40° for better curve tracking
+      // This prevents large corrective turns later (e.g., 78° at node 26)
+      // ═══════════════════════════════════════════════════════════
+      const bearingDiff = yawDifference(orientation, effectiveBearing);
+      if (bearingDiff > 40 && bearingDiff < 150) {
+        console.log(`🧭 NEW NODE: Aligning camera to effective bearing ${Math.round(effectiveBearing)}° (diff=${Math.round(bearingDiff)}°)`);
+        const turnAngle = getLeftTurnAngle(orientation, effectiveBearing);
+        const turnDirection = getTurnDirection(orientation, effectiveBearing);
+        lastDecisionWasTurn = true;
+        return { turn: true, angle: turnAngle, direction: turnDirection };
+      }
+
+      // ═══════════════════════════════════════════════════════════
       // 🚨 FULL 360° SCAN: On FIRST forward pass, verify ALL untried yaws before continuing
       // This catches side branches that were missed during forward pass
       // Only applies to unexplored nodes (nodeVisitCount === 0)
-      // KEY OPTIMIZATION: Only scan if there are 2+ untried yaws within ±90° of forward bearing
-      // This avoids wasteful scans on straight roads with slight curves
+      // KEY FIX: Only scan if there are 2+ untried yaws that are PERPENDICULAR (60-120° from bearing)
+      // This avoids wasteful scans on straight roads where untried yaws are just forward/back variants
       if (nodeVisitCount === 0 && currentNode.triedYaws.size < 6 && consecutiveStraightMoves >= 5) {
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
 
-        // Count untried yaws that are within ±90° of effective bearing (potential side branches)
-        const sideBranchYaws = untriedYaws.filter(y => yawDifference(effectiveBearing, y) <= 90);
+        // Count untried yaws that are PERPENDICULAR (60-120° from effective bearing)
+        // These indicate real side streets, not just forward/back variations
+        const perpendicularYaws = untriedYaws.filter(y => {
+          const diff = yawDifference(effectiveBearing, y);
+          return diff >= 60 && diff <= 120;
+        });
 
-        // Only scan if there are 2+ potential side branches (indicates a junction, not a curve)
-        if (sideBranchYaws.length >= 2) {
+        // Only scan if there are 2+ perpendicular yaws (real junction indicators)
+        if (perpendicularYaws.length >= 2) {
           // 🎯 SMART SCAN: Sort untried yaws by turn cost (smallest turn first)
           // This finds exits faster with fewer wasted turns
           const sortedYaws = [...untriedYaws].sort((a, b) => {
@@ -393,29 +412,16 @@ function createUnifiedAlgorithm(cfg) {
             return turnA - turnB;  // Smallest turn first
           });
           const chosenYaw = sortedYaws[0];
-          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking yaw ${chosenYaw}° (turn=${yawDifference(orientation, chosenYaw).toFixed(0)}°, untried: ${untriedYaws.join(',')}, sideBranches: ${sideBranchYaws.join(',')})`);
+          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking yaw ${chosenYaw}° (turn=${yawDifference(orientation, chosenYaw).toFixed(0)}°, untried: ${untriedYaws.join(',')}, perpendicular: ${perpendicularYaws.join(',')})`);
           const turnAngle = getLeftTurnAngle(orientation, chosenYaw);
           const turnDirection = getTurnDirection(orientation, chosenYaw);
           consecutiveStraightMoves = 0;  // Reset counter
           lastDecisionWasTurn = true;
           return { turn: true, angle: turnAngle, direction: turnDirection };
         } else {
-          // Not enough side branches - just continue straight
-          console.log(`[DEBUG] Skipping 360° scan: only ${sideBranchYaws.length} side branch yaws (need 2+)`);
+          // Not enough perpendicular yaws - just continue straight
+          console.log(`[DEBUG] Skipping 360° scan: only ${perpendicularYaws.length} perpendicular yaws (need 2+)`);
         }
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // 🧭 INCREASED THRESHOLD: Only turn for significant direction changes
-      // Changed from 45° to 60° to reduce micro-adjustments on straight roads
-      // ═══════════════════════════════════════════════════════════
-      const bearingDiff = yawDifference(orientation, effectiveBearing);
-      if (bearingDiff > 60 && bearingDiff < 150) {
-        console.log(`🧭 NEW NODE: Turning to face effective bearing ${Math.round(effectiveBearing)}° (diff=${Math.round(bearingDiff)}°)`);
-        const turnAngle = getLeftTurnAngle(orientation, effectiveBearing);
-        const turnDirection = getTurnDirection(orientation, effectiveBearing);
-        lastDecisionWasTurn = true;
-        return { turn: true, angle: turnAngle, direction: turnDirection };
       }
 
       // ═══════════════════════════════════════════════════════════
