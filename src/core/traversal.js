@@ -144,6 +144,7 @@ export function createUnifiedAlgorithm(cfg) {
   let wallFollowMode = false;
   let wallFollowBearing = null;
   let forwardBearing = null;
+  let wallFollowRevisitCount = 0;  // Track revisits during wall-follow to detect loops
 
   // Complete stuck detection - clear state when looping on same 1-2 nodes
   let locationStuckCounter = 0;
@@ -380,11 +381,29 @@ export function createUnifiedAlgorithm(cfg) {
         wallFollowMode = false;
         wallFollowBearing = null;
         forwardBearing = null;
+        wallFollowRevisitCount = 0;  // Reset revisit counter when exiting wall-follow
         committedDirection = null;  // Reset committed direction for new forward phase
         consecutiveStraightMoves = 0;
         lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
+    }
+
+    // 🚨 LOOP DETECTION: If wall-follow revisits too many nodes, break out
+    // This prevents infinite loops in highly connected territories
+    if (wallFollowMode && nodeVisitCount >= 3) {
+      wallFollowRevisitCount++;
+      if (wallFollowRevisitCount >= 3) {
+        console.log(`🧱 WALL-FOLLOW LOOP DETECTED! ${wallFollowRevisitCount} revisits, breaking wall...`);
+        wallFollowMode = false;
+        wallFollowBearing = null;
+        forwardBearing = null;
+        wallFollowRevisitCount = 0;
+        // Fall through to panic mode to try any untried yaw
+      }
+    } else if (wallFollowMode && nodeVisitCount === 0) {
+      // Reset counter when visiting new nodes during wall-follow
+      wallFollowRevisitCount = 0;
     }
 
     // In wall-follow mode: face wall-follow bearing and move
