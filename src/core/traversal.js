@@ -155,6 +155,12 @@ export function createUnifiedAlgorithm(cfg) {
   let lastDecisionWasTurn = false;
   let linearSegmentStart = null;
 
+  // ═══════════════════════════════════════════════════════════
+  // 🧭 COMMITTED DIRECTION: Hysteresis to prevent oscillation
+  // Only change committed direction when bearing differs by >45°
+  // ═══════════════════════════════════════════════════════════
+  let committedDirection = null;
+
   const enhancedGraph = new EnhancedTransitionGraph();
 
   const decide = (context) => {
@@ -185,6 +191,7 @@ export function createUnifiedAlgorithm(cfg) {
         wallFollowMode = false;
         wallFollowBearing = null;
         forwardBearing = null;
+        committedDirection = null;  // Reset committed direction
         consecutiveStraightMoves = 0;
         linearSegmentStart = null;
         locationStuckCounter = 0;
@@ -248,6 +255,25 @@ export function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
+    // 🧭 COMMITTED DIRECTION: Apply hysteresis to prevent oscillation
+    // Only update committed direction when bearing differs by >45°
+    // This prevents micro-adjustments on straight roads
+    // ═══════════════════════════════════════════════════════════
+    if (committedDirection === null) {
+      committedDirection = currentForwardBearing;
+    } else {
+      const committedDiff = yawDifference(committedDirection, currentForwardBearing);
+      if (committedDiff > 45) {
+        // Significant direction change - update committed direction
+        committedDirection = currentForwardBearing;
+      }
+      // Otherwise, keep using committed direction (ignore minor bearing changes)
+    }
+
+    // Use committedDirection for decision making (not raw currentForwardBearing)
+    const effectiveBearing = committedDirection;
+
+    // ═══════════════════════════════════════════════════════════
     // 🆕 NEW NODE: Face forward bearing, go straight
     // ═══════════════════════════════════════════════════════════
     if (isNewNode) {
@@ -274,15 +300,35 @@ export function createUnifiedAlgorithm(cfg) {
         }
       }
 
-      // Face forward bearing (if not already)
-      // Only turn for SIGNIFICANT direction changes (>45°) to avoid excessive rotation
-      const bearingDiff = yawDifference(orientation, currentForwardBearing);
-      if (bearingDiff > 45 && bearingDiff < 165) {
-        console.log(`🧭 NEW NODE: Turning to face forward bearing ${Math.round(currentForwardBearing)}° (diff=${Math.round(bearingDiff)}°)`);
-        const turnAngle = getLeftTurnAngle(orientation, currentForwardBearing);
-        const turnDirection = getTurnDirection(orientation, currentForwardBearing);
+      // ═══════════════════════════════════════════════════════════
+      // 🧭 INCREASED THRESHOLD: Only turn for significant direction changes
+      // Changed from 45° to 60° to reduce micro-adjustments on straight roads
+      // ═══════════════════════════════════════════════════════════
+      const bearingDiff = yawDifference(orientation, effectiveBearing);
+      if (bearingDiff > 60 && bearingDiff < 150) {
+        console.log(`🧭 NEW NODE: Turning to face effective bearing ${Math.round(effectiveBearing)}° (diff=${Math.round(bearingDiff)}°)`);
+        const turnAngle = getLeftTurnAngle(orientation, effectiveBearing);
+        const turnDirection = getTurnDirection(orientation, effectiveBearing);
         lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // 🚫 SKIP YAW BUCKET ALIGNMENT ON STRAIGHT ROADS
+      // If 3+ consecutive straight moves, don't micro-adjust to yaw buckets
+      // Only turn if truly blocked or at a new junction
+      // ═══════════════════════════════════════════════════════════
+      if (consecutiveStraightMoves >= 3) {
+        // Already committed to a direction, keep going straight
+        // Only turn if this is a fresh node with no tried yaws
+        if (currentNode.triedYaws.size === 0) {
+          // First time here, might need to align
+        } else {
+          // Been going straight, don't micro-adjust
+          consecutiveStraightMoves++;
+          lastDecisionWasTurn = false;
+          return { turn: false };
+        }
       }
 
       console.log('[DEBUG] NEW NODE - going straight (no turn)');
@@ -350,6 +396,7 @@ export function createUnifiedAlgorithm(cfg) {
         wallFollowMode = false;
         wallFollowBearing = null;
         forwardBearing = null;
+        committedDirection = null;  // Reset committed direction for new forward phase
         consecutiveStraightMoves = 0;
         lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
@@ -426,13 +473,13 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     if (currentNode.hasUntriedYaws()) {
       const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
-      
-      // Find untried yaw closest to FORWARD BEARING
+
+      // Find untried yaw closest to EFFECTIVE BEARING (committed direction)
       let bestUntiredYaw = null;
       let bestDiff = Infinity;
 
       for (const yaw of untriedYaws) {
-        const diffToForward = yawDifference(currentForwardBearing, yaw);
+        const diffToForward = yawDifference(effectiveBearing, yaw);
         if (diffToForward < bestDiff) {
           bestDiff = diffToForward;
           bestUntiredYaw = yaw;
@@ -441,9 +488,14 @@ export function createUnifiedAlgorithm(cfg) {
 
       const nextYaw = bestUntiredYaw;
       if (nextYaw !== null) {
+        // ═══════════════════════════════════════════════════════════
+        // 🎯 WIDENED YAW TOLERANCE: Accept ±20° drift (was ±5°)
+        // Changed from (diff > 5 && diff < 355) to (diff > 20 && diff < 340)
+        // This prevents micro-adjustments when already roughly aligned
+        // ═══════════════════════════════════════════════════════════
         const diff = yawDifference(orientation, nextYaw);
-        if (diff > 5 && diff < 355) {
-          console.log(`🔍 FORWARD: Trying yaw ${nextYaw}° (diff=${Math.round(diff)}° from orientation, ${Math.round(bestDiff)}° from forward)`);
+        if (diff > 20 && diff < 340) {
+          console.log(`🔍 FORWARD: Trying yaw ${nextYaw}° (diff=${Math.round(diff)}° from orientation, ${Math.round(bestDiff)}° from effective bearing)`);
           const turnAngle = getLeftTurnAngle(orientation, nextYaw);
           const turnDirection = getTurnDirection(orientation, nextYaw);
           consecutiveStraightMoves = 0;
@@ -451,7 +503,7 @@ export function createUnifiedAlgorithm(cfg) {
           linearSegmentStart = null;
           return { turn: true, angle: turnAngle, direction: turnDirection };
         } else {
-          console.log('[DEBUG] Already facing target yaw, moving forward');
+          console.log('[DEBUG] Already facing target yaw (within ±20° tolerance), moving forward');
           return { turn: false };
         }
       }
