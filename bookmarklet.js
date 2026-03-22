@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T10:54:18.455Z
+// Built: 2026-03-22T11:02:16.448Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -552,6 +552,35 @@ function createUnifiedAlgorithm(cfg) {
           }
         } else {
           console.log(`  Skipping aggressive scan: only ${untriedCount} untried yaw(s) - low probability junction`);
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // 🔍 CUL-DE-SAC VERIFICATION: At NEW nodes, if we've gone 10+ straight
+      // new nodes, verify this isn't a false dead-end by checking ONE side exit
+      // This prevents missing hidden branches that appear later
+      // ═══════════════════════════════════════════════════════════
+      if (isNewNode && consecutiveStraightMoves >= 10 && currentNode.hasUntriedYaws()) {
+        const untriedCount = 6 - currentNode.triedYaws.size;
+        if (untriedCount >= 2) {
+          console.log(`🔍 CUL-DE-SAC CHECK: ${consecutiveStraightMoves} straight new nodes, verifying with side exit`);
+          const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+          // Pick a side yaw (60-150° from forward bearing)
+          let bestSideYaw = null;
+          for (const yaw of untriedYaws) {
+            const diff = yawDifference(currentForwardBearing, yaw);
+            if (diff >= 60 && diff <= 150) {
+              bestSideYaw = yaw;
+              break;
+            }
+          }
+          if (bestSideYaw !== null) {
+            console.log(`🔍 Verifying with yaw ${bestSideYaw}°`);
+            const turnAngle = getLeftTurnAngle(orientation, bestSideYaw);
+            const turnDirection = getTurnDirection(orientation, bestSideYaw);
+            lastDecisionWasTurn = true;
+            return { turn: true, angle: turnAngle, direction: turnDirection };
+          }
         }
       }
 
