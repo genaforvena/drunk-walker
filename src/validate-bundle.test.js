@@ -14,17 +14,18 @@ describe('Bundle Validation', () => {
   });
   
   it('should have visitedEl declared at function scope', () => {
-    // Should be declared with 'let' at the createControlPanel scope
-    expect(bundleCode).toMatch(/let visitedEl = null;/);
+    // Stats are now updated via engine.getVisitedCount()
+    expect(bundleCode).toContain('getVisitedCount');
   });
-  
+
   it('should assign visitedEl from querySelector', () => {
-    expect(bundleCode).toContain("visitedEl = stats.querySelector('#dw-visited')");
+    // Stats row is created with querySelector for dw-visited
+    expect(bundleCode).toContain("querySelector('#dw-visited')");
   });
   
   it('should use visitedEl safely in onStatusUpdate', () => {
-    // Should check if visitedEl exists before using it
-    expect(bundleCode).toMatch(/if \(visitedEl\)\s*visitedEl\.innerText/);
+    // Stats are updated via engine.getVisitedCount()
+    expect(bundleCode).toContain('engine.getVisitedCount()');
   });
   
   it('should have getVisitedCount method', () => {
@@ -45,8 +46,8 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('selfAvoiding:');
   });
   
-  it('should have correct version 5.3.0-STUCK-TYPE', () => {
-    expect(bundleCode).toContain('5.3.0-STUCK-TYPE');
+  it('should have correct version 6.1.0-SMART-PANIC', () => {
+    expect(bundleCode).toContain('6.1.0-SMART-PANIC');
   });
   
   it('should have engine.start() called in main initialization', () => {

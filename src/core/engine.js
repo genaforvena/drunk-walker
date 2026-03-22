@@ -1,10 +1,10 @@
 /**
- * Drunk Walker Core Engine v5.3.0-STUCK-TYPE
- * 
+ * Drunk Walker Core Engine v6.1.0-SMART-PANIC
+ *
  * ARCHITECTURE:
  * - Engine: State management, tick timing, path recording
  * - Wheel: Orientation management
- * - Traversal: Decision-making with stuck type detection
+ * - Traversal: Decision-making with PLEDGE wall-following
  */
 
 import { createWheel } from './wheel.js';

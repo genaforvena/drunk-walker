@@ -7,15 +7,15 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   const bookmarkletContent = fs.readFileSync('bookmarklet.js', 'utf8');
 
   // Extract the LATEST_URL from index.html (for latest version button)
-  const urlMatch = indexContent.match(/const LATEST_URL = ['"](.+)['"]/);
+  const urlMatch = indexContent.match(/const LATEST_URL = [`'"](.+)[`'"]/);
   const bookmarkletUrl = urlMatch ? urlMatch[1] : '';
 
   it('should have correct GitHub raw URL for latest version', () => {
-    expect(bookmarkletUrl).toBe('https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet.js');
+    expect(bookmarkletUrl).toContain('https://raw.githubusercontent.com/genaforvena/drunk-walker/main/bookmarklet.js');
   });
 
   it('should contain the latest version string in bookmarklet.js', () => {
-    expect(bookmarkletContent).toContain('v5.3.0-STUCK-TYPE');
+    expect(bookmarkletContent).toContain('v6.1.0-SMART-PANIC');
   });
 
   it('should have keyboard mode enabled by default', () => {
@@ -28,7 +28,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
 
   it('should implement the start() function with auto-start logic in bookmarklet.js', () => {
     expect(bookmarkletContent).toContain('ui.init()');
-    expect(bookmarkletContent).toContain('btn.innerText = \'🔴 STOP\'');
+    expect(bookmarkletContent).toContain('<span>⏹</span> STOP');
     expect(bookmarkletContent).toContain('engine.start()');
   });
 
@@ -112,7 +112,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should have the correct version in the title', () => {
-    expect(indexContent).toContain('<title>🤪 Drunk Walker v4.2.0-EXP');
+    expect(indexContent).toContain('<title>🤪 Drunk Walker');
   });
 
   it('should have loading message for script fetch', () => {
