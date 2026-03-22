@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T22:10:38.202Z
+// Built: 2026-03-22T23:09:05.337Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -317,83 +317,52 @@ function createUnifiedAlgorithm(cfg) {
     console.log(`[DEBUG] currentNode.triedYaws=${[...currentNode.triedYaws].join(',')}, hasUntried=${currentNode.hasUntriedYaws()}`);
 
     // ═══════════════════════════════════════════════════════════
-    // 🧭 SMOOTH FORWARD BEARING: Distance-weighted breadcrumb window
-    // OPTIMIZATION: Weight recent breadcrumbs more heavily
-    // OPTIMIZATION: Reject outliers (sudden sharp turns >90°)
+    // 🧭 SMOOTH FORWARD BEARING: Use rolling window of 3 breadcrumbs
     // This smooths yaw adjustments and reduces jittery turning
     // ═══════════════════════════════════════════════════════════
     let currentForwardBearing = orientation;
     if (previousLocation) {
-      // Calculate simple prev→cur bearing as baseline
-      const prevParts = previousLocation.split(',').map(Number);
-      const dLat = currentParts[0] - prevParts[0];
-      const dLng = currentParts[1] - prevParts[1];
-      const simpleBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
-      const baselineBearing = simpleBearing < 0 ? simpleBearing + 360 : simpleBearing;
-
-      // Use rolling window with distance weighting (5 breadcrumbs max)
-      const windowSize = Math.min(5, breadcrumbs.length);
-      if (windowSize >= 3) {
+      // Use rolling window: prefer 3-point average if available, else 2-point
+      const windowSize = Math.min(3, breadcrumbs.length);
+      if (windowSize >= 2) {
+        // Get the last N locations from breadcrumbs
         const recentLocs = breadcrumbs.slice(-windowSize);
-
-        // Calculate bearing from first→last in window
-        const first = recentLocs[0].split(',').map(Number);
-        const last = recentLocs[recentLocs.length - 1].split(',').map(Number);
-        const windowDLat = last[0] - first[0];
-        const windowDLng = last[1] - first[1];
-
-        // Only use window bearing if we have meaningful displacement (>2m)
-        if (Math.abs(windowDLat) > 0.00015 || Math.abs(windowDLng) > 0.00015) {
-          let windowBearing = Math.atan2(windowDLng, windowDLat) * 180 / Math.PI;
-          if (windowBearing < 0) windowBearing += 360;
-
-          // OPTIMIZATION: Reject outlier if window bearing differs >90° from baseline
-          // This prevents sudden sharp turns from misleading the bearing
-          const bearingDiff = yawDifference(baselineBearing, windowBearing);
-          if (bearingDiff <= 90) {
-            // Blend: 70% window bearing, 30% baseline (smooths gradual curves)
-            const blendFactor = 0.7;
-            const blendedBearing = (windowBearing * blendFactor + baselineBearing * (1 - blendFactor)) % 360;
-            currentForwardBearing = blendedBearing < 0 ? blendedBearing + 360 : blendedBearing;
-          } else {
-            // Outlier detected - trust baseline more
-            currentForwardBearing = baselineBearing;
+        if (recentLocs.length >= 2) {
+          const first = recentLocs[0].split(',').map(Number);
+          const last = recentLocs[recentLocs.length - 1].split(',').map(Number);
+          const dLat = last[0] - first[0];
+          const dLng = last[1] - first[1];
+          // Only use smoothed bearing if we have meaningful displacement (>1m)
+          if (Math.abs(dLat) > 0.0001 || Math.abs(dLng) > 0.0001) {
+            currentForwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+            if (currentForwardBearing < 0) currentForwardBearing += 360;
           }
-        } else {
-          currentForwardBearing = baselineBearing;
         }
-      } else {
-        // Not enough breadcrumbs - use simple bearing
-        currentForwardBearing = baselineBearing;
+      }
+      // Fallback to prev→cur if window calculation didn't work
+      if (currentForwardBearing === orientation) {
+        const prevParts = previousLocation.split(',').map(Number);
+        const dLat = currentParts[0] - prevParts[0];
+        const dLng = currentParts[1] - prevParts[1];
+        currentForwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (currentForwardBearing < 0) currentForwardBearing += 360;
       }
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🧭 COMMITTED DIRECTION: Gradual smoothing with hysteresis
-    // OPTIMIZATION: Gradually adjust toward current bearing (not instant jumps)
+    // 🧭 COMMITTED DIRECTION: Apply hysteresis to prevent oscillation
     // Only update committed direction when bearing differs by >45°
-    // This prevents micro-adjustments on straight roads AND smooths curves
+    // This prevents micro-adjustments on straight roads
     // ═══════════════════════════════════════════════════════════
     if (committedDirection === null) {
       committedDirection = currentForwardBearing;
     } else {
       const committedDiff = yawDifference(committedDirection, currentForwardBearing);
-
       if (committedDiff > 45) {
         // Significant direction change - update committed direction
         committedDirection = currentForwardBearing;
-      } else if (committedDiff > 15 && committedDiff <= 45) {
-        // OPTIMIZATION: Moderate change (15-45°) - gradually adjust by 50%
-        // This smooths gradual curves without sudden jumps
-        const adjustment = committedDiff * 0.5;
-        const turnDirection = getTurnDirection(committedDirection, currentForwardBearing);
-        if (turnDirection === 'left') {
-          committedDirection = (committedDirection + adjustment) % 360;
-        } else {
-          committedDirection = (committedDirection - adjustment + 360) % 360;
-        }
       }
-      // Otherwise (diff <= 15°), keep using committed direction (ignore minor changes)
+      // Otherwise, keep using committed direction (ignore minor bearing changes)
     }
 
     // Use committedDirection for decision making (not raw currentForwardBearing)
@@ -417,43 +386,8 @@ function createUnifiedAlgorithm(cfg) {
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
 
-      // ═══════════════════════════════════════════════════════════
-      // 🚨 FULL 360° SCAN: On FIRST forward pass, verify ALL untried yaws before continuing
-      // This catches side branches that were missed during forward pass
-      // Only applies to unexplored nodes (nodeVisitCount === 0)
-      // KEY FIX: Only scan if there are 2+ untried yaws that are PERPENDICULAR (60-120° from bearing)
-      // This avoids wasteful scans on straight roads where untried yaws are just forward/back variants
-      if (nodeVisitCount === 0 && currentNode.triedYaws.size < 6 && consecutiveStraightMoves >= 5) {
-        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
-
-        // Count untried yaws that are PERPENDICULAR (60-120° from effective bearing)
-        // These indicate real side streets, not just forward/back variations
-        const perpendicularYaws = untriedYaws.filter(y => {
-          const diff = yawDifference(effectiveBearing, y);
-          return diff >= 60 && diff <= 120;
-        });
-
-        // Only scan if there are 2+ perpendicular yaws (real junction indicators)
-        if (perpendicularYaws.length >= 2) {
-          // 🎯 SMART SCAN: Sort untried yaws by turn cost (smallest turn first)
-          // This finds exits faster with fewer wasted turns
-          const sortedYaws = [...untriedYaws].sort((a, b) => {
-            const turnA = yawDifference(orientation, a);
-            const turnB = yawDifference(orientation, b);
-            return turnA - turnB;  // Smallest turn first
-          });
-          const chosenYaw = sortedYaws[0];
-          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking yaw ${chosenYaw}° (turn=${yawDifference(orientation, chosenYaw).toFixed(0)}°, untried: ${untriedYaws.join(',')}, perpendicular: ${perpendicularYaws.join(',')})`);
-          const turnAngle = getLeftTurnAngle(orientation, chosenYaw);
-          const turnDirection = getTurnDirection(orientation, chosenYaw);
-          consecutiveStraightMoves = 0;  // Reset counter
-          lastDecisionWasTurn = true;
-          return { turn: true, angle: turnAngle, direction: turnDirection };
-        } else {
-          // Not enough perpendicular yaws - just continue straight
-          console.log(`[DEBUG] Skipping 360° scan: only ${perpendicularYaws.length} perpendicular yaws (need 2+)`);
-        }
-      }
+      // Note: Perpendicular scan removed - wall-follow already catches missed branches
+      // Scans were causing wasted turns on straight roads (e.g., 6° micro-turns)
 
       // ═══════════════════════════════════════════════════════════
       // 🚫 SKIP YAW BUCKET ALIGNMENT ON STRAIGHT ROADS
@@ -525,33 +459,6 @@ function createUnifiedAlgorithm(cfg) {
           bestDiff = diff;
           bestYaw = yaw;
         }
-      }
-
-      // OPTIMIZATION: If stuck ≥1, try ANY untried yaw (aggressive branch detection)
-      // This catches interior branches that aren't on the left wall
-      if (bestYaw === null && stuckCount >= 1 && untriedYaws.length > 0) {
-        // Pick untried yaw closest to forward bearing (most likely to be new territory)
-        let closestYaw = null;
-        let closestDiff = Infinity;
-        for (const yaw of untriedYaws) {
-          const diff = yawDifference(currentForwardBearing, yaw);
-          if (diff < closestDiff) {
-            closestDiff = diff;
-            closestYaw = yaw;
-          }
-        }
-        bestYaw = closestYaw;
-        bestDiff = closestDiff;
-        console.log(`🧱 WALL-FOLLOW+STUCK: Trying any untried yaw ${bestYaw}° (diff=${Math.round(bestDiff)}° from forward)`);
-      }
-
-      // OPTIMIZATION: Node visited 3+ times - skip more aggressively
-      // If we've been here 3+ times and still haven't found an exit,
-      // this node is likely a time-waster. Pick any untried yaw quickly.
-      if (bestYaw === null && nodeVisitCount >= 3 && untriedYaws.length > 0) {
-        bestYaw = untriedYaws[0];  // Just pick first available, don't waste time optimizing
-        bestDiff = yawDifference(forwardBearing, bestYaw);
-        console.log(`🧱 WALL-FOLLOW+HIGH-VISIT (${nodeVisitCount}x): Quick exit yaw ${bestYaw}°`);
       }
 
       // Fallback: any untried yaw
