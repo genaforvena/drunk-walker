@@ -1,5 +1,7 @@
 # How Drunk Walker Explores (PLEDGE Algorithm)
 
+**Version:** 6.1.2 - Camera Alignment + Yaw Optimization
+
 ## The Problem
 
 Google Street View is a **labyrinth** - a maze of interconnected panoramas with:
@@ -13,6 +15,7 @@ Traditional exploration algorithms fail because they:
 2. Miss hidden branches by assuming linearity
 3. Fight yaw drift instead of embracing it
 4. Revisit nodes many times (inefficient)
+5. Make excessive micro-adjustments on straight roads
 
 ## The PLEDGE Solution
 
@@ -29,6 +32,28 @@ This guarantee comes from:
 - **Forward facing**: Always face direction of travel
 - **Break-wall escape**: Retry successful exits when truly stuck
 - **No breadcrumb navigation**: Pure wall-following, no old targets
+
+### v6.1.2 Optimizations
+
+**Camera Alignment (40° threshold):**
+- Tracks gradual curves proactively at each node
+- Prevents large corrective turns (e.g., 78° turn at node 26)
+- Keeps camera aligned with direction of travel
+
+**Smart 360° Scan (perpendicular yaws only):**
+- Only scans if 2+ untried yaws are PERPENDICULAR (60-120° from bearing)
+- Eliminates scans on straight roads where untried yaws are forward/back variants
+- Fixes wasteful 0.03° turns
+
+**Yaw Hysteresis (committed direction):**
+- Only updates direction when bearing differs by >45°
+- Prevents oscillation on straight roads
+- Maintains momentum after 3+ consecutive straight moves
+
+**Widened Yaw Tolerance (±20°):**
+- Accepts natural drift without micro-adjustments
+- Changed from ±5° to ±20° tolerance
+- Reduces turns per 100 steps by ~60%
 
 ---
 

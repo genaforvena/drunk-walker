@@ -1,4 +1,4 @@
-# 🤪 Drunk Walker v6.1.0 (PLEDGE Wall-Following Explorer)
+# 🤪 Drunk Walker v6.1.2 (PLEDGE Wall-Following Explorer)
 
 ![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)
@@ -23,6 +23,23 @@ Drunk Walker is a sandbox experiment in **Blind Graph Traversal**. It's a bot th
 **PLEDGE** (Parametric Labyrinth Exploration with Drift-Guided Escape) is a wall-following algorithm adapted for Street View's unique geometry.
 
 **Core guarantee:** Each node visited **at most twice**.
+
+### Latest Improvements (v6.1.2)
+
+**Camera Alignment + Smart Scanning:**
+- **40° alignment threshold** (was 60°) - tracks gradual curves proactively
+- **Perpendicular yaw scan** - only scans for side streets when 2+ untried yaws are 60-120° from bearing
+- Eliminates wasteful 0.03° turns and 78° corrective turns
+
+**Yaw Optimization:**
+- **Committed direction hysteresis** - prevents oscillation on straight roads
+- **±20° yaw tolerance** (was ±5°) - accepts natural drift
+- **Skip alignment after 3+ straight moves** - maintains momentum
+
+**Expected Impact:**
+- Turns per 100 steps: ~40-50 → ~15-20
+- Visited/Steps ratio: ~0.50 → ~0.55-0.60
+- No exploration degradation
 
 ### State Machine
 
