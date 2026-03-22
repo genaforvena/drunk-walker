@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T11:49:19.330Z
+// Built: 2026-03-22T14:43:17.776Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -260,22 +260,23 @@ function createUnifiedAlgorithm(cfg) {
     console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}, justArrived=${justArrived}`);
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 COMPLETE STUCK DETECTION: Clear all state when stuck >10 steps on 1-2 nodes
-    // This happens when bot loops in parking lots or small clusters
+    // 🚨 COMPLETE STUCK DETECTION: Clear state when stuck >20 steps on single node
+    // DO NOT clear on 2-node loop - this is NORMAL behavior when backtracking!
     // ═══════════════════════════════════════════════════════════
     if (currentLocation === lastStuckLocation || currentLocation === secondLastStuckLocation) {
       locationStuckCounter++;
 
       // Detect 2-node loop (oscillating between same 2 locations)
-      const isTwoNodeLoop = currentLocation === secondLastStuckLocation && 
+      // This is NORMAL during wall-follow backtracking - don't clear graph!
+      const isTwoNodeLoop = currentLocation === secondLastStuckLocation &&
                            previousLocation === lastStuckLocation;
 
-      if (locationStuckCounter > 10 || isTwoNodeLoop) {
-        const loopType = isTwoNodeLoop ? '2-NODE LOOP' : 'SINGLE-NODE STUCK';
-        console.log(`🚨 ${loopType} DETECTED! stuckCounter=${locationStuckCounter}, locations=[${lastStuckLocation}, ${secondLastStuckLocation}]`);
-        console.log(`   Clearing internal state and starting from scratch...`);
+      // Only clear state when stuck on SINGLE node for >20 steps (real stuck)
+      if (locationStuckCounter > 20 && !isTwoNodeLoop) {
+        console.log(`🚨 SINGLE-NODE STUCK DETECTED! stuckCounter=${locationStuckCounter}, location=${lastStuckLocation}`);
+        console.log(`   Clearing PLEDGE state (keeping graph memory)...`);
 
-        // Clear ALL internal state
+        // Clear PLEDGE state ONLY - keep the graph (learned yaw info is valuable!)
         wallFollowMode = false;
         wallFollowBearing = null;
         forwardBearing = null;
@@ -285,11 +286,11 @@ function createUnifiedAlgorithm(cfg) {
         lastStuckLocation = null;
         secondLastStuckLocation = null;
 
-        // Clear the graph (start fresh)
-        enhancedGraph.nodes.clear();
-        enhancedGraph.connections.clear();
+        // DO NOT clear enhancedGraph - we need to remember which yaws we tried!
+        // enhancedGraph.nodes.clear();  // REMOVED - this was causing revisits!
+        // enhancedGraph.connections.clear();  // REMOVED
 
-        console.log(`   ✅ State cleared - graph reset, starting PLEDGE exploration from scratch`);
+        console.log(`   ✅ PLEDGE state cleared - graph preserved, continuing exploration`);
       }
     } else {
       // Location changed - reset stuck counter
@@ -350,7 +351,7 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🧱 DEAD END DETECTION: All yaws tried → TURN LEFT 120°
+    // 🧱 DEAD END DETECTION: All yaws tried → TURN LEFT 105°
     // This is the END OF STRAIGHT LINE - start wall-following
     // ═══════════════════════════════════════════════════════════
     const isExhausted = !currentNode.hasUntriedYaws();
@@ -435,9 +436,10 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
+    // 🚨 PANIC MODE: If stuck for 2+ heartbeats, MUST turn (reduced from 3)
+    // With fast-fail cooldown skip, we can trigger earlier
     // ═══════════════════════════════════════════════════════════
-    if (stuckCount >= panicThreshold) {
+    if (stuckCount >= 2) {
       // First, try any untried yaw
       const nextYaw = currentNode.getNextUntriedYaw?.(orientation) || getNextUntriedYaw(currentNode, orientation);
 
@@ -671,7 +673,7 @@ function createEngine(config = {}) {
   let isTurning = false;  // True while executing a turn
   let turnCompleted = false;  // Set to true when turn finishes
   let ticksSinceTurn = 0;  // Count ticks after turn completes
-  const TURNS_COOLDOWN_TICKS = 3;  // Wait 3 ticks after turn before deciding to turn again
+  const TURNS_COOLDOWN_TICKS = 2;  // Wait 2 ticks after turn before deciding to turn again (reduced from 3)
   let awaitingStepResult = false;  // True after turn+step, waiting to see if we moved
 
   // Action callbacks
@@ -898,8 +900,10 @@ function createEngine(config = {}) {
     // But NOT when:
     // - Already turning
     // - Waiting for step result
-    // - Turn cooldown active
-    const shouldMakeDecision = !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS &&
+    // - Turn cooldown active (UNLESS stuck >= 2, then skip cooldown for fast-fail)
+    const isStuckAndShouldSkipCooldown = stuckCount >= 2;  // Fast-fail when clearly blocked
+    const shouldMakeDecision = !isTurning && !awaitingStepResult &&
+      (ticksSinceTurn >= TURNS_COOLDOWN_TICKS || isStuckAndShouldSkipCooldown) &&
       (isStationary || justArrived);
 
     if (shouldMakeDecision) {
@@ -924,8 +928,10 @@ function createEngine(config = {}) {
       console.log('[DEBUG] Skipping decision - already turning');
     } else if (!isStationary && !isNewNode) {
       console.log('[DEBUG] Skipping decision - moving through visited node');
-    } else if (ticksSinceTurn < TURNS_COOLDOWN_TICKS) {
+    } else if (ticksSinceTurn < TURNS_COOLDOWN_TICKS && !isStuckAndShouldSkipCooldown) {
       console.log(`[DEBUG] Skipping decision - turn cooldown active (${ticksSinceTurn}/${TURNS_COOLDOWN_TICKS})`);
+    } else if (isStuckAndShouldSkipCooldown) {
+      console.log(`[DEBUG] FAST-FAIL: Skipping cooldown - stuck ${stuckCount}x, making decision immediately`);
     }
 
     // 6. Action: Turn (Left or Right)

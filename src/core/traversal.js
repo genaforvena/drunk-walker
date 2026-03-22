@@ -165,22 +165,23 @@ export function createUnifiedAlgorithm(cfg) {
     console.log(`[DEBUG] isNewNode=${isNewNode}, isFullyScanned=${isFullyScanned}, justArrived=${justArrived}`);
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 COMPLETE STUCK DETECTION: Clear all state when stuck >10 steps on 1-2 nodes
-    // This happens when bot loops in parking lots or small clusters
+    // 🚨 COMPLETE STUCK DETECTION: Clear state when stuck >20 steps on single node
+    // DO NOT clear on 2-node loop - this is NORMAL behavior when backtracking!
     // ═══════════════════════════════════════════════════════════
     if (currentLocation === lastStuckLocation || currentLocation === secondLastStuckLocation) {
       locationStuckCounter++;
-      
+
       // Detect 2-node loop (oscillating between same 2 locations)
-      const isTwoNodeLoop = currentLocation === secondLastStuckLocation && 
+      // This is NORMAL during wall-follow backtracking - don't clear graph!
+      const isTwoNodeLoop = currentLocation === secondLastStuckLocation &&
                            previousLocation === lastStuckLocation;
-      
-      if (locationStuckCounter > 10 || isTwoNodeLoop) {
-        const loopType = isTwoNodeLoop ? '2-NODE LOOP' : 'SINGLE-NODE STUCK';
-        console.log(`🚨 ${loopType} DETECTED! stuckCounter=${locationStuckCounter}, locations=[${lastStuckLocation}, ${secondLastStuckLocation}]`);
-        console.log(`   Clearing internal state and starting from scratch...`);
-        
-        // Clear ALL internal state
+
+      // Only clear state when stuck on SINGLE node for >20 steps (real stuck)
+      if (locationStuckCounter > 20 && !isTwoNodeLoop) {
+        console.log(`🚨 SINGLE-NODE STUCK DETECTED! stuckCounter=${locationStuckCounter}, location=${lastStuckLocation}`);
+        console.log(`   Clearing PLEDGE state (keeping graph memory)...`);
+
+        // Clear PLEDGE state ONLY - keep the graph (learned yaw info is valuable!)
         wallFollowMode = false;
         wallFollowBearing = null;
         forwardBearing = null;
@@ -189,12 +190,12 @@ export function createUnifiedAlgorithm(cfg) {
         locationStuckCounter = 0;
         lastStuckLocation = null;
         secondLastStuckLocation = null;
-        
-        // Clear the graph (start fresh)
-        enhancedGraph.nodes.clear();
-        enhancedGraph.connections.clear();
-        
-        console.log(`   ✅ State cleared - graph reset, starting PLEDGE exploration from scratch`);
+
+        // DO NOT clear enhancedGraph - we need to remember which yaws we tried!
+        // enhancedGraph.nodes.clear();  // REMOVED - this was causing revisits!
+        // enhancedGraph.connections.clear();  // REMOVED
+
+        console.log(`   ✅ PLEDGE state cleared - graph preserved, continuing exploration`);
       }
     } else {
       // Location changed - reset stuck counter
@@ -255,7 +256,7 @@ export function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🧱 DEAD END DETECTION: All yaws tried → TURN LEFT 120°
+    // 🧱 DEAD END DETECTION: All yaws tried → TURN LEFT 105°
     // This is the END OF STRAIGHT LINE - start wall-following
     // ═══════════════════════════════════════════════════════════
     const isExhausted = !currentNode.hasUntriedYaws();
@@ -340,12 +341,13 @@ export function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 PANIC MODE: If stuck for 3+ heartbeats, MUST turn
+    // 🚨 PANIC MODE: If stuck for 2+ heartbeats, MUST turn (reduced from 3)
+    // With fast-fail cooldown skip, we can trigger earlier
     // ═══════════════════════════════════════════════════════════
-    if (stuckCount >= panicThreshold) {
+    if (stuckCount >= 2) {
       // First, try any untried yaw
       const nextYaw = currentNode.getNextUntriedYaw?.(orientation) || getNextUntriedYaw(currentNode, orientation);
-      
+
       if (nextYaw !== null) {
         const turnAngle = getLeftTurnAngle(orientation, nextYaw);
         const turnDirection = getTurnDirection(orientation, nextYaw);

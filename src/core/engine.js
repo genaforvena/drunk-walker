@@ -59,7 +59,7 @@ export function createEngine(config = {}) {
   let isTurning = false;  // True while executing a turn
   let turnCompleted = false;  // Set to true when turn finishes
   let ticksSinceTurn = 0;  // Count ticks after turn completes
-  const TURNS_COOLDOWN_TICKS = 3;  // Wait 3 ticks after turn before deciding to turn again
+  const TURNS_COOLDOWN_TICKS = 2;  // Wait 2 ticks after turn before deciding to turn again (reduced from 3)
   let awaitingStepResult = false;  // True after turn+step, waiting to see if we moved
 
   // Action callbacks
@@ -286,8 +286,10 @@ export function createEngine(config = {}) {
     // But NOT when:
     // - Already turning
     // - Waiting for step result
-    // - Turn cooldown active
-    const shouldMakeDecision = !isTurning && !awaitingStepResult && ticksSinceTurn >= TURNS_COOLDOWN_TICKS &&
+    // - Turn cooldown active (UNLESS stuck >= 2, then skip cooldown for fast-fail)
+    const isStuckAndShouldSkipCooldown = stuckCount >= 2;  // Fast-fail when clearly blocked
+    const shouldMakeDecision = !isTurning && !awaitingStepResult &&
+      (ticksSinceTurn >= TURNS_COOLDOWN_TICKS || isStuckAndShouldSkipCooldown) &&
       (isStationary || justArrived);
 
     if (shouldMakeDecision) {
@@ -312,8 +314,10 @@ export function createEngine(config = {}) {
       console.log('[DEBUG] Skipping decision - already turning');
     } else if (!isStationary && !isNewNode) {
       console.log('[DEBUG] Skipping decision - moving through visited node');
-    } else if (ticksSinceTurn < TURNS_COOLDOWN_TICKS) {
+    } else if (ticksSinceTurn < TURNS_COOLDOWN_TICKS && !isStuckAndShouldSkipCooldown) {
       console.log(`[DEBUG] Skipping decision - turn cooldown active (${ticksSinceTurn}/${TURNS_COOLDOWN_TICKS})`);
+    } else if (isStuckAndShouldSkipCooldown) {
+      console.log(`[DEBUG] FAST-FAIL: Skipping cooldown - stuck ${stuckCount}x, making decision immediately`);
     }
 
     // 6. Action: Turn (Left or Right)
