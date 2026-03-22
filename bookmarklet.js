@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T15:49:37.613Z
+// Built: 2026-03-22T17:02:19.373Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -464,8 +464,15 @@ function createUnifiedAlgorithm(cfg) {
         lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
-      console.log(`🧱 WALL-FOLLOW: Moving along left wall`);
-      return { turn: false };
+      // 🚨 STUCK IN WALL-FOLLOW: Node is fully explored, can't move forward
+      // Trigger BREAK WALL logic to retry a successful yaw
+      if (!currentNode.hasUntriedYaws() && currentNode.successfulYaws.size > 0) {
+        console.log(`🧱 WALL-FOLLOW: Stuck at fully explored node, breaking wall...`);
+        // Fall through to BREAK WALL logic below
+      } else {
+        console.log(`🧱 WALL-FOLLOW: Moving along left wall`);
+        return { turn: false };
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
