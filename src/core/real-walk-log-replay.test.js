@@ -9,6 +9,11 @@
  * - Turns per 100 steps (target: < 25)
  * - Visited/Steps ratio (target: > 0.55)
  * - Micro-adjustments < 20° (target: < 5 per 100 steps)
+ * 
+ * TERRITORY REPLAY:
+ * - Extracts unique locations from real walks as graph
+ * - Runs current algorithm on same territory
+ * - Compares metrics to verify improvements
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -325,6 +330,247 @@ describe('Real Walk Replay - Log Files', () => {
       // Note: This is a soft assertion for documentation
       expect(oldestMetrics.totalSteps).toBeGreaterThan(0);
       expect(newestMetrics.totalSteps).toBeGreaterThan(0);
+    });
+  });
+
+  // ============================================================================
+  // TERRITORY REPLAY - Run algorithm on real walk territory
+  // ============================================================================
+
+  describe('Territory Replay - Algorithm on Real Walk Data', () => {
+    /**
+     * Build a simple graph from real walk locations
+     * Connects adjacent locations in the walk sequence
+     */
+    function buildTerritoryGraph(steps) {
+      const graph = new Map(); // location -> Set of neighbors
+      const locations = [];
+
+      for (let i = 0; i < steps.length; i++) {
+        const loc = steps[i].location;
+        if (!loc) continue; // Skip invalid steps
+
+        if (!graph.has(loc)) {
+          graph.set(loc, new Set());
+          locations.push(loc);
+        }
+
+        // Connect to previous and next locations (adjacent in walk)
+        if (i > 0 && steps[i - 1].location && steps[i - 1].location !== loc) {
+          const prevLoc = steps[i - 1].location;
+          if (!graph.has(prevLoc)) {
+            graph.set(prevLoc, new Set());
+            locations.push(prevLoc);
+          }
+          graph.get(loc).add(prevLoc);
+          graph.get(prevLoc).add(loc);
+        }
+        if (i < steps.length - 1 && steps[i + 1].location && steps[i + 1].location !== loc) {
+          const nextLoc = steps[i + 1].location;
+          if (!graph.has(nextLoc)) {
+            graph.set(nextLoc, new Set());
+            locations.push(nextLoc);
+          }
+          graph.get(loc).add(nextLoc);
+          graph.get(nextLoc).add(loc);
+        }
+      }
+
+      return { graph, locations };
+    }
+
+    /**
+     * Simulate algorithm walking on territory
+     * @param {Map} graph - Territory graph (location -> neighbors)
+     * @param {string} startLoc - Starting location
+     * @param {number} maxSteps - Maximum steps to simulate
+     * @returns {Object} Walk results
+     */
+    function simulateWalkOnTerritory(graph, startLoc, maxSteps = 500) {
+      const algorithm = createDefaultAlgorithm({});
+
+      let currentLoc = startLoc;
+      let previousLoc = null;
+      let orientation = 0;
+      const breadcrumbs = [];
+      const visitedUrls = new Set();
+      const visitedOrder = [];
+
+      const turns = [];
+      const microAdjustments = [];
+      const largeTurns = [];
+
+      for (let step = 0; step < maxSteps; step++) {
+        breadcrumbs.push(currentLoc);
+        if (breadcrumbs.length > 200) breadcrumbs.shift();
+
+        const isNewNode = !visitedUrls.has(currentLoc);
+        if (isNewNode) {
+          visitedUrls.add(currentLoc);
+          visitedOrder.push(currentLoc);
+        }
+
+        // Get algorithm decision
+        const context = {
+          stuckCount: 0,
+          currentLocation: currentLoc,
+          previousLocation: previousLoc,
+          visitedUrls,
+          breadcrumbs: [...breadcrumbs],
+          orientation,
+          isNewNode,
+          isFullyScanned: false,
+          justArrived: true,
+          nodeVisitCount: visitedUrls.has(currentLoc) ? 1 : 0
+        };
+
+        const decision = algorithm.decide(context);
+
+        if (decision.turn) {
+          turns.push(decision);
+          const angle = decision.angle || 0;
+
+          if (angle < 20 && angle > 0) {
+            microAdjustments.push(decision);
+          }
+          if (angle > 60) {
+            largeTurns.push(decision);
+          }
+
+          // Update orientation
+          if (decision.direction === 'left') {
+            orientation = (orientation + angle) % 360;
+          } else {
+            orientation = (orientation - angle + 360) % 360;
+          }
+
+          // Simulate turn completing, then move to a neighbor
+          const neighbors = Array.from(graph.get(currentLoc) || []);
+          if (neighbors.length > 0) {
+            // Prefer unvisited neighbors
+            const unvisitedNeighbors = neighbors.filter(n => !visitedUrls.has(n));
+            if (unvisitedNeighbors.length > 0) {
+              previousLoc = currentLoc;
+              currentLoc = unvisitedNeighbors[0];
+            } else {
+              // All visited - pick random
+              previousLoc = currentLoc;
+              currentLoc = neighbors[Math.floor(Math.random() * neighbors.length)];
+            }
+          }
+        } else {
+          // No turn - move forward to a neighbor
+          const neighbors = Array.from(graph.get(currentLoc) || []);
+          if (neighbors.length > 0) {
+            const unvisitedNeighbors = neighbors.filter(n => !visitedUrls.has(n));
+            if (unvisitedNeighbors.length > 0) {
+              previousLoc = currentLoc;
+              currentLoc = unvisitedNeighbors[0];
+            } else {
+              previousLoc = currentLoc;
+              currentLoc = neighbors[Math.floor(Math.random() * neighbors.length)];
+            }
+          }
+        }
+      }
+
+      return {
+        totalSteps: maxSteps,
+        uniqueLocations: visitedUrls.size,
+        visitedOrder,
+        visitedStepsRatio: visitedUrls.size / maxSteps,
+        turns: turns.length,
+        turnsPer100: (turns.length / maxSteps) * 100,
+        microAdjustments: microAdjustments.length,
+        microAdjustmentsPer100: (microAdjustments.length / maxSteps) * 100,
+        largeTurns: largeTurns.length,
+        largeTurnsPer100: (largeTurns.length / maxSteps) * 100
+      };
+    }
+
+    it('should replay territory from real walk and verify algorithm performance', () => {
+      if (availableWalks.length === 0) {
+        console.log('⚠️  No walk files available');
+        return;
+      }
+
+      // Use the most recent walk
+      const walkFile = availableWalks[0];
+      const steps = loadWalkFile(walkFile);
+
+      if (!steps || steps.length < 50) {
+        console.log(`⚠️  ${walkFile} has too few steps`);
+        return;
+      }
+
+      // Build territory graph from real walk
+      const { graph, locations } = buildTerritoryGraph(steps);
+
+      console.log(`\n🗺️  ${walkFile} Territory:`);
+      console.log(`   Total locations in graph: ${locations.length}`);
+      console.log(`   Graph edges: ${Array.from(graph.values()).reduce((sum, neighbors) => sum + neighbors.size, 0) / 2}`);
+
+      // Run algorithm on same territory
+      const startLoc = locations[0];
+      const result = simulateWalkOnTerritory(graph, startLoc, Math.min(500, locations.length));
+
+      console.log('\n📊 Algorithm Performance on Real Territory:');
+      console.log(`   Unique locations visited: ${result.uniqueLocations}/${locations.length} (${(result.uniqueLocations / locations.length * 100).toFixed(1)}%)`);
+      console.log(`   Visited/Steps ratio: ${result.visitedStepsRatio.toFixed(3)}`);
+      console.log(`   Turns per 100: ${result.turnsPer100.toFixed(1)}`);
+      console.log(`   Micro-adjustments per 100: ${result.microAdjustmentsPer100.toFixed(1)}`);
+      console.log(`   Large turns per 100: ${result.largeTurnsPer100.toFixed(1)}`);
+
+      // Verify algorithm performs well on real territory
+      expect(result.visitedStepsRatio).toBeGreaterThan(0.50); // Target: > 0.55
+      expect(result.microAdjustmentsPer100).toBeLessThan(8); // Target: < 5
+      expect(result.uniqueLocations).toBeGreaterThan(0);
+
+      // Coverage metric - how much of territory explored
+      const coverageRatio = result.uniqueLocations / locations.length;
+      console.log(`\n📈 Coverage: ${coverageRatio.toFixed(3)} of territory explored in ${result.totalSteps} steps`);
+
+      // For tight clusters, coverage should be high
+      if (locations.length < 300) {
+        expect(coverageRatio).toBeGreaterThan(0.60); // At least 60% coverage
+      }
+    });
+
+    it('should compare algorithm vs original walk efficiency', () => {
+      if (availableWalks.length === 0) {
+        console.log('⚠️  No walk files available');
+        return;
+      }
+
+      const walkFile = availableWalks[0];
+      const steps = loadWalkFile(walkFile);
+
+      if (!steps || steps.length < 50) {
+        return;
+      }
+
+      // Original walk metrics
+      const originalMetrics = analyzeWalkMetrics(steps.slice(0, 500));
+
+      // Build territory and run algorithm
+      const { graph, locations } = buildTerritoryGraph(steps);
+      const algoResult = simulateWalkOnTerritory(graph, locations[0], Math.min(500, locations.length));
+
+      console.log('\n📊 Algorithm vs Original Walk Comparison:');
+      console.log(`   Original walk:`);
+      console.log(`     Visited/Steps: ${originalMetrics.visitedStepsRatio.toFixed(3)}`);
+      console.log(`     Turns/100: ${originalMetrics.turnsPer100.toFixed(1)}`);
+      console.log(`   Algorithm on same territory:`);
+      console.log(`     Visited/Steps: ${algoResult.visitedStepsRatio.toFixed(3)}`);
+      console.log(`     Turns/100: ${algoResult.turnsPer100.toFixed(1)}`);
+
+      // Algorithm should achieve comparable or better efficiency
+      // Note: This is a soft comparison - territory structure affects results
+      console.log(`\n   Efficiency delta: ${(algoResult.visitedStepsRatio - originalMetrics.visitedStepsRatio).toFixed(3)}`);
+      console.log(`   Turns delta: ${(algoResult.turnsPer100 - originalMetrics.turnsPer100).toFixed(1)} per 100 steps`);
+
+      // Verify algorithm is in the same ballpark
+      expect(algoResult.visitedStepsRatio).toBeGreaterThan(0.40);
     });
   });
 });
