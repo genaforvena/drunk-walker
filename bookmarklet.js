@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T14:43:17.776Z
+// Built: 2026-03-22T15:49:37.613Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -309,20 +309,70 @@ function createUnifiedAlgorithm(cfg) {
 
     console.log(`[DEBUG] currentNode.triedYaws=${[...currentNode.triedYaws].join(',')}, hasUntried=${currentNode.hasUntriedYaws()}`);
 
-    // Calculate forward bearing from prev→cur
+    // ═══════════════════════════════════════════════════════════
+    // 🧭 SMOOTH FORWARD BEARING: Use rolling window of 2-3 breadcrumbs
+    // This smooths yaw adjustments and reduces jittery turning
+    // ═══════════════════════════════════════════════════════════
     let currentForwardBearing = orientation;
     if (previousLocation) {
-      const prevParts = previousLocation.split(',').map(Number);
-      const dLat = currentParts[0] - prevParts[0];
-      const dLng = currentParts[1] - prevParts[1];
-      currentForwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
-      if (currentForwardBearing < 0) currentForwardBearing += 360;
+      // Use rolling window: prefer 3-point average if available, else 2-point
+      const windowSize = Math.min(3, breadcrumbs.length);
+      if (windowSize >= 2) {
+        // Get the last N locations from breadcrumbs
+        const recentLocs = breadcrumbs.slice(-windowSize);
+        if (recentLocs.length >= 2) {
+          const first = recentLocs[0].split(',').map(Number);
+          const last = recentLocs[recentLocs.length - 1].split(',').map(Number);
+          const dLat = last[0] - first[0];
+          const dLng = last[1] - first[1];
+          // Only use smoothed bearing if we have meaningful displacement
+          if (Math.abs(dLat) > 0.00001 || Math.abs(dLng) > 0.00001) {
+            currentForwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+            if (currentForwardBearing < 0) currentForwardBearing += 360;
+          } else {
+            // Fallback to prev→cur if displacement is too small
+            const prevParts = previousLocation.split(',').map(Number);
+            const dLat2 = currentParts[0] - prevParts[0];
+            const dLng2 = currentParts[1] - prevParts[1];
+            currentForwardBearing = Math.atan2(dLng2, dLat2) * 180 / Math.PI;
+            if (currentForwardBearing < 0) currentForwardBearing += 360;
+          }
+        }
+      } else {
+        // Fallback to prev→cur for first few nodes
+        const prevParts = previousLocation.split(',').map(Number);
+        const dLat = currentParts[0] - prevParts[0];
+        const dLng = currentParts[1] - prevParts[1];
+        currentForwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (currentForwardBearing < 0) currentForwardBearing += 360;
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
     // 🆕 NEW NODE: Face forward bearing, go straight
     // ═══════════════════════════════════════════════════════════
     if (isNewNode) {
+      // 🚨 FULL 360° SCAN: On FIRST forward pass, verify ALL 6 yaws before continuing
+      // This catches side branches that were missed during forward pass
+      // Only applies to unexplored nodes (nodeVisitCount === 0)
+      if (nodeVisitCount === 0 && currentNode.triedYaws.size < 6 && consecutiveStraightMoves >= 5) {
+        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+        // Try side yaws first (perpendicular to forward bearing)
+        const sideYaws = untriedYaws.filter(y => {
+          const diff = yawDifference(currentForwardBearing, y);
+          return diff >= 60 && diff <= 120;  // Side exits (60-120° from forward)
+        });
+        if (sideYaws.length > 0) {
+          const sideYaw = sideYaws[0];
+          console.log(`🔍 FULL 360° SCAN: First visit, ${consecutiveStraightMoves} straight moves, checking side yaw ${sideYaw}°`);
+          const turnAngle = getLeftTurnAngle(orientation, sideYaw);
+          const turnDirection = getTurnDirection(orientation, sideYaw);
+          consecutiveStraightMoves = 0;  // Reset counter
+          lastDecisionWasTurn = true;
+          return { turn: true, angle: turnAngle, direction: turnDirection };
+        }
+      }
+
       // Face forward bearing (if not already)
       const bearingDiff = yawDifference(orientation, currentForwardBearing);
       if (bearingDiff > 15 && bearingDiff < 165) {
