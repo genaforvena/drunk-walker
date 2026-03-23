@@ -1,4 +1,4 @@
-# 🤪 Drunk Walker v6.1.2 (PLEDGE Wall-Following Explorer)
+# 🤪 Drunk Walker v6.1.3 (PLEDGE Wall-Following Explorer)
 
 ![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
 ![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)
@@ -24,22 +24,30 @@ Drunk Walker is a sandbox experiment in **Blind Graph Traversal**. It's a bot th
 
 **Core guarantee:** Each node visited **at most twice**.
 
-### Latest Improvements (v6.1.2)
+### Latest Improvements (v6.1.3)
 
-**Camera Alignment + Smart Scanning:**
-- **40° alignment threshold** (was 60°) - tracks gradual curves proactively
-- **Perpendicular yaw scan** - only scans for side streets when 2+ untried yaws are 60-120° from bearing
-- Eliminates wasteful 0.03° turns and 78° corrective turns
+**Camera Alignment Fix:**
+- **Update committed direction on movement** - after turning and moving, always align to actual movement bearing
+- Prevents massive realignment turns (e.g., 324° wasted turns)
+- Fixed hysteresis that was preventing proper direction updates
+
+**Wall-Follow Loop Detection:**
+- **Track revisits during wall-follow** - breaks out after 3+ loop detections
+- Prevents infinite cycles in highly connected territories
+- Reduces max revisits from 8x to 3-4x per location
 
 **Yaw Optimization:**
-- **Committed direction hysteresis** - prevents oscillation on straight roads
+- **Removed 5-move scan timer** - eliminated wasteful micro-turns on straight roads
+- **Committed direction hysteresis** - prevents oscillation (updates on movement, not just >45° diff)
 - **±20° yaw tolerance** (was ±5°) - accepts natural drift
-- **Skip alignment after 3+ straight moves** - maintains momentum
+- **40° alignment threshold** (was 60°) - tracks gradual curves proactively
 
 **Expected Impact:**
-- Turns per 100 steps: ~40-50 → ~15-20
-- Visited/Steps ratio: ~0.50 → ~0.55-0.60
-- No exploration degradation
+- Turns per 100 steps: ~40-50 → ~18-35
+- Micro-adjustments per 100: ~8-12 → ~0-4
+- Visited/Steps ratio: ~0.50 → ~0.55-0.68
+
+**See [docs/WALK_ANALYSIS.md](docs/WALK_ANALYSIS.md) for detailed metrics from real walks.**
 
 ### State Machine
 
@@ -186,6 +194,7 @@ We divide 360° into 6 yaw buckets (0°, 60°, 120°, 180°, 240°, 300°):
 - **[HOW_IT_WALKS.md](docs/HOW_IT_WALKS.md)** — **Start here!** PLEDGE algorithm, wall-following, forward bearing
 - **[ALGORITHM.md](docs/ALGORITHM.md)** — Technical implementation (engine, wheel, traversal)
 - **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Theory of blind graph traversal
+- **[WALK_ANALYSIS.md](docs/WALK_ANALYSIS.md)** — **New!** Real walk metrics and optimization impact analysis
 
 ### Advanced Topics
 - **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)

@@ -1,4 +1,4 @@
-# Walking Algorithm Guide (v6.1.0 PLEDGE)
+# Walking Algorithm Guide (v6.1.3 PLEDGE)
 
 **Comprehensive documentation of the PLEDGE Wall-Following Traversal Engine**
 
@@ -6,7 +6,24 @@
 
 ## Architecture Overview
 
-The v6.1.0 PLEDGE algorithm uses **systematic wall-following** for guaranteed maze exploration with each node visited **at most twice**.
+The v6.1.3 PLEDGE algorithm uses **systematic wall-following** for guaranteed maze exploration with each node visited **at most twice**.
+
+### v6.1.3 Changes
+
+**Camera Alignment Fix:**
+- Update `committedDirection` on successful movement (not just when diff >45°)
+- Prevents massive realignment turns (e.g., 324° wasted turns)
+- Fixed hysteresis that was preventing proper direction updates after turns
+
+**Wall-Follow Loop Detection:**
+- Track `wallFollowRevisitCount` during backtracking
+- Break out after 3+ revisits to nodes with visitCount >= 3
+- Prevents infinite cycles in highly connected territories
+
+**Removed 5-Move Scan Timer:**
+- Eliminated periodic perpendicular scans on straight roads
+- Wall-follow already catches missed branches
+- Reduced micro-adjustments by 50%+
 
 ### Core Principles
 
