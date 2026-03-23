@@ -58,19 +58,27 @@ The bot **cannot see** panoramas. It only knows the graph structure by **physica
 
 **Implication:** The bot doesn't have a map—it **produces** the map by walking. Every movement is a hypothesis test: "Can I go this way?"
 
-### Left-Turn Only Constraint
+### Turning: Left AND Right
 
-The bot can **only turn left** (via `ArrowLeft` long-press). To turn right, it must turn left 3 times:
+The bot can turn **both directions** via long-press:
+- **ArrowLeft** - turn counter-clockwise
+- **ArrowRight** - turn clockwise
+
+The algorithm picks the **shortest turn**:
 
 ```javascript
-// Want to turn 90° right?
-turnLeft(270);  // 3 × 90° = 270° left = 90° right
-
-// Want to turn 180°?
-turnLeft(180);  // Direct
+const leftAngle = getLeftTurnAngle(currentYaw, targetYaw);
+const rightAngle = (360 - leftAngle) % 360;
+return rightAngle < leftAngle ? 'right' : 'left';  // Pick shortest
 ```
 
-**Implication:** All turns are calculated as **left-turn angles**. The algorithm prefers left exits because they're cheaper (single turn vs. triple turn).
+**Example:**
+- Current: 10°, Target: 350°
+- Left turn: 340° (almost full circle)
+- Right turn: 20° (much shorter!)
+- **Result:** Turn right 20° via ArrowRight
+
+**Implication:** The bot is not "left-turn only" - it uses whichever turn is more efficient. However, wall-following **prefers left exits** because they align with the left-hand rule.
 
 ### Six Yaw Buckets
 
