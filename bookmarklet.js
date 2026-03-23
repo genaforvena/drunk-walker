@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-22T23:39:49.400Z
+// Built: 2026-03-23T00:32:50.823Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -2117,6 +2117,19 @@ const initialize = () => {
       expOn: true      // Unstuck algorithm enabled by default
     });
 
+    // Create auto-saver for experiment resilience
+    let autosaver = null;
+    try {
+      autosaver = createAutosaver(engine, engine.getNavigation()?.algorithm || null, {
+        intervalMs: 60000,  // Save every 60 seconds
+        includeGraph: true,
+        includePath: true
+      });
+      console.log('💾 Auto-save module initialized');
+    } catch (e) {
+      console.warn('💾 Auto-save initialization skipped (algorithm not yet available)');
+    }
+
     // Restore state if coming from screensaver
     if (savedState) {
       // Restore walk path
@@ -2213,6 +2226,12 @@ const initialize = () => {
     // Now start walking (after everything is set up)
     engine.start();
 
+    // Start auto-saver after engine is running
+    if (autosaver) {
+      autosaver.start();
+      console.log('💾 Auto-save started: will backup every 60 seconds');
+    }
+
     // Resume screensaver session if needed (already started above)
     if (savedState?.isWalking) {
       console.log('🤪 Screensaver session restored');
@@ -2223,9 +2242,11 @@ const initialize = () => {
       engine,
       ui,
       map,
+      autosaver,  // Expose auto-saver for manual control
       simulateKeyPress,
       simulateClick,
       stop: () => {
+        if (autosaver) autosaver.stop();
         ui.destroy();
         cleanupListeners();
         window.DRUNK_WALKER_ACTIVE = false;

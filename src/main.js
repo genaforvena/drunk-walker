@@ -7,6 +7,7 @@ import { createEngine, VERSION } from './core/engine.js';
 import { simulateKeyPress, simulateLongKeyPress, simulateClick, setupInteractionListeners, findStreetViewTarget } from './input/handlers.js';
 import { createControlPanel } from './ui/controller.js';
 import { createExplorationMap } from './ui/exploration-map.js';
+import { createAutosaver } from './experiment/autosave.js';
 
 // Global initialization lock
 let __INITIALIZING__ = false;
@@ -94,6 +95,19 @@ const initialize = () => {
       kbOn: true,      // Keyboard mode is DEFAULT
       expOn: true      // Unstuck algorithm enabled by default
     });
+
+    // Create auto-saver for experiment resilience
+    let autosaver = null;
+    try {
+      autosaver = createAutosaver(engine, engine.getNavigation()?.algorithm || null, {
+        intervalMs: 60000,  // Save every 60 seconds
+        includeGraph: true,
+        includePath: true
+      });
+      console.log('💾 Auto-save module initialized');
+    } catch (e) {
+      console.warn('💾 Auto-save initialization skipped (algorithm not yet available)');
+    }
 
     // Restore state if coming from screensaver
     if (savedState) {
@@ -190,6 +204,12 @@ const initialize = () => {
 
     // Now start walking (after everything is set up)
     engine.start();
+    
+    // Start auto-saver after engine is running
+    if (autosaver) {
+      autosaver.start();
+      console.log('💾 Auto-save started: will backup every 60 seconds');
+    }
 
     // Resume screensaver session if needed (already started above)
     if (savedState?.isWalking) {
@@ -201,9 +221,11 @@ const initialize = () => {
       engine,
       ui,
       map,
+      autosaver,  // Expose auto-saver for manual control
       simulateKeyPress,
       simulateClick,
       stop: () => {
+        if (autosaver) autosaver.stop();
         ui.destroy();
         cleanupListeners();
         window.DRUNK_WALKER_ACTIVE = false;
