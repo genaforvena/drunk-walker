@@ -390,15 +390,19 @@ export function createEngine(config = {}) {
     lastUrl = currentUrl;
 
     // 🚨 KEYBOARD BLOCK FIX: When stuck with same yaw for N steps, click to wake
+    // This works in BOTH keyboard and mouse mode - click re-engages Street View
     const isKeyboardBlocked = keyboardBlockStuckCount >= KEYBOARD_BLOCK_THRESHOLD;
     if (isKeyboardBlocked) {
       console.log(`🚨 KEYBOARD BLOCK DETECTED! stuck=${stuckCount}, sameYaw=${keyboardBlockStuckCount}x - CLICKING TO WAKE`);
-      // Use mouse click instead of keyboard to "wake up" Street View controls
+      // Use mouse click to "wake up" Street View controls (works in both modes)
       const target = calculateClickTarget();
       if (onMouseClick) onMouseClick(target.x, target.y);
       // Reset counter after click - give it a chance to work
       keyboardBlockStuckCount = 0;
-    } else if (cfg.kbOn) {
+    }
+
+    // Normal movement (keyboard or mouse)
+    if (cfg.kbOn) {
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
       const target = calculateClickTarget();
