@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T00:53:08.506Z
+// Built: 2026-03-23T00:57:25.617Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -2278,7 +2278,8 @@ const initialize = () => {
         console.log('🤪 Drunk Walker stopped');
       },
       exportWalk: () => {
-        // Manual walk const data = {
+        // Export walk data to JSON file
+        const data = {
           version: VERSION,
           timestamp: Date.now(),
           steps: engine.getSteps(),

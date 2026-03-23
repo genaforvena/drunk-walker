@@ -256,7 +256,7 @@ const initialize = () => {
         console.log('🤪 Drunk Walker stopped');
       },
       exportWalk: () => {
-        // Manual walk export
+        // Export walk data to JSON file
         const data = {
           version: VERSION,
           timestamp: Date.now(),
