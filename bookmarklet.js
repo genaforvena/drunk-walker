@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T00:32:50.823Z
+// Built: 2026-03-23T00:38:53.612Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -2130,6 +2130,16 @@ const initialize = () => {
       console.warn('💾 Auto-save initialization skipped (algorithm not yet available)');
     }
 
+    // Create experiment framework with default configuration
+    let experiment = null;
+    try {
+      const { createExperiment } = await import('./experiment/index.js');
+      experiment = createExperiment(engine, algorithm);
+      console.log('🧪 Experiment framework initialized');
+    } catch (e) {
+      console.warn('🧪 Experiment framework initialization skipped:', e.message);
+    }
+
     // Restore state if coming from screensaver
     if (savedState) {
       // Restore walk path
@@ -2232,6 +2242,26 @@ const initialize = () => {
       console.log('💾 Auto-save started: will backup every 60 seconds');
     }
 
+    // Start experiment framework with default configuration
+    if (experiment) {
+      experiment.start({
+        name: 'default-experiment',
+        targetSteps: 10000,
+        pace: engine.getConfig().pace || 2000,
+        enableMonitoring: true
+      });
+      console.log('🧪 Experiment auto-started with default configuration');
+      console.log('   Target: 10,000 steps');
+      console.log('   Auto-save: every 60 seconds');
+      console.log('   Export: every 500 steps');
+      console.log('   Monitor: every 30 seconds');
+      console.log('');
+      console.log('Commands:');
+      console.log('  DRUNK_WALKER.experiment.stop()    - Stop experiment');
+      console.log('  DRUNK_WALKER.experiment.export()  - Export data now');
+      console.log('  DRUNK_WALKER.experiment.stats()   - Show statistics');
+    }
+
     // Resume screensaver session if needed (already started above)
     if (savedState?.isWalking) {
       console.log('🤪 Screensaver session restored');
@@ -2243,9 +2273,11 @@ const initialize = () => {
       ui,
       map,
       autosaver,  // Expose auto-saver for manual control
+      experiment, // Expose experiment framework
       simulateKeyPress,
       simulateClick,
       stop: () => {
+        if (experiment) experiment.stop();
         if (autosaver) autosaver.stop();
         ui.destroy();
         cleanupListeners();
