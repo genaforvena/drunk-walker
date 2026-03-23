@@ -397,6 +397,8 @@ export function createUnifiedAlgorithm(cfg) {
 
     // 🚨 LOOP DETECTION: If wall-follow revisits too many nodes, break out
     // This prevents infinite loops in highly connected territories
+    // NOTE: This shouldn't be needed if PLEDGE is implemented correctly
+    // Keeping as safety net, but removed AGGRESSIVE ESCAPE - let natural flow handle it
     if (wallFollowMode && nodeVisitCount >= 3) {
       wallFollowRevisitCount++;
       if (wallFollowRevisitCount >= 3) {
@@ -406,24 +408,8 @@ export function createUnifiedAlgorithm(cfg) {
         wallFollowBearing = null;
         forwardBearing = null;
         wallFollowRevisitCount = 0;
-
-        // After 2+ loop detections, force aggressive escape
-        if (loopEscapeCount >= 2) {
-          console.log(`🔥 AGGRESSIVE ESCAPE: Clearing successfulYaws to force new path!`);
-          currentNode.successfulYaws.clear();
-          loopEscapeCount = 0;
-
-          // Immediately retry a random yaw after clearing - don't fall into dead end!
-          const randomYaw = [0, 60, 120, 180, 240, 300][Math.floor(Math.random() * 6)];
-          const turnAngle = getLeftTurnAngle(orientation, randomYaw);
-          const turnDirection = getTurnDirection(orientation, randomYaw);
-          console.log(`🔥 AGGRESSIVE ESCAPE: Retrying random yaw ${randomYaw}°`);
-          consecutiveStraightMoves = 0;
-          lastDecisionWasTurn = true;
-          return { turn: true, angle: turnAngle, direction: turnDirection };
-        }
-
-        // Fall through to panic mode
+        loopEscapeCount = 0;
+        // Fall through to BREAK WALL / PANIC which will retry a yaw
       }
     } else if (wallFollowMode && nodeVisitCount === 0) {
       // Reset counters when finding new territory
@@ -450,6 +436,38 @@ export function createUnifiedAlgorithm(cfg) {
       if (!currentNode.hasUntriedYaws() && currentNode.successfulYaws.size > 0) {
         console.log(`🧱 WALL-FOLLOW: Stuck at fully explored node, breaking wall...`);
         // Fall through to BREAK WALL logic below
+      } else if (!currentNode.hasUntriedYaws() && currentNode.successfulYaws.size === 0) {
+        // 🚨 All yaws tried but successfulYaws was cleared - use graph to find where we came from
+        const neighbors = enhancedGraph.connections.get(currentLocation);
+        if (neighbors && neighbors.size > 0) {
+          // Get the most recent neighbor (where we likely came from)
+          const neighborLoc = Array.from(neighbors)[0];
+          // Calculate yaw FROM current TO neighbor (reverse direction - where we came from)
+          const currentParts = currentLocation.split(',').map(Number);
+          const neighborParts = neighborLoc.split(',').map(Number);
+          const dLat = neighborParts[0] - currentParts[0];  // TO neighbor
+          const dLng = neighborParts[1] - currentParts[1];
+          let reverseYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+          if (reverseYaw < 0) reverseYaw += 360;
+          reverseYaw = Math.round(reverseYaw);
+          
+          // Turn to face reverse yaw directly (where we came from - guaranteed exit)
+          console.log(`🧱 WALL-FOLLOW: Using reverse yaw ${reverseYaw}° (where we came from)`);
+          const turnAngle = getLeftTurnAngle(orientation, reverseYaw);
+          const turnDirection = getTurnDirection(orientation, reverseYaw);
+          consecutiveStraightMoves = 0;
+          lastDecisionWasTurn = true;
+          wallFollowMode = false;  // Exit wall-follow, we're backtracking
+          wallFollowBearing = null;
+          forwardBearing = null;
+          return { turn: true, angle: turnAngle, direction: turnDirection };
+        }
+        // Fallback: try any yaw (shouldn't happen)
+        console.log(`🧱 WALL-FOLLOW: No graph connections, trying random yaw`);
+        const randomYaw = [0, 60, 120, 180, 240, 300][Math.floor(Math.random() * 6)];
+        const turnAngle = getLeftTurnAngle(orientation, randomYaw);
+        const turnDirection = getTurnDirection(orientation, randomYaw);
+        return { turn: true, angle: turnAngle, direction: turnDirection };
       } else {
         console.log(`🧱 WALL-FOLLOW: Moving along left wall`);
         return { turn: false };
@@ -510,11 +528,14 @@ export function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🚨 TRUE DEAD END: All yaws tried, NO successful exits
     // This is a panorama with NO connections - cannot escape
+    // NOTE: This should never happen in practice (we must have gotten in somehow)
+    // If we see this, it means successfulYaws was cleared (e.g., by AGGRESSIVE ESCAPE)
+    // Fall through to PANIC mode which will retry a random yaw
     // ═══════════════════════════════════════════════════════════
     if (isExhausted && currentNode.successfulYaws.size === 0) {
       console.log(`🚨 TRUE DEAD END! All 6 yaws tried, ZERO successful exits.`);
-      console.log(`   ⚠️ MANUAL INTERVENTION REQUIRED - move to new location!`);
-      return { turn: false, deadEnd: true };
+      console.log(`   Falling through to PANIC mode to retry random yaw...`);
+      // Don't return - fall through to PANIC which will retry a yaw
     }
 
     // ═══════════════════════════════════════════════════════════
