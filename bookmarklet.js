@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T23:10:13.618Z
+// Built: 2026-03-23T23:16:44.624Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -216,8 +216,15 @@ class EnhancedTransitionGraph {
     // Record forward direction at fromNode
     fromNode.recordAttempt(fromYaw, true, toLoc);
 
-    // Record reverse direction at toNode (we can always go back the way we came)
-    const reverseYaw = (toYaw + 180) % 360;
+    // Record reverse direction at toNode (geometric direction back to where we came from)
+    // Calculate from coordinates, NOT from toYaw (which is Google's camera orientation after landing)
+    const fromParts = fromLoc.split(',').map(Number);
+    const toParts = toLoc.split(',').map(Number);
+    const dLat = fromParts[0] - toParts[0];  // FROM neighbor TO current
+    const dLng = fromParts[1] - toParts[1];
+    let reverseYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+    if (reverseYaw < 0) reverseYaw += 360;
+    reverseYaw = Math.round(reverseYaw);
     toNode.recordAttempt(reverseYaw, true, fromLoc);
 
     // Bidirectional connection tracking
@@ -501,10 +508,16 @@ function createUnifiedAlgorithm(cfg) {
         lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
-      // Facing correct direction - just press ArrowUp to continue backtracking
-      // Don't try other yaws, don't BREAK_WALL - just go back!
-      console.log(`🧱 WALL-FOLLOW: Backtracking (press ArrowUp)`);
-      return { turn: false };
+      // Facing correct direction - check if we're actually stuck
+      // If all yaws tried (including backtracking direction), fall through to BREAK_WALL
+      if (isExhausted) {
+        console.log(`🧱 WALL-FOLLOW: All yaws exhausted at dead end - breaking wall to escape!`);
+        // Fall through to BREAK_WALL logic below
+      } else {
+        // Still have untried yaws - just press ArrowUp to continue backtracking
+        console.log(`🧱 WALL-FOLLOW: Backtracking (press ArrowUp)`);
+        return { turn: false };
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -512,7 +525,7 @@ function createUnifiedAlgorithm(cfg) {
     // If so, we're trapped in an exhausted component
     // After 3 detections, RESTART with fresh graph
     // ═══════════════════════════════════════════════════════════
-    if (isExhausted && currentNode.successfulYaws.size > 0 && !wallFollowMode) {
+    if (isExhausted && currentNode.successfulYaws.size > 0) {
       const neighbors = enhancedGraph.connections.get(currentLocation);
       if (neighbors && neighbors.size > 0) {
         let allNeighborsDead = true;
@@ -557,11 +570,12 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 BREAK THE WALL: When truly stuck (FORWARD mode only!)
-    // Retry successful yaw to escape Street View jitter
-    // NOT used during wall-follow backtracking!
+    // 🚨 BREAK THE WALL: When truly stuck (retry successful yaw)
+    // Used when:
+    // 1. FORWARD mode: all yaws exhausted, escape Street View jitter
+    // 2. WALL-FOLLOW mode: stuck at dead end with no backtracking exit
     // ═══════════════════════════════════════════════════════════
-    if (isExhausted && currentNode.successfulYaws.size > 0 && !wallFollowMode) {
+    if (isExhausted && currentNode.successfulYaws.size > 0) {
       const successfulYawsArray = Array.from(currentNode.successfulYaws);
       const randomSuccessfulYaw = successfulYawsArray[Math.floor(Math.random() * successfulYawsArray.length)];
       console.log(`🚨 BREAK WALL: All yaws exhausted! Retrying successful yaw ${randomSuccessfulYaw}°`);
@@ -578,9 +592,9 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🚨 FALLBACK: successfulYaws is empty but we must have gotten in somehow
     // Use graph connections to find where we came from and try reverse yaw
-    // Only for FORWARD mode - NOT during wall-follow backtracking!
+    // This is the ultimate escape - graph remembers connections even if successfulYaws doesn't
     // ═══════════════════════════════════════════════════════════
-    if (isExhausted && currentNode.successfulYaws.size === 0 && !wallFollowMode) {
+    if (isExhausted && currentNode.successfulYaws.size === 0) {
       const neighbors = enhancedGraph.connections.get(currentLocation);
       if (neighbors && neighbors.size > 0) {
         // Get the most recent neighbor (where we likely came from)
