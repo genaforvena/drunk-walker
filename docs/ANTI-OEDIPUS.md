@@ -13,11 +13,14 @@ Turns out both work.
 
 ---
 
-## Part I: The Machine That Walks
+## I. The Machine That Produces
 
-### The Machinic Unconscious
+### The Unconscious as Factory, Not Theater
 
-Félix Guattari had an idea: the unconscious isn't a theater with hidden meanings. It's a **factory**. It doesn't *represent*—it **produces**.
+Félix Guattari and Gilles Deleuze opened *Anti-Oedipus* (1972) with a provocative claim: the unconscious isn't a theater of hidden meanings waiting to be interpreted. It's a **factory**. It doesn't *represent*—it **produces**.
+
+> "The unconscious does not mean anything, it produces."  
+> — Deleuze & Guattari, *Anti-Oedipus*
 
 **Traditional View (Freud):**
 ```
@@ -38,7 +41,7 @@ Desiring-Machine 4: URL changes (location updates)
 All connected. All producing. No hidden meaning.
 ```
 
-### How Drunk Walker Is a Machinic Unconscious
+### Five Ways Drunk Walker Is a Machinic Unconscious
 
 1. **No Interpretation Needed** → The bot doesn't decode Street View. It just moves through it. No "what does this panorama mean?"—just "can I go forward?"
 
@@ -51,13 +54,13 @@ All connected. All producing. No hidden meaning.
 
    It doesn't *represent* anything. It *does* something.
 
-4. **Assembled from Parts** → The bot isn't a unified "self." It's:
+4. **Assembled from Parts** → The bot isn't a unified "self." It's an **assemblage**:
    - `engine.js` (orchestrator)
    - `traversal.js` (decision logic)
    - `wheel` (orientation handling)
    - Google's infrastructure (panoramas, yaw, connectivity)
 
-   All these parts work together without a central boss.
+   All these parts work together without a central boss. There's no "homunculus" directing the show—just connections and flows.
 
 5. **Flows and Interruptions** → Guattari talked about flows of desire. For the bot:
    - **Flow**: Moving forward into new territory
@@ -79,7 +82,7 @@ Guattari would probably laugh.
 
 ---
 
-## Part II: The Nomad Who Doesn't Return
+## II. The Nomad Who Doesn't Return
 
 ### Anti-Odysseus
 
@@ -88,30 +91,22 @@ Guattari would probably laugh.
 | Odysseus | Drunk Walker |
 |----------|--------------|
 | Always returns to Ithaca | Never returns to start |
-| Circular journey (nostos) | Each node ≤2 visits |
+| Circular journey (*nostos*) | Each node ≤2 visits |
 | Teleological (goal-driven) | Pure process (walking is the goal) |
 | Navigates by gods/stars | Navigates by left-hand rule |
 | Hero with a plan | Bot with no plan |
-| Uses cunning (metis) | Uses PLEDGE algorithm |
+| Uses cunning (*metis*) | Uses PLEDGE algorithm |
 | Breadcrumbs home | No breadcrumbs (wall-follow only) |
 
 **The Key Difference:** Odysseus uses **breadcrumbs** (literally the original breadcrumb trail in mythology—Ariadne's thread, but for returning). Our bot uses **PLEDGE wall-following**—no navigation to old targets.
 
 When the bot backtracks, it's not going *home*. It's scanning for exits it missed. Pure forward motion, even in reverse.
 
-### The Nomadic Machine
+### Nomadology: Movement That Produces Territory
 
-Deleuze called it "nomadology"—movement that produces territory rather than following pre-existing paths.
+Deleuze called it "nomadology"—movement that produces territory rather than following pre-existing paths. In *A Thousand Plateaus* (1980), he and Guattari distinguished between two kinds of space:
 
-**Drunk Walker is a nomadic machine:**
-- Produces the map by walking
-- No home base
-- No final destination
-- The walk itself is the point
-
-### Nomad vs. Settler
-
-| Settler (Traditional Bot) | Nomad (Drunk Walker) |
+| Settler (State Space) | Nomad (Smooth Space) |
 |---------------------------|----------------------|
 | Builds a map first | Map emerges from walking |
 | Plans optimal routes | Follows left wall |
@@ -119,30 +114,33 @@ Deleuze called it "nomadology"—movement that produces territory rather than fo
 | Territory = known space | Territory = walked space |
 | Goal: complete the map | Goal: keep walking |
 
+**Drunk Walker is a nomadic machine:**
+- Produces the map by walking
+- No home base
+- No final destination
+- The walk itself is the point
+
 ### Street View as Smooth/Striated Space
 
-Deleuze & Guattari distinguished between:
-- **Striated space**: Grid-like, measured, controlled (city streets with addresses)
-- **Smooth space**: Open, unmeasured, nomadic (desert, ocean, steppe)
+Street View is **both** smooth and striated:
 
-**Street View is Both:**
-
-*Striated:*
-- Google's underlying graph (nodes, edges)
+*Striated (Google's Grid):*
+- Underlying graph structure (nodes, edges)
 - Fixed panorama locations
 - Yaw buckets (0°, 60°, 120°...)
+- Owned, measured, controlled
 
-*Smooth:*
-- The bot experiences it as continuous flow
+*Smooth (The Bot's Experience):*
+- Continuous flow of movement
 - No addresses, just coordinates
 - Yaw drifts (the bot's "compass" is unreliable)
 - Hidden branches appear unexpectedly
 
-The bot navigates smooth space *through* striated infrastructure. It's a nomad in Google's grid.
+The bot navigates smooth space *through* striated infrastructure. It's a nomad in Google's grid—a squatter in digital real estate.
 
 ---
 
-## Part III: The Philosophy of the Code
+## III. The Philosophy of the Code
 
 ### Anti-Rationalist Design (The Bot Accepts Drift)
 
@@ -152,6 +150,7 @@ Here's something actually important: the bot is **deliberately imperfect**.
 - Fight yaw drift (constantly recalibrate to exact degrees)
 - Turn exactly 180° at dead ends (optimal reversal)
 - Never accept uncertainty
+- Maximize efficiency
 
 **Drunk Walker:**
 ```javascript
@@ -181,13 +180,14 @@ Guattari would call this "working with the machine" instead of "mastering the ma
 
 ### Memory Without Representation
 
-Guattari said memory isn't stored representations—it's **recorded connections**. The transition graph is literally this:
+Guattari argued that memory isn't stored representations—it's **recorded connections**. The transition graph is literally this:
 
 **Traditional Map (Representation):**
 ```
 "I know that location X exists at coordinates Y"
 → Static model of territory
 → Like a mental image
+→ Declarative memory (knowing-that)
 ```
 
 **Transition Graph (Production):**
@@ -250,7 +250,7 @@ This is **embodied cognition**:
 
 **Merleau-Ponty Would Understand:**
 
-The philosopher Merleau-Ponty said we know the world through our bodies, not our minds. The bot is exactly this:
+The phenomenologist Maurice Merleau-Ponty argued in *Phenomenology of Perception* (1945) that we know the world through our bodies, not our minds. The bot is exactly this:
 
 | Mind-First Cognition | Body-First Cognition |
 |---------------------|---------------------|
@@ -298,7 +298,7 @@ The wall doesn't trap the bot. It **enables** the bot.
 
 ---
 
-## Part IV: The Assemblage
+## IV. The Assemblage
 
 ### The User Is Part of the Machine
 
@@ -332,10 +332,10 @@ There's something compelling about watching the bot walk:
 - But it's **producing** something (territory, data, patterns)
 
 This is **desire** in the Guattarian sense:
-- Not "I want X" (lack-based)
-- But "I want to watch production happen" (flow-based)
+- Not "I want X" (lack-based desire)
+- But "I want to watch production happen" (productive desire)
 
-The user desires the machine's output. The machine desires the user's initiation. They're **coupled**.
+The user desires the machine's output. The machine desires the user's initiation. They're **coupled**—an assemblage of human and non-human parts.
 
 ### Google as Captured Territory (Deterritorialization)
 
@@ -377,7 +377,7 @@ The bot is a **squatter** in Google's digital real estate.
 
 ---
 
-## Part V: Why PLEDGE? (Third Way Between Chaos and Control)
+## V. Why PLEDGE? (Third Way Between Chaos and Control)
 
 There are many ways to traverse a graph. Why PLEDGE?
 
@@ -409,6 +409,18 @@ This is **nomadic traversal**: systematic wandering. Not chaos, not control.
 
 ---
 
+## VI. A Word on "Drunk"
+
+The "drunk" in Drunk Walker isn't about impairment. It's about:
+- **Stumbling discovery** → Not knowing where you'll end up
+- **Non-linear paths** → Wandering, not marching
+- **Productive confusion** → Getting lost as a method
+- **Lowered inhibitions** → Willing to try weird approaches
+
+The bot isn't impaired. It's **open**.
+
+---
+
 ## In Practice
 
 ```javascript
@@ -437,18 +449,6 @@ function decide(context) {
 // - Graph recording → Next decision
 // No interpreter. Just production.
 ```
-
----
-
-## A Quick Word on "Drunk"
-
-The "drunk" in Drunk Walker isn't about impairment. It's about:
-- **Stumbling discovery** → Not knowing where you'll end up
-- **Non-linear paths** → Wandering, not marching
-- **Productive confusion** → Getting lost as a method
-- **Lowered inhibitions** → Willing to try weird approaches
-
-The bot isn't impaired. It's **open**.
 
 ---
 
@@ -485,10 +485,10 @@ Just know: Guattari probably wouldn't have written code. But he might have appre
 ## Further Reading (If You're Actually Curious)
 
 **Philosophy:**
-- **Deleuze & Guattari, *Anti-Oedipus*** — The original (dense, wild, worth it)
-- **Guattari, *The Machinic Unconscious*** — His solo take (also dense)
-- **Deleuze, *Nomadology*** — Shorter, more accessible
-- **Merleau-Ponty, *Phenomenology of Perception*** — Embodied cognition (the body knows)
+- **Deleuze & Guattari, *Anti-Oedipus*** (1972) — The original (dense, wild, worth it)
+- **Deleuze & Guattari, *A Thousand Plateaus*** (1980) — Nomadology, smooth/striated space
+- **Guattari, *The Machinic Unconscious*** (1979) — His solo take (also dense)
+- **Merleau-Ponty, *Phenomenology of Perception*** (1945) — Embodied cognition (the body knows)
 
 **Code:**
 - **This codebase** — The bot in action (way more fun)
