@@ -624,6 +624,40 @@ if (!currentNode.hasUntriedYaws()) {
 }
 ```
 
+### Bug #7: Wall-Follow Was Trying Multiple Yaws During Backtracking
+
+**Wrong:** During backtracking (wall-follow mode), the bot was:
+- Trying multiple yaws at each node
+- Using BREAK_WALL to escape
+- Going back to visited nodes instead of continuing to backtrack
+
+**Right:** During backtracking:
+1. Scan for LEFT exits only (90-180° from forward bearing)
+2. Found LEFT exit? → Take it, exit wall-follow, resume FORWARD
+3. **No LEFT exit? → Just press ArrowUp to continue backtracking**
+   - Don't try other yaws
+   - Don't BREAK_WALL
+   - Just go back where you came from!
+
+```javascript
+// ✅ CORRECT: Wall-follow backtracking
+if (wallFollowMode && wallFollowBearing !== null) {
+  // Face the backtracking direction
+  if (diff > 10) {
+    return { turn: true, angle: turnAngle };  // Turn to face backtracking direction
+  }
+  // Facing correct direction - just press ArrowUp to continue backtracking
+  return { turn: false };  // Don't try other yaws, don't BREAK_WALL!
+}
+
+// ✅ CORRECT: BREAK_WALL only for FORWARD mode
+if (isExhausted && currentNode.successfulYaws.size > 0 && !wallFollowMode) {
+  // BREAK_WALL logic - escape Street View jitter during forward exploration
+}
+```
+
+**Why:** BREAK_WALL is for escaping Street View jitter during **forward exploration**, NOT for backtracking. During backtracking, you're supposed to go back where you came from until you find a LEFT exit!
+
 ---
 
 ### Pure PLEDGE: The Correct Implementation
@@ -646,16 +680,16 @@ if (!currentNode.hasUntriedYaws()) {
 │  3. WALL-FOLLOW MODE (backtracking):                    │
 │     • ONLY scan LEFT exits (90-180° from forward)       │
 │     • Found LEFT exit? → Take it, EXIT wall-follow      │
-│     • No LEFT exit? → Keep backtracking                 │
-│       (DON'T try forward/right yaws - we'll get         │
-│       them on future forward passes!)                   │
-│     • Fully explored (no untried yaws)?                 │
-│       → Go to BREAK_WALL immediately                    │
+│     • No LEFT exit? → Just press ArrowUp                │
+│       (continue backtracking - DON'T try other yaws,    │
+│       DON'T BREAK_WALL - just go back where you came    │
+│       from until you find a LEFT exit!)                 │
 │                                                         │
-│  4. BREAK_WALL:                                         │
+│  4. BREAK_WALL (FORWARD mode only!):                    │
 │     • Has successfulYaws? → Retry random one            │
 │     • Empty? → Use graph for reverse yaw                │
 │       (calculate from graph connections)                │
+│     • NOT used during wall-follow backtracking!         │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -671,6 +705,10 @@ if (!currentNode.hasUntriedYaws()) {
 4. **Wall-follow ONLY checks LEFT** - Never check forward/right yaws during backtracking. They'll be covered later.
 
 5. **Graph remembers everything** - Even if `successfulYaws` is empty, the graph has connections. Use them to calculate reverse yaw.
+
+6. **BREAK_WALL is FORWARD-mode only** - It's for escaping Street View jitter during forward exploration, NOT for backtracking. During backtracking, just press ArrowUp to continue going back!
+
+7. **Backtracking = ONE direction** - During wall-follow, just go back where you came from. Don't try multiple yaws. Don't BREAK_WALL. Just continue backtracking until you find a LEFT exit!
 
 ### Each Node ≤2 Visits Guarantee
 
