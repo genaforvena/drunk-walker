@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T01:38:28.886Z
+// Built: 2026-03-23T20:24:32.493Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -12,6 +12,7 @@ void function initDrunkWalker(){
   
   // === VERSION ===
   const VERSION = '6.1.0-SMART-PANIC';
+
 
   // === WHEEL ===
   /**
@@ -119,10 +120,16 @@ function yawDifference(yaw1, yaw2) {
 }
 
 /**
- * Calculate angle to turn LEFT to reach targetYaw from currentYaw
+ * Calculate angle to turn LEFT (counter-clockwise) to reach targetYaw from currentYaw
+ * 
+ * Example: Current=250°, Target=319°
+ * - Left turn: 319 - 250 = 69° (counter-clockwise, shorter)
+ * - Right turn: 360 - 69 = 291° (clockwise, longer)
+ * - This function returns: 69°
  */
 function getLeftTurnAngle(currentYaw, targetYaw) {
-  let angle = (normalizeAngle(currentYaw) - normalizeAngle(targetYaw) + 360) % 360;
+  // LEFT turn = target - current (counter-clockwise)
+  let angle = (normalizeAngle(targetYaw) - normalizeAngle(currentYaw) + 360) % 360;
   return angle;
 }
 
@@ -492,6 +499,8 @@ function createUnifiedAlgorithm(cfg) {
 
     // 🚨 LOOP DETECTION: If wall-follow revisits too many nodes, break out
     // This prevents infinite loops in highly connected territories
+    // NOTE: This shouldn't be needed if PLEDGE is implemented correctly
+    // Keeping as safety net, but removed AGGRESSIVE ESCAPE - let natural flow handle it
     if (wallFollowMode && nodeVisitCount >= 3) {
       wallFollowRevisitCount++;
       if (wallFollowRevisitCount >= 3) {
@@ -501,15 +510,8 @@ function createUnifiedAlgorithm(cfg) {
         wallFollowBearing = null;
         forwardBearing = null;
         wallFollowRevisitCount = 0;
-
-        // After 2+ loop detections, force aggressive escape
-        if (loopEscapeCount >= 2) {
-          console.log(`🔥 AGGRESSIVE ESCAPE: Clearing successfulYaws to force new path!`);
-          currentNode.successfulYaws.clear();
-          loopEscapeCount = 0;
-        }
-
-        // Fall through to panic mode
+        loopEscapeCount = 0;
+        // Fall through to BREAK WALL / PANIC which will retry a yaw
       }
     } else if (wallFollowMode && nodeVisitCount === 0) {
       // Reset counters when finding new territory
@@ -532,13 +534,14 @@ function createUnifiedAlgorithm(cfg) {
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
       // 🚨 STUCK IN WALL-FOLLOW: Node is fully explored, can't move forward
-      // Trigger BREAK WALL logic to retry a successful yaw
-      if (!currentNode.hasUntriedYaws() && currentNode.successfulYaws.size > 0) {
+      // Use BREAK WALL to retry a successful yaw (where we came from)
+      if (!currentNode.hasUntriedYaws()) {
         console.log(`🧱 WALL-FOLLOW: Stuck at fully explored node, breaking wall...`);
         // Fall through to BREAK WALL logic below
       } else {
-        console.log(`🧱 WALL-FOLLOW: Moving along left wall`);
-        return { turn: false };
+        // Has untried yaws - scan for left exits (should be handled above, but fallback here)
+        console.log(`🧱 WALL-FOLLOW: Has untried yaws, scanning for left exits...`);
+        // Fall through to wall-follow scan logic
       }
     }
 
@@ -594,17 +597,8 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 TRUE DEAD END: All yaws tried, NO successful exits
-    // This is a panorama with NO connections - cannot escape
-    // ═══════════════════════════════════════════════════════════
-    if (isExhausted && currentNode.successfulYaws.size === 0) {
-      console.log(`🚨 TRUE DEAD END! All 6 yaws tried, ZERO successful exits.`);
-      console.log(`   ⚠️ MANUAL INTERVENTION REQUIRED - move to new location!`);
-      return { turn: false, deadEnd: true };
-    }
-
-    // ═══════════════════════════════════════════════════════════
     // 🚨 BREAK THE WALL: When truly stuck, retry successful yaw
+    // If successfulYaws is empty, use graph connections to find where we came from
     // ═══════════════════════════════════════════════════════════
     if (isExhausted && currentNode.successfulYaws.size > 0) {
       const successfulYawsArray = Array.from(currentNode.successfulYaws);
@@ -617,6 +611,42 @@ function createUnifiedAlgorithm(cfg) {
       wallFollowMode = false;
       wallFollowBearing = null;
       forwardBearing = null;
+      return { turn: true, angle: turnAngle, direction: turnDirection };
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🚨 FALLBACK: successfulYaws is empty but we must have gotten in somehow
+    // Use graph connections to find where we came from and try reverse yaw
+    // ═══════════════════════════════════════════════════════════
+    if (isExhausted && currentNode.successfulYaws.size === 0) {
+      const neighbors = enhancedGraph.connections.get(currentLocation);
+      if (neighbors && neighbors.size > 0) {
+        // Get the most recent neighbor (where we likely came from)
+        const neighborLoc = Array.from(neighbors)[0];
+        // Calculate yaw FROM current TO neighbor (reverse direction - where we came from)
+        const currentParts = currentLocation.split(',').map(Number);
+        const neighborParts = neighborLoc.split(',').map(Number);
+        const dLat = neighborParts[0] - currentParts[0];  // TO neighbor
+        const dLng = neighborParts[1] - currentParts[1];
+        let reverseYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+        if (reverseYaw < 0) reverseYaw += 360;
+        reverseYaw = Math.round(reverseYaw);
+
+        console.log(`🚨 BREAK WALL: No successfulYaws, using reverse yaw ${reverseYaw}° from graph`);
+        const turnAngle = getLeftTurnAngle(orientation, reverseYaw);
+        const turnDirection = getTurnDirection(orientation, reverseYaw);
+        consecutiveStraightMoves = 0;
+        lastDecisionWasTurn = true;
+        wallFollowMode = false;
+        wallFollowBearing = null;
+        forwardBearing = null;
+        return { turn: true, angle: turnAngle, direction: turnDirection };
+      }
+      // No graph connections either - try any yaw as last resort
+      console.log(`🚨 BREAK WALL: No graph connections, trying random yaw`);
+      const randomYaw = [0, 60, 120, 180, 240, 300][Math.floor(Math.random() * 6)];
+      const turnAngle = getLeftTurnAngle(orientation, randomYaw);
+      const turnDirection = getTurnDirection(orientation, randomYaw);
       return { turn: true, angle: turnAngle, direction: turnDirection };
     }
 
@@ -865,6 +895,11 @@ function createEngine(config = {}) {
   let previousYaw = null;
   let lastDifferentLocation = null;  // Track last location that was different from current
 
+  // Keyboard block detection - when Street View blocks keyboard controls
+  let keyboardBlockStuckCount = 0;  // Consecutive stuck steps with no yaw change
+  let lastStuckYaw = null;  // Track yaw when stuck started
+  const KEYBOARD_BLOCK_THRESHOLD = 3;  // After 3 stuck steps with same yaw, click to wake
+
   // Turn state - prevent oscillation
   let isTurning = false;  // True while executing a turn
   let turnCompleted = false;  // Set to true when turn finishes
@@ -1021,10 +1056,21 @@ function createEngine(config = {}) {
     if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
       console.log(`[DEBUG] STUCK DETECTED - same location, stuckCount=${stuckCount}`);
+
+      // Keyboard block detection: stuck with same yaw = controls might be blocked
+      if (currentYaw !== null && currentYaw === lastStuckYaw) {
+        keyboardBlockStuckCount++;
+        console.log(`[DEBUG] KEYBOARD BLOCK? stuck+same yaw, count=${keyboardBlockStuckCount}/${KEYBOARD_BLOCK_THRESHOLD}`);
+      } else {
+        keyboardBlockStuckCount = 1;
+        lastStuckYaw = currentYaw;
+      }
     } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
       console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown`);
       stuckCount = 0;
       ticksSinceTurn = TURNS_COOLDOWN_TICKS;  // Reset cooldown - we moved successfully
+      keyboardBlockStuckCount = 0;  // Reset keyboard block counter - we moved!
+      lastStuckYaw = null;
       // Track that we just arrived at a different location
       if (currentLocation !== lastDifferentLocation) {
         lastDifferentLocation = currentLocation;
@@ -1183,6 +1229,19 @@ function createEngine(config = {}) {
     previousYaw = wheel.getOrientation();
     lastUrl = currentUrl;
 
+    // 🚨 KEYBOARD BLOCK FIX: When stuck with same yaw for N steps, click to wake
+    // This works in BOTH keyboard and mouse mode - click re-engages Street View
+    const isKeyboardBlocked = keyboardBlockStuckCount >= KEYBOARD_BLOCK_THRESHOLD;
+    if (isKeyboardBlocked) {
+      console.log(`🚨 KEYBOARD BLOCK DETECTED! stuck=${stuckCount}, sameYaw=${keyboardBlockStuckCount}x - CLICKING TO WAKE`);
+      // Use mouse click to "wake up" Street View controls (works in both modes)
+      const target = calculateClickTarget();
+      if (onMouseClick) onMouseClick(target.x, target.y);
+      // Reset counter after click - give it a chance to work
+      keyboardBlockStuckCount = 0;
+    }
+
+    // Normal movement (keyboard or mouse)
     if (cfg.kbOn) {
       if (onKeyPress) onKeyPress('ArrowUp');
     } else {
@@ -1251,6 +1310,8 @@ function createEngine(config = {}) {
     stop();
     steps = 0;
     stuckCount = 0;
+    keyboardBlockStuckCount = 0;
+    lastStuckYaw = null;
     lastUrl = null;
     status = 'IDLE';
     wheel.reset();
@@ -1301,12 +1362,14 @@ function createEngine(config = {}) {
   /**
  * Input Handlers - Keyboard and Mouse Event Simulation
  */
+
 const KEY_CODES = {
   ArrowUp: { keyCode: 38, code: 'ArrowUp' },
   ArrowLeft: { keyCode: 37, code: 'ArrowLeft' },
   ArrowDown: { keyCode: 40, code: 'ArrowDown' },
   ArrowRight: { keyCode: 39, code: 'ArrowRight' }
 };
+
 /**
  * Find the best target element for Street View events
  */
@@ -1317,6 +1380,7 @@ function findStreetViewTarget() {
     document.querySelector('[class*="streetview"]') ||
     document.documentElement;
 }
+
 /**
  * Simulate keyboard event (keydown -> keypress -> keyup)
  * @param {string} key - Key to simulate (e.g., 'ArrowUp')
@@ -1324,6 +1388,7 @@ function findStreetViewTarget() {
  */
 function simulateKeyPress(key, target = null) {
   const { keyCode, code } = KEY_CODES[key] || { keyCode: 0, code: key };
+
   const eventOptions = {
     key,
     code,
@@ -1338,7 +1403,9 @@ function simulateKeyPress(key, target = null) {
     metaKey: false,
     shiftKey: false
   };
+
   const targetEl = target || findStreetViewTarget();
+
   // Full key event sequence
   targetEl.dispatchEvent(new KeyboardEvent('keydown', eventOptions));
   targetEl.dispatchEvent(new KeyboardEvent('keypress', eventOptions));
@@ -1346,6 +1413,7 @@ function simulateKeyPress(key, target = null) {
     targetEl.dispatchEvent(new KeyboardEvent('keyup', eventOptions));
   }, 50);
 }
+
 /**
  * Simulate long-press keyboard event (repeated keydown/keypress)
  * Used for turning (e.g., hold ArrowLeft for 30° turn)
@@ -1356,6 +1424,7 @@ function simulateKeyPress(key, target = null) {
  */
 function simulateLongKeyPress(key, duration, callback, target = null) {
   const { keyCode, code } = KEY_CODES[key] || { keyCode: 0, code: key };
+
   const baseOptions = {
     key,
     code,
@@ -1369,11 +1438,14 @@ function simulateLongKeyPress(key, duration, callback, target = null) {
     metaKey: false,
     shiftKey: false
   };
+
   const targetEl = target || findStreetViewTarget();
   const startTime = Date.now();
+
   // Initial Key Down
   targetEl.dispatchEvent(new KeyboardEvent('keydown', { ...baseOptions, repeat: false }));
   targetEl.dispatchEvent(new KeyboardEvent('keypress', { ...baseOptions, repeat: false }));
+
   // Repeat loop
   const intervalId = setInterval(() => {
     if (Date.now() - startTime >= duration) {
@@ -1387,6 +1459,7 @@ function simulateLongKeyPress(key, duration, callback, target = null) {
     }
   }, 50); // Repeat every 50ms (typical browser repeat rate)
 }
+
 /**
  * Simulate mouse click at coordinates
  * @param {number} x - X coordinate
@@ -1402,10 +1475,13 @@ function simulateClick(x, y, showMarker = true) {
     screenX: x,
     screenY: y
   };
+
   const target = document.elementFromPoint(x, y) || document.body;
+
   target.dispatchEvent(new MouseEvent('mousedown', eventOptions));
   target.dispatchEvent(new MouseEvent('mouseup', eventOptions));
   target.dispatchEvent(new MouseEvent('click', eventOptions));
+
   // Visual feedback marker
   if (showMarker) {
     const marker = document.createElement('div');
@@ -1431,24 +1507,29 @@ function simulateClick(x, y, showMarker = true) {
     }, 50);
   }
 }
+
 /**
  * Set up user interaction listeners
  * @returns {Object} Cleanup function
  */
 function setupInteractionListeners(callbacks = {}) {
   const { onUserMouseDown, onUserMouseUp } = callbacks;
+
   const mouseDownHandler = (e) => {
     if (e.isTrusted && onUserMouseDown) {
       onUserMouseDown(true);
     }
   };
+
   const mouseUpHandler = (e) => {
     if (e.isTrusted && onUserMouseUp) {
       onUserMouseUp(false);
     }
   };
+
   document.addEventListener('mousedown', mouseDownHandler, true);
   document.addEventListener('mouseup', mouseUpHandler, true);
+
   return {
     cleanup: () => {
       document.removeEventListener('mousedown', mouseDownHandler, true);
@@ -1456,6 +1537,7 @@ function setupInteractionListeners(callbacks = {}) {
     }
   };
 }
+
 
   // === EXPLORATION MAP ===
   /**

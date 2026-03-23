@@ -497,4 +497,26 @@ if (isExhausted && successfulYaws.size === 0) {
 
 ---
 
+## Developer Notes
+
+### Release Checklist (BEFORE PUSHING)
+
+**Always follow this order:**
+
+1. **Make code changes**
+2. **Run tests:** `npm test` - ALL 150+ tests must pass
+3. **Build:** `node build.js` - generates updated `bookmarklet.js`
+4. **Verify build:** Check `bookmarklet.js` was updated (file size ~87KB)
+5. **Commit:** `git add . && git commit -m "..."`
+6. **Push:** `git push`
+
+**Never push without:**
+- ✅ Running `npm test`
+- ✅ Running `node build.js`
+- ✅ Verifying `bookmarklet.js` is updated
+
+**Why:** Pushing untested/unbuilt code breaks production. The `bookmarklet.js` file is what users actually run - it must match the source code.
+
+---
+
 *The bot explores by following the left wall, facing forward, and breaking walls when stuck. Every node has at least one exit—where we came from.*

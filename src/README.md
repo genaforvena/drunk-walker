@@ -13,6 +13,27 @@ npm test
 node build.js
 ```
 
+### ⚠️ Release Checklist (MUST DO BEFORE PUSHING)
+
+**Always follow this order:**
+
+1. **Make code changes**
+2. **Run tests:** `npm test` - ALL tests must pass
+3. **Build:** `node build.js` - generates `bookmarklet.js`
+4. **Verify build:** Check `bookmarklet.js` was updated (file size, timestamp)
+5. **Commit:** `git add . && git commit -m "..."`
+6. **Push:** `git push`
+
+**Why this order matters:**
+- Tests catch regressions BEFORE they reach users
+- Build ensures `bookmarklet.js` matches source code
+- Pushing untested/unbuilt code breaks production
+
+**Never push without:**
+- ✅ Running `npm test`
+- ✅ Running `node build.js`
+- ✅ Verifying `bookmarklet.js` is updated
+
 ---
 
 ## Project Structure
