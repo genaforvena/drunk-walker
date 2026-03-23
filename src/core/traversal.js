@@ -406,14 +406,23 @@ export function createUnifiedAlgorithm(cfg) {
         wallFollowBearing = null;
         forwardBearing = null;
         wallFollowRevisitCount = 0;
-        
+
         // After 2+ loop detections, force aggressive escape
         if (loopEscapeCount >= 2) {
           console.log(`🔥 AGGRESSIVE ESCAPE: Clearing successfulYaws to force new path!`);
           currentNode.successfulYaws.clear();
           loopEscapeCount = 0;
+
+          // Immediately retry a random yaw after clearing - don't fall into dead end!
+          const randomYaw = [0, 60, 120, 180, 240, 300][Math.floor(Math.random() * 6)];
+          const turnAngle = getLeftTurnAngle(orientation, randomYaw);
+          const turnDirection = getTurnDirection(orientation, randomYaw);
+          console.log(`🔥 AGGRESSIVE ESCAPE: Retrying random yaw ${randomYaw}°`);
+          consecutiveStraightMoves = 0;
+          lastDecisionWasTurn = true;
+          return { turn: true, angle: turnAngle, direction: turnDirection };
         }
-        
+
         // Fall through to panic mode
       }
     } else if (wallFollowMode && nodeVisitCount === 0) {
