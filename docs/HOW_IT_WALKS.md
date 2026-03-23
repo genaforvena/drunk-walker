@@ -1,6 +1,6 @@
 # How Drunk Walker Explores (PLEDGE Algorithm)
 
-**Version:** 6.1.2 - Camera Alignment + Yaw Optimization
+**Version:** 6.1.4 - Graph-Based Backtracking Fix
 
 ## The Problem
 
@@ -21,7 +21,7 @@ Traditional exploration algorithms fail because they:
 
 **PLEDGE** (Parametric Labyrinth Exploration with Drift-Guided Escape) is a wall-following algorithm adapted for Street View's unique geometry.
 
-### Core Insight
+### Core Guarantee
 
 > **Every node has at most 2 visits:**
 > 1. **Forward pass**: Explore into new territory
@@ -31,29 +31,14 @@ This guarantee comes from:
 - **Left-hand rule**: When stuck, follow the left wall
 - **Forward facing**: Always face direction of travel
 - **Break-wall escape**: Retry successful exits when truly stuck
+- **Graph memory**: Always remember where we came from
 - **No breadcrumb navigation**: Pure wall-following, no old targets
 
-### v6.1.2 Optimizations
+### Critical Insight: Every Node Has At Least One Exit
 
-**Camera Alignment (40° threshold):**
-- Tracks gradual curves proactively at each node
-- Prevents large corrective turns (e.g., 78° turn at node 26)
-- Keeps camera aligned with direction of travel
+**You must have gotten in somehow.** Every node has at least the reverse direction (where you came from). If `successfulYaws` is empty, use the **graph connections** to calculate the reverse yaw.
 
-**Smart 360° Scan (perpendicular yaws only):**
-- Only scans if 2+ untried yaws are PERPENDICULAR (60-120° from bearing)
-- Eliminates scans on straight roads where untried yaws are forward/back variants
-- Fixes wasteful 0.03° turns
-
-**Yaw Hysteresis (committed direction):**
-- Only updates direction when bearing differs by >45°
-- Prevents oscillation on straight roads
-- Maintains momentum after 3+ consecutive straight moves
-
-**Widened Yaw Tolerance (±20°):**
-- Accepts natural drift without micro-adjustments
-- Changed from ±5° to ±20° tolerance
-- Reduces turns per 100 steps by ~60%
+This is the **escape guarantee**: even if all recorded successful yaws are lost, the graph remembers connections, and you can always backtrack.
 
 ---
 
@@ -98,17 +83,17 @@ Check: isExhausted && fullyExplored?
     ↓
 YES → Dead end detected!
     ↓
-TURN LEFT 120° from forward bearing
+TURN LEFT 105° from forward bearing
     ↓
 Face left wall, slightly backward
     ↓
 Enter WALL-FOLLOW mode
 ```
 
-**Why 120°?**
+**Why 105°?**
 - Points along left wall (not straight back)
 - Allows scanning side exits while backtracking
-- Compromise between wall-follow and exit detection
+- Better than 120° for catching side entrances during backtrack
 
 ### Phase 3: WALL-FOLLOW Backtracking
 
@@ -118,12 +103,17 @@ In WALL-FOLLOW mode
 At each node while backtracking:
   • Scan for untried yaws 90-180° LEFT from forward
   • Found left exit? → Take it, resume FORWARD mode
-  • No exit? → Continue wall-follow
+  • No exit? → Face wall-follow bearing, press ArrowUp
     ↓
-Face wall-follow bearing (120° from original forward)
-    ↓
-Move backward along left wall
+If stuck (all yaws tried, can't move):
+  • BREAK WALL: Retry successful yaw (where we came from)
+  • If successfulYaws empty: use graph to find reverse yaw
 ```
+
+**Critical fix (v6.1.4):** Wall-follow mode **never just presses ArrowUp forever**. When stuck, it always falls through to BREAK WALL which:
+1. Retries a recorded successful yaw, OR
+2. Uses graph connections to calculate reverse yaw (where we came from), OR
+3. Tries random yaw (last resort)
 
 **Why scan left exits?**
 - Left-hand rule guarantees maze coverage
@@ -135,7 +125,10 @@ Move backward along left wall
 ```
 Truly stuck (no exits found in wall-follow)
     ↓
-BREAK WALL: Retry random successful yaw
+BREAK WALL: 
+  1. successfulYaws > 0 → retry random successful yaw
+  2. successfulYaws === 0 → use graph for reverse yaw
+  3. No graph → try random yaw (last resort)
     ↓
 Reset wall-follow state
     ↓
@@ -144,10 +137,12 @@ Escape the dead end
 Resume FORWARD exploration
 ```
 
-**Why retry successful yaws?**
-- Graph may have changed (dynamic content)
-- Previous failure may have been temporary
-- Better than infinite loop
+**Escape priority:**
+1. **Recorded successful yaws** - we've been this way before
+2. **Graph reverse yaw** - calculated from where we came from
+3. **Random yaw** - last resort, shouldn't happen
+
+**Why this works:** The graph remembers all connections. Even if `successfulYaws` is cleared, the graph knows where we came from, and we can calculate the reverse yaw geometrically.
 
 ---
 
@@ -163,7 +158,7 @@ Start A        D ─── E (dead end)
 Step-by-step:
 1. A → B → C → D → E (FORWARD, 5 straight nodes)
 2. E: All yaws tried → DEAD END
-3. E: Turn LEFT 120°, face wall-follow bearing
+3. E: Turn LEFT 105°, face wall-follow bearing
 4. E → D (WALL-FOLLOW, scan for left exits)
 5. D: Found untried yaw to G (90° LEFT from forward)
 6. D → G (Take left exit, resume FORWARD)
@@ -178,6 +173,54 @@ Node visits:
 • F: 0 visits (not yet explored)
 • G: 1 visit (forward from D)
 ```
+
+---
+
+## Common Pitfalls & Fixes
+
+### Pitfall 1: Wall-Follow Presses ArrowUp Forever
+
+**Bug:** Wall-follow mode faced correct bearing and returned `{turn: false}`, just pressing ArrowUp. If Street View didn't move, bot stuck forever.
+
+**Fix:** Wall-follow now **always falls through to BREAK WALL** when stuck (all yaws tried). BREAK WALL has fallback chain:
+1. Retry successful yaw
+2. Calculate reverse yaw from graph
+3. Try random yaw
+
+**Lesson:** Never return `{turn: false}` without a fallback escape route.
+
+### Pitfall 2: Clearing successfulYaws Traps the Bot
+
+**Bug:** "AGGRESSIVE ESCAPE" cleared `successfulYaws` to "force new path". But then BREAK WALL couldn't find any exits!
+
+**Fix:** Removed AGGRESSIVE ESCAPE. The graph already remembers connections - no need to clear anything. If stuck, use graph to find reverse yaw.
+
+**Lesson:** Don't throw away escape routes. The graph is your memory - trust it.
+
+### Pitfall 3: Infinite Loop at Same Node (500+ Visits)
+
+**Bug:** Bot revisited same node 500+ times because:
+1. Wall-follow returned `{turn: false}` (just press ArrowUp)
+2. ArrowUp failed (no connection in that direction)
+3. Bot stayed at same node, tried again forever
+
+**Fix:** Wall-follow → BREAK WALL → Graph reverse yaw. Always has an escape.
+
+**Lesson:** Every decision must have an escape route. If move might fail, have a backup plan.
+
+### Pitfall 4: Wrong Wall-Follow Bearing Reference
+
+**Bug:** Wall-follow bearing calculated from forward bearing (where we arrived), but should be from reverse direction (where we came from).
+
+**Fix:** When using graph fallback, calculate reverse yaw directly:
+```javascript
+// FROM current TO neighbor (where we came from)
+const dLat = neighborLat - currentLat;
+const dLng = neighborLng - currentLng;
+const reverseYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+```
+
+**Lesson:** "Where we came from" is the guaranteed exit. Use it.
 
 ---
 
@@ -226,11 +269,16 @@ if (isNewNode && consecutiveStraightMoves >= 10) {
 
 **Problem**: All yaws tried, but branch exists.
 
-**Solution**: BREAK WALL retries successful exits.
+**Solution**: BREAK WALL retries successful exits, with graph fallback.
 
 ```javascript
 if (isExhausted && successfulYaws.size > 0) {
   retryRandomSuccessfulYaw();
+} else if (isExhausted && successfulYaws.size === 0) {
+  // Use graph to find where we came from
+  const neighbors = graph.connections.get(currentLocation);
+  const reverseYaw = calculateReverseYaw(neighbors[0], currentLocation);
+  turnToFace(reverseYaw);
 }
 ```
 
@@ -258,17 +306,17 @@ if (isExhausted && successfulYaws.size > 0) {
 const PLEDGE_CONFIG = {
   // When to face forward at new nodes
   forwardFaceThreshold: 15,  // Turn if bearing diff >15°
-  
+
   // When to verify cul-de-sac
   culDeSacCheckThreshold: 10,  // Check at 10+ straight nodes
-  
+
   // Wall-follow turn angle
-  wallFollowTurnAngle: 120,  // Turn LEFT 120° at dead end
-  
+  wallFollowTurnAngle: 105,  // Turn LEFT 105° at dead end
+
   // Left exit scan range
   leftExitMinAngle: 90,   // Minimum left exit angle
   leftExitMaxAngle: 180,  // Maximum left exit angle
-  
+
   // Break wall trigger
   panicThreshold: 3,  // Ticks before BREAK WALL
 };
@@ -288,6 +336,7 @@ if (DEBUG) {
   console.log(`🧱 DEAD END! Forward bearing=${forwardBearing}°`);
   console.log(`🔍 CUL-DE-SAC CHECK: ${consecutiveStraightMoves} straight nodes`);
   console.log(`🧱 WALL-FOLLOW: Found LEFT exit yaw ${bestYaw}°`);
+  console.log(`🚨 BREAK WALL: Using reverse yaw ${reverseYaw}° from graph`);
 }
 ```
 
@@ -316,7 +365,7 @@ if (consecutiveStraightMoves >= 8) {  // Was 10
 
 **Issue**: Bot revisits nodes >2 times.
 
-**Fix**: Check wall-follow state reset.
+**Fix**: Check wall-follow state reset and BREAK WALL fallback.
 
 ```javascript
 if (bestYaw !== null) {
@@ -324,7 +373,21 @@ if (bestYaw !== null) {
   wallFollowBearing = null;
   forwardBearing = null;
 }
+
+// BREAK WALL should always have escape
+if (isExhausted && successfulYaws.size === 0) {
+  // Use graph fallback
+  const neighbors = graph.connections.get(currentLocation);
+  // Calculate and use reverse yaw
+}
 ```
+
+**Issue**: Bot stuck at same node 500+ times.
+
+**Fix**: This was a bug in v6.1.3 and earlier. Wall-follow returned `{turn: false}` and just pressed ArrowUp forever. Fixed in v6.1.4:
+- Wall-follow now falls through to BREAK WALL
+- BREAK WALL uses graph reverse yaw fallback
+- Always has escape route
 
 ---
 
@@ -332,8 +395,9 @@ if (bestYaw !== null) {
 
 - [`ALGORITHM.md`](ALGORITHM.md) - Full API reference
 - [`SMART_NODES.md`](SMART_NODES.md) - Node classification
-- [`THE_TRAVERSAL_PROBLEM.md`](THE_TRAVERSAL_PROBLEM.md) - Problem analysis
+- [`THE_TRAVERSAL_PROBLEM.md`](THE_TRAVERSAL_PROBLEM.md) - Theory of blind graph traversal
+- [`WALK_ANALYSIS.md`](WALK_ANALYSIS.md) - Real walk metrics and optimization impact
 
 ---
 
-*The bot explores by following the left wall, facing forward, and breaking walls when stuck.*
+*The bot explores by following the left wall, facing forward, and breaking walls when stuck. Every node has at least one exit—where we came from.*
