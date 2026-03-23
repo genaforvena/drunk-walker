@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T20:55:11.224Z
+// Built: 2026-03-23T21:43:38.964Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -246,8 +246,6 @@ function createUnifiedAlgorithm(cfg) {
   let wallFollowMode = false;
   let wallFollowBearing = null;
   let forwardBearing = null;
-  let wallFollowRevisitCount = 0;  // Track revisits during wall-follow to detect loops
-  let loopEscapeCount = 0;  // Track consecutive loop detections
   let deadPocketCount = 0;  // Track dead pocket detections before restart
 
   // Complete stuck detection - clear state when looping on same 1-2 nodes
@@ -439,28 +437,6 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🔄 BACKTRACKING DETECTION: At visited node, moving backward
-    // If we just arrived at a visited node and are moving opposite to
-    // the committed direction, we're backtracking → enter wall-follow mode
-    // ═══════════════════════════════════════════════════════════
-    if (justArrived && !isNewNode && !wallFollowMode) {
-      // Calculate movement direction (previous → current)
-      const movementBearing = currentForwardBearing;
-      const oppositeBearing = (movementBearing + 180) % 360;
-
-      // Check if we're moving opposite to committed direction (backtracking)
-      const diffFromOpposite = yawDifference(committedDirection, oppositeBearing);
-
-      if (diffFromOpposite < 45) {
-        // We're backtracking! Enter wall-follow mode
-        wallFollowMode = true;
-        forwardBearing = movementBearing;
-        wallFollowBearing = (forwardBearing + 105) % 360;
-        console.log(`🔄 BACKTRACKING DETECTED! Movement=${Math.round(movementBearing)}°, committed=${Math.round(committedDirection)}° → entering wall-follow mode`);
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════════
     // 🧱 DEAD END DETECTION: All yaws tried → TURN LEFT 105°
     // This is the END OF STRAIGHT LINE - start wall-following
     // ═══════════════════════════════════════════════════════════
@@ -519,48 +495,24 @@ function createUnifiedAlgorithm(cfg) {
       }
     }
 
-    // 🚨 LOOP DETECTION: If wall-follow revisits too many nodes, break out
-    // This prevents infinite loops in highly connected territories
-    // NOTE: This shouldn't be needed if PLEDGE is implemented correctly
-    // Keeping as safety net, but removed AGGRESSIVE ESCAPE - let natural flow handle it
-    if (wallFollowMode && nodeVisitCount >= 3) {
-      wallFollowRevisitCount++;
-      if (wallFollowRevisitCount >= 3) {
-        loopEscapeCount++;
-        console.log(`🧱 WALL-FOLLOW LOOP DETECTED! ${wallFollowRevisitCount} revisits, escape #${loopEscapeCount}`);
-        wallFollowMode = false;
-        wallFollowBearing = null;
-        forwardBearing = null;
-        wallFollowRevisitCount = 0;
-        loopEscapeCount = 0;
-        // Fall through to BREAK WALL / PANIC which will retry a yaw
-      }
-    } else if (wallFollowMode && nodeVisitCount === 0) {
-      // Reset counters when finding new territory
-      wallFollowRevisitCount = 0;
-      if (loopEscapeCount > 0 || deadPocketCount > 0) {
-        console.log(`✅ Escaped loop/pocket! Found new node, resetting counters`);
-        loopEscapeCount = 0;
-        deadPocketCount = 0;
-      }
-    }
-
     // In wall-follow mode: face wall-follow bearing and move
+    // BUT: If node is fully explored (all yaws tried), skip facing and go directly to BREAK_WALL
     if (wallFollowMode && wallFollowBearing !== null) {
-      const diff = yawDifference(orientation, wallFollowBearing);
-      if (diff > 10) {
-        console.log(`🧱 WALL-FOLLOW: Turning to face bearing ${Math.round(wallFollowBearing)}° (diff=${Math.round(diff)}°)`);
-        const turnAngle = getLeftTurnAngle(orientation, wallFollowBearing);
-        const turnDirection = getTurnDirection(orientation, wallFollowBearing);
-        lastDecisionWasTurn = true;
-        return { turn: true, angle: turnAngle, direction: turnDirection };
-      }
       // 🚨 STUCK IN WALL-FOLLOW: Node is fully explored, can't move forward
-      // Use BREAK WALL to retry a successful yaw (where we came from)
+      // Skip facing the bearing - go directly to BREAK_WALL to escape!
       if (!currentNode.hasUntriedYaws()) {
-        console.log(`🧱 WALL-FOLLOW: Stuck at fully explored node, breaking wall...`);
-        // Fall through to BREAK WALL logic below
+        console.log(`🧱 WALL-FOLLOW: Fully explored node, breaking wall to escape...`);
+        // Fall through to BREAK WALL logic below - don't waste time facing bearing!
       } else {
+        // Has untried yaws - scan for left exits and face wall-follow bearing
+        const diff = yawDifference(orientation, wallFollowBearing);
+        if (diff > 10) {
+          console.log(`🧱 WALL-FOLLOW: Turning to face bearing ${Math.round(wallFollowBearing)}° (diff=${Math.round(diff)}°)`);
+          const turnAngle = getLeftTurnAngle(orientation, wallFollowBearing);
+          const turnDirection = getTurnDirection(orientation, wallFollowBearing);
+          lastDecisionWasTurn = true;
+          return { turn: true, angle: turnAngle, direction: turnDirection };
+        }
         // Has untried yaws - scan for left exits (should be handled above, but fallback here)
         console.log(`🧱 WALL-FOLLOW: Has untried yaws, scanning for left exits...`);
         // Fall through to wall-follow scan logic
@@ -600,8 +552,6 @@ function createUnifiedAlgorithm(cfg) {
             wallFollowMode = false;
             wallFollowBearing = null;
             forwardBearing = null;
-            wallFollowRevisitCount = 0;
-            loopEscapeCount = 0;
             deadPocketCount = 0;
             committedDirection = null;
             consecutiveStraightMoves = 0;
@@ -673,41 +623,26 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 PANIC MODE: If stuck for 2+ heartbeats, MUST turn (reduced from 3)
-    // With fast-fail cooldown skip, we can trigger earlier
-    // ═══════════════════════════════════════════════════════════
-    if (stuckCount >= 2) {
-      // First, try any untried yaw
-      const nextYaw = currentNode.getNextUntriedYaw?.(orientation) || getNextUntriedYaw(currentNode, orientation);
-
-      if (nextYaw !== null) {
-        const turnAngle = getLeftTurnAngle(orientation, nextYaw);
-        const turnDirection = getTurnDirection(orientation, nextYaw);
-        console.log(`🚨 PANIC! Stuck ${stuckCount}x. Trying untried yaw ${nextYaw}°`);
-        consecutiveStraightMoves = 0;
-        lastDecisionWasTurn = true;
-        return { turn: true, angle: turnAngle, direction: turnDirection };
-      } else if (currentNode.successfulYaws.size > 0) {
-        const successfulYawsArray = Array.from(currentNode.successfulYaws);
-        const randomSuccessfulYaw = successfulYawsArray[Math.floor(Math.random() * successfulYawsArray.length)];
-        const turnAngle = getLeftTurnAngle(orientation, randomSuccessfulYaw);
-        const turnDirection = getTurnDirection(orientation, randomSuccessfulYaw);
-        console.log(`🚨 PANIC! Retrying successful yaw ${randomSuccessfulYaw}°`);
-        consecutiveStraightMoves = 0;
-        lastDecisionWasTurn = true;
-        return { turn: true, angle: turnAngle, direction: turnDirection };
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════════
     // FORWARD MODE: At node with untried yaws - try them
     // Pick untried yaw closest to effective bearing (committed direction)
-    // Only align if turn is reasonable (<90°) - don't do massive realignments
+    // If stuck (stuckCount >= 1), try ANY untried yaw regardless of angle
+    // Otherwise only turn if reasonable (<90°) to avoid massive realignments
     // ═══════════════════════════════════════════════════════════
     if (currentNode.hasUntriedYaws()) {
       const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
 
-      // Find untried yaw closest to EFFECTIVE BEARING (committed direction)
+      // If stuck, try first untried yaw immediately (no angle checks)
+      if (stuckCount >= 1) {
+        const nextYaw = untriedYaws[0];
+        const turnAngle = getLeftTurnAngle(orientation, nextYaw);
+        const turnDirection = getTurnDirection(orientation, nextYaw);
+        console.log(`🔍 STUCK! Trying untried yaw ${nextYaw}° (turn ${Math.round(turnAngle)}° ${turnDirection})`);
+        consecutiveStraightMoves = 0;
+        lastDecisionWasTurn = true;
+        return { turn: true, angle: turnAngle, direction: turnDirection };
+      }
+
+      // Not stuck - find untried yaw closest to EFFECTIVE BEARING
       let bestUntiredYaw = null;
       let bestDiff = Infinity;
 
