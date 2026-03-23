@@ -357,15 +357,14 @@ export function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🔄 WALL-FOLLOW MODE: Scan for LEFT exits (90-180° from forward)
-    // OPTIMIZATION: When stuck ≥1, try ANY untried yaw (not just left exits)
-    // This catches interior branches earlier without breaking PLEDGE guarantees
-    // OPTIMIZATION: Skip nodes visited 3+ times more aggressively
+    // 🔄 WALL-FOLLOW MODE: Scan for LEFT exits ONLY (90-180° from forward)
+    // Pure PLEDGE: Only check left side, never right side or forward
     // ═══════════════════════════════════════════════════════════
     if (wallFollowMode && currentNode.hasUntriedYaws()) {
       const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
 
       // Find leftmost untried yaw (90-180° LEFT from forward bearing)
+      // ONLY consider LEFT exits - no fallback to forward/right yaws!
       let bestYaw = null;
       let bestDiff = 90;
 
@@ -377,12 +376,6 @@ export function createUnifiedAlgorithm(cfg) {
         }
       }
 
-      // Fallback: any untried yaw
-      if (bestYaw === null && untriedYaws.length > 0) {
-        bestYaw = untriedYaws[0];
-        bestDiff = yawDifference(forwardBearing, bestYaw);
-      }
-
       // Found left exit! Take it and resume FORWARD mode
       if (bestYaw !== null) {
         console.log(`🧱 WALL-FOLLOW: Found LEFT exit yaw ${bestYaw}° (diff=${Math.round(bestDiff)}° from forward)`);
@@ -391,12 +384,12 @@ export function createUnifiedAlgorithm(cfg) {
         wallFollowMode = false;
         wallFollowBearing = null;
         forwardBearing = null;
-        wallFollowRevisitCount = 0;  // Reset revisit counter when exiting wall-follow
         committedDirection = null;  // Reset committed direction for new forward phase
         consecutiveStraightMoves = 0;
         lastDecisionWasTurn = true;
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
+      // No LEFT exit found - continue backtracking (don't try forward/right yaws!)
     }
 
     // In wall-follow mode: face wall-follow bearing and move
