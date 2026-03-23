@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T22:04:40.608Z
+// Built: 2026-03-23T22:12:28.555Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -489,27 +489,22 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // In wall-follow mode: face wall-follow bearing and move
-    // BUT: If node is fully explored (all yaws tried), skip facing and go directly to BREAK_WALL
+    // During backtracking, just go back where we came from (reverse direction)
+    // Don't try other yaws - just press ArrowUp to continue backtracking!
     if (wallFollowMode && wallFollowBearing !== null) {
-      // 🚨 STUCK IN WALL-FOLLOW: Node is fully explored, can't move forward
-      // Skip facing the bearing - go directly to BREAK_WALL to escape!
-      if (!currentNode.hasUntriedYaws()) {
-        console.log(`🧱 WALL-FOLLOW: Fully explored node, breaking wall to escape...`);
-        // Fall through to BREAK WALL logic below - don't waste time facing bearing!
-      } else {
-        // Has untried yaws - scan for left exits and face wall-follow bearing
-        const diff = yawDifference(orientation, wallFollowBearing);
-        if (diff > 10) {
-          console.log(`🧱 WALL-FOLLOW: Turning to face bearing ${Math.round(wallFollowBearing)}° (diff=${Math.round(diff)}°)`);
-          const turnAngle = getLeftTurnAngle(orientation, wallFollowBearing);
-          const turnDirection = getTurnDirection(orientation, wallFollowBearing);
-          lastDecisionWasTurn = true;
-          return { turn: true, angle: turnAngle, direction: turnDirection };
-        }
-        // Has untried yaws - scan for left exits (should be handled above, but fallback here)
-        console.log(`🧱 WALL-FOLLOW: Has untried yaws, scanning for left exits...`);
-        // Fall through to wall-follow scan logic
+      // Face the wall-follow bearing (backtracking direction)
+      const diff = yawDifference(orientation, wallFollowBearing);
+      if (diff > 10) {
+        console.log(`🧱 WALL-FOLLOW: Turning to face bearing ${Math.round(wallFollowBearing)}° (diff=${Math.round(diff)}°)`);
+        const turnAngle = getLeftTurnAngle(orientation, wallFollowBearing);
+        const turnDirection = getTurnDirection(orientation, wallFollowBearing);
+        lastDecisionWasTurn = true;
+        return { turn: true, angle: turnAngle, direction: turnDirection };
       }
+      // Facing correct direction - just press ArrowUp to continue backtracking
+      // Don't try other yaws, don't BREAK_WALL - just go back!
+      console.log(`🧱 WALL-FOLLOW: Backtracking (press ArrowUp)`);
+      return { turn: false };
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -517,7 +512,7 @@ function createUnifiedAlgorithm(cfg) {
     // If so, we're trapped in an exhausted component
     // After 3 detections, RESTART with fresh graph
     // ═══════════════════════════════════════════════════════════
-    if (isExhausted && currentNode.successfulYaws.size > 0) {
+    if (isExhausted && currentNode.successfulYaws.size > 0 && !wallFollowMode) {
       const neighbors = enhancedGraph.connections.get(currentLocation);
       if (neighbors && neighbors.size > 0) {
         let allNeighborsDead = true;
@@ -562,10 +557,11 @@ function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // 🚨 BREAK THE WALL: When truly stuck, retry successful yaw
-    // If successfulYaws is empty, use graph connections to find where we came from
+    // 🚨 BREAK THE WALL: When truly stuck (FORWARD mode only!)
+    // Retry successful yaw to escape Street View jitter
+    // NOT used during wall-follow backtracking!
     // ═══════════════════════════════════════════════════════════
-    if (isExhausted && currentNode.successfulYaws.size > 0) {
+    if (isExhausted && currentNode.successfulYaws.size > 0 && !wallFollowMode) {
       const successfulYawsArray = Array.from(currentNode.successfulYaws);
       const randomSuccessfulYaw = successfulYawsArray[Math.floor(Math.random() * successfulYawsArray.length)];
       console.log(`🚨 BREAK WALL: All yaws exhausted! Retrying successful yaw ${randomSuccessfulYaw}°`);
@@ -582,8 +578,9 @@ function createUnifiedAlgorithm(cfg) {
     // ═══════════════════════════════════════════════════════════
     // 🚨 FALLBACK: successfulYaws is empty but we must have gotten in somehow
     // Use graph connections to find where we came from and try reverse yaw
+    // Only for FORWARD mode - NOT during wall-follow backtracking!
     // ═══════════════════════════════════════════════════════════
-    if (isExhausted && currentNode.successfulYaws.size === 0) {
+    if (isExhausted && currentNode.successfulYaws.size === 0 && !wallFollowMode) {
       const neighbors = enhancedGraph.connections.get(currentLocation);
       if (neighbors && neighbors.size > 0) {
         // Get the most recent neighbor (where we likely came from)
