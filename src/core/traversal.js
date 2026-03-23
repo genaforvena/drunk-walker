@@ -145,6 +145,8 @@ export function createUnifiedAlgorithm(cfg) {
   let wallFollowBearing = null;
   let forwardBearing = null;
   let wallFollowRevisitCount = 0;  // Track revisits during wall-follow to detect loops
+  let loopEscapeCount = 0;  // Track consecutive loop detections
+  let deadPocketCount = 0;  // Track dead pocket detections before restart
 
   // Complete stuck detection - clear state when looping on same 1-2 nodes
   let locationStuckCounter = 0;
@@ -398,16 +400,30 @@ export function createUnifiedAlgorithm(cfg) {
     if (wallFollowMode && nodeVisitCount >= 3) {
       wallFollowRevisitCount++;
       if (wallFollowRevisitCount >= 3) {
-        console.log(`🧱 WALL-FOLLOW LOOP DETECTED! ${wallFollowRevisitCount} revisits, breaking wall...`);
+        loopEscapeCount++;
+        console.log(`🧱 WALL-FOLLOW LOOP DETECTED! ${wallFollowRevisitCount} revisits, escape #${loopEscapeCount}`);
         wallFollowMode = false;
         wallFollowBearing = null;
         forwardBearing = null;
         wallFollowRevisitCount = 0;
-        // Fall through to panic mode to try any untried yaw
+        
+        // After 2+ loop detections, force aggressive escape
+        if (loopEscapeCount >= 2) {
+          console.log(`🔥 AGGRESSIVE ESCAPE: Clearing successfulYaws to force new path!`);
+          currentNode.successfulYaws.clear();
+          loopEscapeCount = 0;
+        }
+        
+        // Fall through to panic mode
       }
     } else if (wallFollowMode && nodeVisitCount === 0) {
-      // Reset counter when visiting new nodes during wall-follow
+      // Reset counters when finding new territory
       wallFollowRevisitCount = 0;
+      if (loopEscapeCount > 0 || deadPocketCount > 0) {
+        console.log(`✅ Escaped loop/pocket! Found new node, resetting counters`);
+        loopEscapeCount = 0;
+        deadPocketCount = 0;
+      }
     }
 
     // In wall-follow mode: face wall-follow bearing and move
@@ -429,6 +445,67 @@ export function createUnifiedAlgorithm(cfg) {
         console.log(`🧱 WALL-FOLLOW: Moving along left wall`);
         return { turn: false };
       }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🔥 DEAD POCKET DETECTION: Check if ALL neighbors are fully explored
+    // If so, we're trapped in an exhausted component
+    // After 3 detections, RESTART with fresh graph
+    // ═══════════════════════════════════════════════════════════
+    if (isExhausted && currentNode.successfulYaws.size > 0) {
+      const neighbors = enhancedGraph.connections.get(currentLocation);
+      if (neighbors && neighbors.size > 0) {
+        let allNeighborsDead = true;
+        for (const neighbor of neighbors) {
+          const neighborNode = enhancedGraph.get(neighbor);
+          if (neighborNode && !neighborNode.isFullyExplored) {
+            allNeighborsDead = false;
+            break;
+          }
+        }
+
+        if (allNeighborsDead) {
+          deadPocketCount++;
+          console.log(`🔥 DEAD POCKET DETECTED! All ${neighbors.size} neighbors fully explored (${deadPocketCount}/3)`);
+          
+          if (deadPocketCount >= 3) {
+            console.log(`🔥 DEAD POCKET ESCAPE: Component exhausted! RESTARTING exploration...`);
+            console.log(`   Clearing graph memory to find new territory...`);
+            
+            // Clear the graph - start fresh
+            enhancedGraph.nodes.clear();
+            enhancedGraph.connections.clear();
+            
+            // Reset PLEDGE state
+            wallFollowMode = false;
+            wallFollowBearing = null;
+            forwardBearing = null;
+            wallFollowRevisitCount = 0;
+            loopEscapeCount = 0;
+            deadPocketCount = 0;
+            committedDirection = null;
+            consecutiveStraightMoves = 0;
+            
+            console.log(`   ✅ Graph cleared! Next move will start fresh exploration`);
+            
+            // Force a random yaw to break out
+            const randomYaw = [0, 60, 120, 180, 240, 300][Math.floor(Math.random() * 6)];
+            const turnAngle = getLeftTurnAngle(orientation, randomYaw);
+            const turnDirection = getTurnDirection(orientation, randomYaw);
+            return { turn: true, angle: turnAngle, direction: turnDirection };
+          }
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🚨 TRUE DEAD END: All yaws tried, NO successful exits
+    // This is a panorama with NO connections - cannot escape
+    // ═══════════════════════════════════════════════════════════
+    if (isExhausted && currentNode.successfulYaws.size === 0) {
+      console.log(`🚨 TRUE DEAD END! All 6 yaws tried, ZERO successful exits.`);
+      console.log(`   ⚠️ MANUAL INTERVENTION REQUIRED - move to new location!`);
+      return { turn: false, deadEnd: true };
     }
 
     // ═══════════════════════════════════════════════════════════
