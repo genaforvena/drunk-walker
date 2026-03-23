@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T21:52:03.588Z
+// Built: 2026-03-23T22:04:40.608Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -1234,10 +1234,30 @@ function createEngine(config = {}) {
       return;
     }
     status = 'WALKING';
-    if (steps === 0) {
-      stuckCount = 0;
-      lastUrl = null;
+
+    // Reset everything for fresh start (new session)
+    steps = 0;
+    stuckCount = 0;
+    keyboardBlockStuckCount = 0;
+    lastStuckYaw = null;
+    lastUrl = null;
+    previousLocation = null;
+    previousYaw = null;
+    lastDifferentLocation = null;
+    walkPath = [];
+    visitedUrls.clear();
+    breadcrumbs = [];
+
+    // Reset algorithm state (clear graph for fresh exploration)
+    algorithm.enhancedGraph.nodes.clear();
+    algorithm.enhancedGraph.connections.clear();
+    if (algorithm.decide.toString().includes('wallFollowMode')) {
+      // Reset PLEDGE state if using PLEDGE algorithm
+      // This is handled by createUnifiedAlgorithm closure
     }
+
+    // Reset wheel orientation
+    wheel.reset();
     intervalId = setInterval(tick, cfg.pace);
     // Track interval globally
     if (window.__DRUNK_WALKER_INTERVALS__) {

@@ -427,7 +427,7 @@ export function createEngine(config = {}) {
 
   const start = () => {
     console.log(`[DEBUG] start() called - current status=${status}, intervalId=${intervalId ? 'set' : 'null'}`);
-    
+
     // Aggressively clear any existing interval
     if (intervalId) {
       console.log('[DEBUG] start() clearing existing interval before start');
@@ -438,16 +438,36 @@ export function createEngine(config = {}) {
       }
       intervalId = null;
     }
-    
+
     if (status === 'WALKING') {
       console.log('[DEBUG] start() ABORT - already walking');
       return;
     }
     status = 'WALKING';
-    if (steps === 0) {
-      stuckCount = 0;
-      lastUrl = null;
+    
+    // Reset everything for fresh start (new session)
+    steps = 0;
+    stuckCount = 0;
+    keyboardBlockStuckCount = 0;
+    lastStuckYaw = null;
+    lastUrl = null;
+    previousLocation = null;
+    previousYaw = null;
+    lastDifferentLocation = null;
+    walkPath = [];
+    visitedUrls.clear();
+    breadcrumbs = [];
+    
+    // Reset algorithm state (clear graph for fresh exploration)
+    algorithm.enhancedGraph.nodes.clear();
+    algorithm.enhancedGraph.connections.clear();
+    if (algorithm.decide.toString().includes('wallFollowMode')) {
+      // Reset PLEDGE state if using PLEDGE algorithm
+      // This is handled by createUnifiedAlgorithm closure
     }
+    
+    // Reset wheel orientation
+    wheel.reset();
     intervalId = setInterval(tick, cfg.pace);
     // Track interval globally
     if (window.__DRUNK_WALKER_INTERVALS__) {
