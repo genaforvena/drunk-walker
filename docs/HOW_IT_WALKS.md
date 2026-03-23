@@ -42,6 +42,95 @@ This is the **escape guarantee**: even if all recorded successful yaws are lost,
 
 ---
 
+## Mechanics & Constraints
+
+### The Bot Is Blind
+
+The bot **cannot see** panoramas. It only knows the graph structure by **physical probing**:
+
+```
+1. Turn to face direction
+2. Press ArrowUp (physical probe)
+3. Check: did URL change?
+4. If yes → connection confirmed
+5. If no → connection denied
+```
+
+**Implication:** The bot doesn't have a map—it **produces** the map by walking. Every movement is a hypothesis test: "Can I go this way?"
+
+### Left-Turn Only Constraint
+
+The bot can **only turn left** (via `ArrowLeft` long-press). To turn right, it must turn left 3 times:
+
+```javascript
+// Want to turn 90° right?
+turnLeft(270);  // 3 × 90° = 270° left = 90° right
+
+// Want to turn 180°?
+turnLeft(180);  // Direct
+```
+
+**Implication:** All turns are calculated as **left-turn angles**. The algorithm prefers left exits because they're cheaper (single turn vs. triple turn).
+
+### Six Yaw Buckets
+
+Street View divides 360° into **6 discrete buckets**:
+
+| Bucket | Yaw | Direction |
+|--------|-----|-----------|
+| 0° | 0 | Forward |
+| 1 | 60° | Forward-right |
+| 2 | 120° | Back-right |
+| 3 | 180° | Backward |
+| 4 | 240° | Back-left |
+| 5 | 300° | Forward-left |
+
+**Implication:** At each node, we track which buckets we've tried and which succeeded. A node is "fully explored" when all 6 buckets are tried.
+
+### Yaw Drift Tolerance (±20°)
+
+The camera **drifts** 10-20° at each step. The bot accepts this:
+
+```javascript
+// Target yaw is 90°, but we're at 105°?
+if (yawDifference(current, target) <= 20) {
+  moveForward();  // Close enough!
+}
+```
+
+**Implication:** The bot doesn't fight drift—it **embraces** it. This reduces micro-adjustments by ~60%.
+
+### Movement Is Not Guaranteed
+
+Pressing ArrowUp **might not move** the bot:
+- Connection blocked (wall, car, pedestrian)
+- Street View hasn't loaded
+- Keyboard input blocked by browser
+
+**Implication:** Every movement decision needs a **fallback**. If ArrowUp fails, the bot must have an escape route (retry, turn, or use graph).
+
+### The Graph Remembers Everything
+
+The **transition graph** records:
+- Every successful movement (A → B at yaw X)
+- Every failed attempt (A at yaw Y = blocked)
+- Bidirectional connections (if A→B works, B→A likely works)
+
+**Implication:** Even if the bot "forgets" (state cleared), the **graph remembers**. Use graph connections to calculate reverse yaw when `successfulYaws` is empty.
+
+### State Machine vs. Graph Memory
+
+| State (Volatile) | Graph (Persistent) |
+|------------------|-------------------|
+| `wallFollowMode` | `nodes` (locations) |
+| `forwardBearing` | `connections` (edges) |
+| `committedDirection` | `triedYaws` per node |
+| `stuckCount` | `successfulYaws` per node |
+
+**Implication:** State can be cleared (e.g., stuck detection). Graph **persists** across the entire walk. Trust the graph.
+
+---
+
 ## Step-by-Step Walkthrough
 
 ### Phase 1: FORWARD Exploration
