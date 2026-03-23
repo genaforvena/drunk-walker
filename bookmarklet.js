@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T22:12:28.555Z
+// Built: 2026-03-23T23:10:13.618Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -842,11 +842,6 @@ function createEngine(config = {}) {
   let previousYaw = null;
   let lastDifferentLocation = null;  // Track last location that was different from current
 
-  // Keyboard block detection - when Street View blocks keyboard controls
-  let keyboardBlockStuckCount = 0;  // Consecutive stuck steps with no yaw change
-  let lastStuckYaw = null;  // Track yaw when stuck started
-  const KEYBOARD_BLOCK_THRESHOLD = 3;  // After 3 stuck steps with same yaw, click to wake
-
   // Turn state - prevent oscillation
   let isTurning = false;  // True while executing a turn
   let turnCompleted = false;  // Set to true when turn finishes
@@ -1003,21 +998,10 @@ function createEngine(config = {}) {
     if (currentLocation && previousLocation && currentLocation === previousLocation) {
       stuckCount++;
       console.log(`[DEBUG] STUCK DETECTED - same location, stuckCount=${stuckCount}`);
-
-      // Keyboard block detection: stuck with same yaw = controls might be blocked
-      if (currentYaw !== null && currentYaw === lastStuckYaw) {
-        keyboardBlockStuckCount++;
-        console.log(`[DEBUG] KEYBOARD BLOCK? stuck+same yaw, count=${keyboardBlockStuckCount}/${KEYBOARD_BLOCK_THRESHOLD}`);
-      } else {
-        keyboardBlockStuckCount = 1;
-        lastStuckYaw = currentYaw;
-      }
     } else if (currentLocation && previousLocation && currentLocation !== previousLocation) {
       console.log(`[DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown`);
       stuckCount = 0;
       ticksSinceTurn = TURNS_COOLDOWN_TICKS;  // Reset cooldown - we moved successfully
-      keyboardBlockStuckCount = 0;  // Reset keyboard block counter - we moved!
-      lastStuckYaw = null;
       // Track that we just arrived at a different location
       if (currentLocation !== lastDifferentLocation) {
         lastDifferentLocation = currentLocation;
@@ -1183,18 +1167,6 @@ function createEngine(config = {}) {
     previousYaw = wheel.getOrientation();
     lastUrl = currentUrl;
 
-    // 🚨 KEYBOARD BLOCK FIX: When stuck with same yaw for N steps, click to wake
-    // This works in BOTH keyboard and mouse mode - click re-engages Street View
-    const isKeyboardBlocked = keyboardBlockStuckCount >= KEYBOARD_BLOCK_THRESHOLD;
-    if (isKeyboardBlocked) {
-      console.log(`🚨 KEYBOARD BLOCK DETECTED! stuck=${stuckCount}, sameYaw=${keyboardBlockStuckCount}x - CLICKING TO WAKE`);
-      // Use mouse click to "wake up" Street View controls (works in both modes)
-      const target = calculateClickTarget();
-      if (onMouseClick) onMouseClick(target.x, target.y);
-      // Reset counter after click - give it a chance to work
-      keyboardBlockStuckCount = 0;
-    }
-
     // Normal movement (keyboard or mouse)
     if (cfg.kbOn) {
       if (onKeyPress) onKeyPress('ArrowUp');
@@ -1235,8 +1207,6 @@ function createEngine(config = {}) {
     // Reset everything for fresh start (new session)
     steps = 0;
     stuckCount = 0;
-    keyboardBlockStuckCount = 0;
-    lastStuckYaw = null;
     lastUrl = null;
     previousLocation = null;
     previousYaw = null;
@@ -1284,8 +1254,6 @@ function createEngine(config = {}) {
     stop();
     steps = 0;
     stuckCount = 0;
-    keyboardBlockStuckCount = 0;
-    lastStuckYaw = null;
     lastUrl = null;
     status = 'IDLE';
     wheel.reset();
