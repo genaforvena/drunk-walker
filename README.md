@@ -152,6 +152,20 @@ We divide 360° into 6 yaw buckets (0°, 60°, 120°, 180°, 240°, 300°):
 
 ---
 
+## 🧠 Why "Drunk"?
+
+The bot wanders without a master plan. Someone called it "Anti-Oedipus" (Deleuze reference about rhizomatic movement). They meant "Anti-Odysseus" (the hero who never gets home).
+
+Turns out both work:
+- **Anti-Oedipus** → No central map, just surface traversal
+- **Anti-Odysseus** → Never returns home, each node ≤2 visits
+
+It's a nomadic machine that produces the map by walking it.
+
+**See [docs/ANTI-OEDIPUS.md](docs/ANTI-OEDIPUS.md)** for the full (casual) philosophical framing.
+
+---
+
 ## 📊 Performance Metrics
 
 | Metric | Formula | Target | Meaning |
@@ -195,6 +209,7 @@ We divide 360° into 6 yaw buckets (0°, 60°, 120°, 180°, 240°, 300°):
 - **[ALGORITHM.md](docs/ALGORITHM.md)** — Technical implementation (engine, wheel, traversal)
 - **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Theory of blind graph traversal
 - **[WALK_ANALYSIS.md](docs/WALK_ANALYSIS.md)** — **New!** Real walk metrics and optimization impact analysis
+- **[ANTI-OEDIPUS.md](docs/ANTI-OEDIPUS.md)** — Why "Drunk"? (fun philosophical framing)
 
 ### Advanced Topics
 - **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)
