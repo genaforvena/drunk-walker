@@ -24,10 +24,16 @@ function yawDifference(yaw1, yaw2) {
 }
 
 /**
- * Calculate angle to turn LEFT to reach targetYaw from currentYaw
+ * Calculate angle to turn LEFT (counter-clockwise) to reach targetYaw from currentYaw
+ * 
+ * Example: Current=250°, Target=319°
+ * - Left turn: 319 - 250 = 69° (counter-clockwise, shorter)
+ * - Right turn: 360 - 69 = 291° (clockwise, longer)
+ * - This function returns: 69°
  */
 function getLeftTurnAngle(currentYaw, targetYaw) {
-  let angle = (normalizeAngle(currentYaw) - normalizeAngle(targetYaw) + 360) % 360;
+  // LEFT turn = target - current (counter-clockwise)
+  let angle = (normalizeAngle(targetYaw) - normalizeAngle(currentYaw) + 360) % 360;
   return angle;
 }
 
