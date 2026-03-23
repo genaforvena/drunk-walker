@@ -62,6 +62,11 @@ const engine = fs.readFileSync('src/core/engine.js', 'utf8');
 const handlers = fs.readFileSync('src/input/handlers.js', 'utf8');
 const explorationMap = fs.readFileSync('src/ui/exploration-map.js', 'utf8');
 const controller = fs.readFileSync('src/ui/controller.js', 'utf8');
+const autosave = fs.readFileSync('src/experiment/autosave.js', 'utf8');
+const config = fs.readFileSync('src/experiment/config.js', 'utf8');
+const exporter = fs.readFileSync('src/experiment/exporter.js', 'utf8');
+const monitor = fs.readFileSync('src/experiment/monitor.js', 'utf8');
+const experiment = fs.readFileSync('src/experiment/index.js', 'utf8');
 const main = fs.readFileSync('src/main.js', 'utf8');
 
 // Console-friendly build (uses void operator to avoid IIFE issues in console)
@@ -101,6 +106,13 @@ void function initDrunkWalker(){
 
   // === UI CONTROLLER ===
   ${stripModuleSyntax(controller)}
+
+  // === EXPERIMENT MODULES ===
+  ${stripModuleSyntax(autosave)}
+  ${stripModuleSyntax(config)}
+  ${stripModuleSyntax(exporter)}
+  ${stripModuleSyntax(monitor)}
+  ${stripModuleSyntax(experiment)}
 
   // === MAIN ENTRY ===
   ${stripModuleSyntax(main)}

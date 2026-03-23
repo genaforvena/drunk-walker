@@ -211,9 +211,9 @@ describe('Bundled Bookmarklet Validation', () => {
       }).not.toThrow();
     });
 
-    it('should be under 100KB', () => {
+    it('should be under 150KB', () => {
       const sizeKB = bookmarkletCode.length / 1024;
-      expect(sizeKB).toBeLessThan(100);
+      expect(sizeKB).toBeLessThan(150);
     });
 
     it('should have console.log for loading message', () => {
