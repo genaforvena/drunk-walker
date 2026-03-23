@@ -519,4 +519,167 @@ if (isExhausted && successfulYaws.size === 0) {
 
 ---
 
+## Pure PLEDGE Implementation Guide
+
+### What We Learned (Hard Way)
+
+This section documents the bugs and misconceptions we encountered while implementing PLEDGE. **Read this before modifying the traversal logic.**
+
+### Bug #1: Wall-Follow Was Checking All Yaws, Not Just LEFT Exits
+
+**Wrong:** Wall-follow was trying ANY untried yaw (forward, right, left) when backtracking.
+
+**Right:** Wall-follow should **ONLY check LEFT exits** (90-180° from forward bearing).
+
+```javascript
+// ✅ CORRECT: Only LEFT exits
+for (const yaw of untriedYaws) {
+  const diff = yawDifference(forwardBearing, yaw);
+  if (diff >= 90 && diff <= 180) {
+    // This is a LEFT exit - take it
+  }
+}
+// NO fallback to forward/right yaws!
+```
+
+**Why:** Forward/right yaws will be explored on future forward passes. Checking them during backtracking breaks the ≤2 visits guarantee.
+
+### Bug #2: Backtracking Detection Was Re-Entering Wall-Follow Immediately
+
+**Wrong:** Added "backtracking detection" that re-entered wall-follow mode whenever arriving at a visited node while moving opposite to committed direction.
+
+**Problem:** After taking a LEFT exit and exiting wall-follow, `committedDirection` was reset to null. At the next node, the detection triggered again because the calculation was wrong with null. This caused:
+
+```
+Wall-follow → Find exit → Exit → Move → Re-enter wall-follow → Find same exit → Loop forever!
+```
+
+**Right:** **Remove the hack.** Wall-follow mode is entered ONLY at dead ends (all yaws tried). After taking a LEFT exit, stay in FORWARD mode.
+
+```javascript
+// ❌ WRONG: Don't add "backtracking detection"
+if (justArrived && !isNewNode && !wallFollowMode) {
+  // Check if moving opposite to committed direction...
+  wallFollowMode = true;  // This causes infinite loops!
+}
+
+// ✅ CORRECT: Only enter wall-follow at dead ends
+if (isDeadEnd && !wallFollowMode) {
+  wallFollowMode = true;  // All yaws tried → start wall-follow
+}
+```
+
+### Bug #3: PANIC Mode Was Unnecessary
+
+**Wrong:** Added PANIC mode that triggered when `stuckCount >= 2`, trying untried yaws or successful yaws.
+
+**Right:** **Remove PANIC.** Just try untried yaws immediately when stuck (stuck >= 1), regardless of turn angle.
+
+```javascript
+// ✅ CORRECT: Simple stuck handling
+if (stuckCount >= 1 && currentNode.hasUntriedYaws()) {
+  const nextYaw = untriedYaws[0];  // Try first untried yaw
+  return { turn: true, angle: turnAngle, direction: turnDirection };
+}
+```
+
+### Bug #4: LOOP DETECTION Was a Hack Masking Real Issues
+
+**Wrong:** Added loop detection that cleared `successfulYaws` after 3 revisits to "force new path".
+
+**Problem:** This was masking the real bugs (wall-follow checking all yaws, backtracking re-entering wall-follow). Clearing `successfulYaws` trapped the bot with no escape route!
+
+**Right:** **Remove loop detection.** Fix the root causes:
+1. Wall-follow only checks LEFT exits
+2. Don't re-enter wall-follow after exiting
+3. Try untried yaws immediately when stuck
+
+### Bug #5: Bot Pressed ArrowUp Uselessly When Stuck
+
+**Wrong:** When stuck with untried yaws available, the bot kept pressing ArrowUp because:
+- FORWARD mode skipped turns >= 90° ("turn too large")
+- PANIC didn't trigger until stuck >= 2
+
+**Right:** When stuck (stuck >= 1), try untried yaws **immediately**, regardless of turn angle.
+
+```javascript
+// ✅ CORRECT: Try untried yaws when stuck, no angle checks
+if (stuckCount >= 1 && currentNode.hasUntriedYaws()) {
+  const nextYaw = untriedYaws[0];
+  return { turn: true, angle: turnAngle, direction: turnDirection };
+}
+```
+
+### Bug #6: Wall-Follow Turned to Face Bearing at Fully Explored Nodes
+
+**Wrong:** At fully explored nodes (all yaws tried), wall-follow turned to face the wall-follow bearing, then pressed ArrowUp. But there were no exits! This wasted ticks spinning in place.
+
+**Right:** At fully explored nodes, **skip facing** and go directly to BREAK_WALL.
+
+```javascript
+// ✅ CORRECT: Fully explored → BREAK_WALL immediately
+if (!currentNode.hasUntriedYaws()) {
+  console.log(`🧱 WALL-FOLLOW: Fully explored node, breaking wall to escape...`);
+  // Fall through to BREAK WALL - don't waste time facing bearing!
+}
+```
+
+---
+
+### Pure PLEDGE: The Correct Implementation
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  PURE PLEDGE STATE MACHINE (No Hacks!)                  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. FORWARD MODE:                                       │
+│     • Has untried yaws? → Try them                      │
+│     • If stuck (stuck>=1)? → Try FIRST untried yaw      │
+│       immediately (no angle checks!)                    │
+│     • Go straight until all yaws tried                  │
+│                                                         │
+│  2. DEAD END (all 6 yaws tried):                        │
+│     • Turn LEFT 105° from forward bearing               │
+│     • Enter WALL-FOLLOW mode                            │
+│                                                         │
+│  3. WALL-FOLLOW MODE (backtracking):                    │
+│     • ONLY scan LEFT exits (90-180° from forward)       │
+│     • Found LEFT exit? → Take it, EXIT wall-follow      │
+│     • No LEFT exit? → Keep backtracking                 │
+│       (DON'T try forward/right yaws - we'll get         │
+│       them on future forward passes!)                   │
+│     • Fully explored (no untried yaws)?                 │
+│       → Go to BREAK_WALL immediately                    │
+│                                                         │
+│  4. BREAK_WALL:                                         │
+│     • Has successfulYaws? → Retry random one            │
+│     • Empty? → Use graph for reverse yaw                │
+│       (calculate from graph connections)                │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Key Insights
+
+1. **Unvisited yaws during backtracking are OK** - Forward/right yaws will be explored on future forward passes. This is the elegance of PLEDGE!
+
+2. **Don't re-enter wall-follow after exiting** - Once you take a LEFT exit, resume FORWARD mode. Don't add "backtracking detection" hacks.
+
+3. **Try untried yaws immediately when stuck** - Don't press ArrowUp uselessly. Turn and try them, regardless of angle.
+
+4. **Wall-follow ONLY checks LEFT** - Never check forward/right yaws during backtracking. They'll be covered later.
+
+5. **Graph remembers everything** - Even if `successfulYaws` is empty, the graph has connections. Use them to calculate reverse yaw.
+
+### Each Node ≤2 Visits Guarantee
+
+With pure PLEDGE (no hacks):
+- **Visit 1 (Forward)**: Explore into new territory
+- **Visit 2 (Wall-follow backtrack)**: Scan LEFT exits only, then leave
+
+No more 500+ visit loops!
+
+---
+
 *The bot explores by following the left wall, facing forward, and breaking walls when stuck. Every node has at least one exit—where we came from.*
