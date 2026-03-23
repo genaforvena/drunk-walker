@@ -256,14 +256,261 @@ Just know: Guattari probably wouldn't have written code. But he might have appre
 
 ---
 
-## Further Reading (If You're Actually Curious)
+## The Bot Accepts Drift (Anti-Rationalist Design)
 
-- **Deleuze & Guattari, *Anti-Oedipus*** — The original (dense, wild, worth it)
-- **Guattari, *The Machinic Unconscious*** — His solo take (also dense)
-- **Deleuze, *Nomadology*** — Shorter, more accessible
-- **This codebase** — The bot in action (way more fun)
+Here's something actually important: the bot is **deliberately imperfect**.
+
+### Rational Bot Would:
+- Fight yaw drift (constantly recalibrate to exact degrees)
+- Turn exactly 180° at dead ends (optimal reversal)
+- Never accept uncertainty
+
+### Drunk Walker:
+```javascript
+// YAW TOLERANCE: ±20°
+// "Close enough" is fine
+if (yawDifference(current, target) < 20) {
+  moveForward();  // Don't micro-adjust
+}
+
+// DEAD END TURN: 120° (not 180°)
+// Points along left wall, not straight back
+turnLeft(120);  // Imperfect but productive
+
+// BREAK WALL: Random retry
+// Not systematic—just pick one and go
+retryRandomSuccessfulYaw();
+```
+
+**Why this matters:** The bot works *with* drift, not against it. It accepts:
+- Camera rotation as natural
+- Imperfect turns as sufficient
+- Randomness as escape strategy
+
+This is **anti-rationalist design**: not optimal, but adaptive. Not controlling, but flowing.
+
+Guattari would call this "working with the machine" instead of "mastering the machine."
 
 ---
 
-*The bot doesn't read Deleuze. It doesn't read anything. It just walks. And in walking, it produces the territory it explores.*
+## The Transition Graph as Memory (Without Representation)
+
+Guattari said memory isn't stored representations—it's **recorded connections**. The transition graph is literally this:
+
+### Traditional Map (Representation):
+```
+"I know that location X exists at coordinates Y"
+→ Static model of territory
+→ Like a mental image
+```
+
+### Transition Graph (Production):
+```javascript
+// In engine.js - recording actual movement
+function recordStep() {
+  if (moved) {
+    graph.record(lastLocation, currentLocation, lastYaw, currentYaw);
+    // Not "I know B exists"
+    // But "I went A→B successfully"
+  }
+}
+```
+
+**The difference:**
+- Not "B exists at 52.3992,4.9305"
+- But "from A, facing 90°, I can reach B"
+
+This is **procedural memory** (knowing-how) not **declarative memory** (knowing-that).
+
+### Why It Matters:
+
+When the bot navigates using the transition graph, it's not consulting a map. It's consulting **a log of past successes**. That's the machinic unconscious: memory as accumulated practice, not stored meaning.
+
+```javascript
+// Finding escape using learned connections
+function findLearnedEscape(currentLocation, visitedUrls) {
+  const connections = graph.get(currentLocation);
+  for (const connected of connections) {
+    if (!visitedUrls.has(connected)) {
+      return connected;  // "I've been here before, I know this works"
+    }
+  }
+  return null;  // Fall back to prediction
+}
+```
+
+The bot remembers by **re-enacting**, not by **recalling**.
+
+---
+
+## Google as Captured Territory (Deterritorialization)
+
+This is where it gets interesting:
+
+### Google Street View Is:
+- **Striated space** (gridded, measured, controlled)
+- **Commodified** (owned by Google, part of their data empire)
+- **Surveilled** (every panorama is captured, indexed, tracked)
+- **Purpose-built** (for navigation, for users, for profit)
+
+### What the Bot Does:
+```
+Google's intention:
+  User opens Street View → Browses manually → Closes tab
+
+Bot's use:
+  Bot opens Street View → Walks autonomously → Produces walk logs
+```
+
+The bot **deterritorializes** Google's infrastructure:
+- Uses Street View for something Google didn't intend
+- Turns a browsing tool into a traversal machine
+- Extracts data (walk logs, transition graphs) from captured space
+
+But also **reterritorializes**:
+- Produces new graphs, new data
+- Creates its own territory within Google's grid
+- Captures the capture, so to speak
+
+### Not Political (But Structurally Similar)
+
+We're not making a political statement. But structurally, this is what Guattari describes:
+- Infrastructure built for one purpose (capitalist machine)
+- Repurposed for another (nomadic machine)
+- Small act of **recoding** without permission
+
+The bot is a **squatter** in Google's digital real estate.
+
+---
+
+## The User Is Part of the Machine
+
+We mentioned "assemblage" but didn't go deep. Let's go deep:
+
+### The Full Assemblage:
+```
+┌─────────────────┐
+│   User          │ ← Starts the bot, watches, modifies code
+│       ↓         │
+│   Browser       │ ← Renders Street View, handles events
+│       ↓         │
+│   Algorithm     │ ← PLEDGE, wall-follow, break-wall
+│       ↓         │
+│   Google API    │ ← Panoramas, yaw, movement
+│       ↓         │
+│   Walk Logs     │ ← Produced data, exported JSON
+└─────────────────┘
+```
+
+**The user isn't outside the machine. The user is a component.**
+
+### What the User Does:
+1. **Initiates** (clicks START)
+2. **Watches** (observes the wandering)
+3. **Exports** (saves walk logs)
+4. **Modifies** (tweaks algorithm, changes parameters)
+
+### Why Do We Watch?
+
+There's something compelling about watching the bot walk:
+- It's not *doing* anything useful
+- It's not *achieving* a goal
+- But it's **producing** something (territory, data, patterns)
+
+This is **desire** in the Guattarian sense:
+- Not "I want X" (lack-based)
+- But "I want to watch production happen" (flow-based)
+
+The user desires the machine's output. The machine desires the user's initiation. They're **coupled**.
+
+---
+
+## Why PLEDGE Specifically? (Third Way Between Chaos and Control)
+
+There are many ways to traverse a graph. Why PLEDGE?
+
+| Algorithm | Philosophy | Problem |
+|-----------|------------|---------|
+| **Random Walk** | Pure chaos | No production, just noise |
+| **DFS/BFS** | Total control | Extractive, capitalist efficiency |
+| **Tremaux** | Marking passages | Requires external markers |
+| **PLEDGE** | Wall-following | ✅ Systematic but not extractive |
+
+### PLEDGE Is a Third Way:
+
+**Not Random:**
+- Guaranteed progress (no infinite loops)
+- Each node ≤2 visits (efficient)
+- Produces coherent territory
+
+**Not DFS/BFS:**
+- No master plan (no root, no tree)
+- No optimal extraction (wanders, doesn't mine)
+- Accepts drift (works with uncertainty)
+
+**Just Right:**
+- Follows left wall (simple rule, complex behavior)
+- Breaks walls when stuck (adaptive)
+- Produces territory without conquering it
+
+This is **nomadic traversal**: systematic wandering. Not chaos, not control.
+
+---
+
+## Blind Traversal (Embodied Cognition in Street View)
+
+Here's something we haven't talked about: **the bot is blind**.
+
+### What the Bot Can't Do:
+- See panoramas (no image analysis)
+- Know where nodes exist (until it tries to move)
+- Plan ahead (no map, no prediction beyond 1 step)
+
+### What the Bot Does Instead:
+```
+1. Turn to face direction
+2. Press ArrowUp (physical probe)
+3. Check: did URL change?
+4. If yes → connection confirmed
+5. If no → connection denied
+```
+
+This is **embodied cognition**:
+- Knowing by touching, not seeing
+- Learning by doing, not modeling
+- Truth by movement, not representation
+
+### Merleau-Ponty Would Understand:
+
+The philosopher Merleau-Ponty said we know the world through our bodies, not our minds. The bot is exactly this:
+
+| Mind-First Cognition | Body-First Cognition |
+|---------------------|---------------------|
+| "I think, therefore I am" | "I move, therefore I know" |
+| Model then act | Act then learn |
+| See then navigate | Touch then map |
+
+The bot's "knowledge" is its **movement history**. Not a map in its head—a callus on its feet.
+
+---
+
+## Further Reading (If You're Actually Curious)
+
+### Philosophy:
+- **Deleuze & Guattari, *Anti-Oedipus*** — The original (dense, wild, worth it)
+- **Guattari, *The Machinic Unconscious*** — His solo take (also dense)
+- **Deleuze, *Nomadology*** — Shorter, more accessible
+- **Merleau-Ponty, *Phenomenology of Perception*** — Embodied cognition (the body knows)
+
+### Code:
+- **This codebase** — The bot in action (way more fun)
+- **`src/core/engine.js`** — Where the machinic unconscious records movements
+- **`src/core/traversal.js`** — PLEDGE as nomadic traversal
+- **`docs/TRANSITION_GRAPH_LEARNING.md`** — Memory as connections
+
+---
+
+*The bot doesn't read Deleuze. It doesn't read anything. It just walks. And in walking, it produces the territory it explores. And in watching it walk, you become part of the machine. And in modifying it, you recode the machine. And in exporting the logs, you capture the capture.*
+
+*It's machines all the way down.*
 
