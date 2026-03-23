@@ -494,6 +494,48 @@ The bot's "knowledge" is its **movement history**. Not a map in its head—a cal
 
 ---
 
+## Why Walls? (The Bot Needs Boundaries)
+
+The bot follows walls. Literally. Without boundaries, it'd wander aimlessly.
+
+### The Paradox:
+
+| No Walls | With Walls |
+|----------|------------|
+| Open space = no reference | Wall = something to follow |
+| Pure freedom = lost | Constraint = navigation |
+| Random drift | Purposeful traversal |
+
+**The wall isn't oppression—it's what makes movement possible.**
+
+### In Code:
+
+```javascript
+// WALL-FOLLOW MODE:
+// Scan for left exits (90-180° from forward bearing)
+// The wall is the reference point
+
+if (wallFollowMode) {
+  const bestYaw = findLeftExit(forwardBearing, untriedYaws);
+  if (bestYaw) {
+    takeExit(bestYaw);  // Wall guided us to escape
+  }
+}
+```
+
+### Guattari Would Say:
+
+Desire needs channels. Pure flow floods. The bot's "freedom" comes from **accepting constraints**:
+- Left-hand rule (constraint)
+- 6 yaw buckets (constraint)
+- Wall-follow bearing (constraint)
+
+But within those constraints: **nomadic movement**.
+
+The wall doesn't trap the bot. It **enables** the bot.
+
+---
+
 ## Further Reading (If You're Actually Curious)
 
 ### Philosophy:
