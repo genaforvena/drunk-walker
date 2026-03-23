@@ -1,0 +1,713 @@
+[20:25:31] 🟣 UI Initialized (Draggable Panel)
+[20:25:31] [DEBUG] start() called - current status=IDLE, intervalId=null
+[20:25:31] [DEBUG] start() interval set with pace=2000ms
+[20:25:31] 💾 Auto-save enabled: walks saved every 60 seconds
+[20:25:31] 🎮 Type DRUNK_WALKER.stop() to stop manually
+[20:25:33] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:33] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:33] [DEBUG] currentLocation=52.3729231,4.9402147, currentYaw=287.39589962037735, previousLocation=null
+[20:25:33] [DEBUG] Sync wheel orientation: lastUrlYaw=null, currentYaw=287.39589962037735
+[20:25:33] 💓 [0] STUCK: 0 | YAW: 287° | LOC: 52.3729231,4.9402147
+[20:25:33]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3729231,4.9402147,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1s5XLitcv0ecBCeryMZkUrMw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3D5XLitcv0ecBCeryMZkUrMw%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:33] [DEBUG] isStationary=null, isNewNode=true, justArrived=null, nodeVisitCount=0, isFullyScanned=false
+[20:25:33] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[20:25:33] [DEBUG] tick() END
+[20:25:35] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:35] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:35] [DEBUG] currentLocation=52.3728946,4.9400369, currentYaw=287.39589962037735, previousLocation=52.3729231,4.9402147
+[20:25:35] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:35] 💓 [1] STUCK: 0 | YAW: 287° | LOC: 52.3728946,4.9400369
+[20:25:35]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728946,4.9400369,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1sQJgVZvAq1n3rPMGTTJw8CA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DQJgVZvAq1n3rPMGTTJw8CA%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:35] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:35] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:35] [DEBUG] decide() called: stuck=0, orientation=287°, loc=52.3728946,4.9400369
+[20:25:35] [DEBUG] breadcrumbs.length=1, graph.nodes=2
+[20:25:35] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:35] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:35] [DEBUG] NEW NODE - going straight (no turn)
+[20:25:35] [DEBUG] decision={"turn":false}
+[20:25:35] [DEBUG] tick() END
+[20:25:37] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:37] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:37] [DEBUG] currentLocation=52.372881,4.9398816, currentYaw=287.39589962037735, previousLocation=52.3728946,4.9400369
+[20:25:37] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:37] 💓 [2] STUCK: 0 | YAW: 287° | LOC: 52.372881,4.9398816
+[20:25:37]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.372881,4.9398816,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1sZbAG2ZrjjNITYX3pNuwLcA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DZbAG2ZrjjNITYX3pNuwLcA%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:37] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:37] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:37] [DEBUG] decide() called: stuck=0, orientation=287°, loc=52.372881,4.9398816
+[20:25:37] [DEBUG] breadcrumbs.length=2, graph.nodes=3
+[20:25:37] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:37] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:37] [DEBUG] NEW NODE - going straight (no turn)
+[20:25:37] [DEBUG] decision={"turn":false}
+[20:25:37] [DEBUG] tick() END
+[20:25:39] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:39] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:39] [DEBUG] currentLocation=52.3728645,4.9397388, currentYaw=287.39589962037735, previousLocation=52.372881,4.9398816
+[20:25:39] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:39] 💓 [3] STUCK: 0 | YAW: 287° | LOC: 52.3728645,4.9397388
+[20:25:39]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728645,4.9397388,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1sBs5Q6945wCaQDdyUmYRimQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DBs5Q6945wCaQDdyUmYRimQ%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:39] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:39] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:39] [DEBUG] decide() called: stuck=0, orientation=287°, loc=52.3728645,4.9397388
+[20:25:39] [DEBUG] breadcrumbs.length=3, graph.nodes=4
+[20:25:39] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:39] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:39] [DEBUG] NEW NODE - going straight (no turn)
+[20:25:39] [DEBUG] decision={"turn":false}
+[20:25:39] [DEBUG] tick() END
+[20:25:41] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:41] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:41] [DEBUG] currentLocation=52.3728491,4.9395959, currentYaw=287.39589962037735, previousLocation=52.3728645,4.9397388
+[20:25:41] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:41] 💓 [4] STUCK: 0 | YAW: 287° | LOC: 52.3728491,4.9395959
+[20:25:41]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728491,4.9395959,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1sWu9rmFXtvnnMwDHcxWclYA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DWu9rmFXtvnnMwDHcxWclYA%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:41] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:41] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:41] [DEBUG] decide() called: stuck=0, orientation=287°, loc=52.3728491,4.9395959
+[20:25:41] [DEBUG] breadcrumbs.length=4, graph.nodes=5
+[20:25:41] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:41] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:41] [DEBUG] decision={"turn":false}
+[20:25:41] [DEBUG] tick() END
+[20:25:43] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:43] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:43] [DEBUG] currentLocation=52.3728337,4.9394545, currentYaw=287.39589962037735, previousLocation=52.3728491,4.9395959
+[20:25:43] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:43] 💓 [5] STUCK: 0 | YAW: 287° | LOC: 52.3728337,4.9394545
+[20:25:43]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728337,4.9394545,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1st-RcZt2HJkP_lpmgDqoOgA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3Dt-RcZt2HJkP_lpmgDqoOgA%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:43] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:43] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:43] [DEBUG] decide() called: stuck=0, orientation=287°, loc=52.3728337,4.9394545
+[20:25:43] [DEBUG] breadcrumbs.length=5, graph.nodes=6
+[20:25:43] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:43] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:43] [DEBUG] decision={"turn":false}
+[20:25:43] [DEBUG] tick() END
+[20:25:45] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:45] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:45] [DEBUG] currentLocation=52.3728172,4.9393018, currentYaw=287.39589962037735, previousLocation=52.3728337,4.9394545
+[20:25:45] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:45] 💓 [6] STUCK: 0 | YAW: 287° | LOC: 52.3728172,4.9393018
+[20:25:45]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728172,4.9393018,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1sjNX2gN1lzoT-p2mf8xOzRg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjNX2gN1lzoT-p2mf8xOzRg%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:45] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:45] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:45] [DEBUG] decide() called: stuck=0, orientation=287°, loc=52.3728172,4.9393018
+[20:25:45] [DEBUG] breadcrumbs.length=6, graph.nodes=7
+[20:25:45] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:45] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:45] [DEBUG] decision={"turn":false}
+[20:25:45] [DEBUG] tick() END
+[20:25:47] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:47] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:47] [DEBUG] currentLocation=52.3728012,4.9391568, currentYaw=287.39589962037735, previousLocation=52.3728172,4.9393018
+[20:25:47] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:47] 💓 [7] STUCK: 0 | YAW: 287° | LOC: 52.3728012,4.9391568
+[20:25:47]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728012,4.9391568,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1sjLsRyn6VnsydNFWd8wj8kQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjLsRyn6VnsydNFWd8wj8kQ%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:47] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:47] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:47] [DEBUG] decide() called: stuck=0, orientation=287°, loc=52.3728012,4.9391568
+[20:25:47] [DEBUG] breadcrumbs.length=7, graph.nodes=8
+[20:25:47] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:47] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:47] [DEBUG] decision={"turn":false}
+[20:25:47] [DEBUG] tick() END
+[20:25:49] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:49] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:49] [DEBUG] currentLocation=52.3728012,4.9391568, currentYaw=287.39589962037735, previousLocation=52.3728012,4.9391568
+[20:25:49] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[20:25:49] 💓 [8] STUCK: 1 | YAW: 287° | LOC: 52.3728012,4.9391568
+[20:25:49]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728012,4.9391568,3a,75y,287.4h,90.26t/data=!3m7!1e1!3m5!1sjLsRyn6VnsydNFWd8wj8kQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjLsRyn6VnsydNFWd8wj8kQ%26yaw%3D287.39589962037735!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:49] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[20:25:49] [DEBUG] ticksSinceTurn=3, calling algorithm.decide()...
+[20:25:49] [DEBUG] decide() called: stuck=1, orientation=287°, loc=52.3728012,4.9391568
+[20:25:49] [DEBUG] breadcrumbs.length=8, graph.nodes=8
+[20:25:49] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=false
+[20:25:49] [DEBUG] currentNode.triedYaws=120,300, hasUntried=true
+[20:25:49] 🔍 FORWARD: Trying yaw 240° (diff=47° from orientation, 21° from effective bearing)
+[20:25:49] [DEBUG] decision={"turn":true,"angle":312.60410037962265,"direction":"right"}
+[20:25:49]    🔄 ACTION: Turning RIGHT 312.60410037962265°
+[20:25:49] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:25:50] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:25:51] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:51] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:51] [DEBUG] currentLocation=52.3728172,4.9393018, currentYaw=356.15589962044794, previousLocation=52.3728012,4.9391568
+[20:25:51] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:51] [DEBUG] Sync wheel orientation: lastUrlYaw=287.39589962037735, currentYaw=356.15589962044794
+[20:25:51] 💓 [9] STUCK: 0 | YAW: 356° | LOC: 52.3728172,4.9393018
+[20:25:51]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728172,4.9393018,3a,75y,356.16h,90.26t/data=!3m7!1e1!3m5!1sjNX2gN1lzoT-p2mf8xOzRg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjNX2gN1lzoT-p2mf8xOzRg%26yaw%3D356.15589962044794!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:51] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:25:51] [DEBUG] Step succeeded! Location changed.
+[20:25:51] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:51] [DEBUG] decide() called: stuck=0, orientation=356°, loc=52.3728172,4.9393018
+[20:25:51] [DEBUG] breadcrumbs.length=8, graph.nodes=8
+[20:25:51] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:25:51] [DEBUG] currentNode.triedYaws=120,300,180, hasUntried=true
+[20:25:51] [DEBUG] Skipping yaw 240° alignment - turn too large (116° > 90°)
+[20:25:51] [DEBUG] decision={"turn":false}
+[20:25:51] [DEBUG] tick() END
+[20:25:53] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:53] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:53] [DEBUG] currentLocation=52.3728337,4.9394545, currentYaw=356.15589962044794, previousLocation=52.3728172,4.9393018
+[20:25:53] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:53] 💓 [10] STUCK: 0 | YAW: 356° | LOC: 52.3728337,4.9394545
+[20:25:53]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728337,4.9394545,3a,75y,356.16h,90.26t/data=!3m7!1e1!3m5!1st-RcZt2HJkP_lpmgDqoOgA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3Dt-RcZt2HJkP_lpmgDqoOgA%26yaw%3D356.15589962044794!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:53] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:25:53] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:53] [DEBUG] decide() called: stuck=0, orientation=356°, loc=52.3728337,4.9394545
+[20:25:53] [DEBUG] breadcrumbs.length=9, graph.nodes=8
+[20:25:53] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:25:53] [DEBUG] currentNode.triedYaws=120,300,180, hasUntried=true
+[20:25:53] 🔍 FORWARD: Trying yaw 60° (diff=64° from orientation, 24° from effective bearing)
+[20:25:53] [DEBUG] decision={"turn":true,"angle":63.84410037955206,"direction":"left"}
+[20:25:53]    🔄 ACTION: Turning LEFT 63.84410037955206°
+[20:25:53] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:25:54] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:25:55] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:55] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:55] [DEBUG] currentLocation=52.3728172,4.9393018, currentYaw=311.0573733047432, previousLocation=52.3728337,4.9394545
+[20:25:55] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:55] [DEBUG] Sync wheel orientation: lastUrlYaw=356.15589962044794, currentYaw=311.0573733047432
+[20:25:55] 💓 [11] STUCK: 0 | YAW: 311° | LOC: 52.3728172,4.9393018
+[20:25:55]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728172,4.9393018,3a,75y,311.06h,90.26t/data=!3m7!1e1!3m5!1sjNX2gN1lzoT-p2mf8xOzRg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjNX2gN1lzoT-p2mf8xOzRg%26yaw%3D311.0573733047432!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:55] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:25:55] [DEBUG] Step succeeded! Location changed.
+[20:25:55] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:55] [DEBUG] decide() called: stuck=0, orientation=311°, loc=52.3728172,4.9393018
+[20:25:55] [DEBUG] breadcrumbs.length=10, graph.nodes=8
+[20:25:55] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:25:55] [DEBUG] currentNode.triedYaws=120,300,180,0, hasUntried=true
+[20:25:55] [DEBUG] Skipping yaw 60° alignment - turn too large (109° > 90°)
+[20:25:55] [DEBUG] decision={"turn":false}
+[20:25:55] [DEBUG] tick() END
+[20:25:57] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:57] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:57] [DEBUG] currentLocation=52.3728012,4.9391568, currentYaw=311.0573733047432, previousLocation=52.3728172,4.9393018
+[20:25:57] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:57] 💓 [12] STUCK: 0 | YAW: 311° | LOC: 52.3728012,4.9391568
+[20:25:57]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728012,4.9391568,3a,75y,311.06h,90.26t/data=!3m7!1e1!3m5!1sjLsRyn6VnsydNFWd8wj8kQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjLsRyn6VnsydNFWd8wj8kQ%26yaw%3D311.0573733047432!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:57] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:25:57] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:57] [DEBUG] decide() called: stuck=0, orientation=311°, loc=52.3728012,4.9391568
+[20:25:57] [DEBUG] breadcrumbs.length=11, graph.nodes=8
+[20:25:57] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:25:57] [DEBUG] currentNode.triedYaws=120,300,240, hasUntried=true
+[20:25:57] [DEBUG] Skipping yaw 180° alignment - turn too large (131° > 90°)
+[20:25:57] [DEBUG] decision={"turn":false}
+[20:25:57] [DEBUG] tick() END
+[20:25:59] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:25:59] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:25:59] [DEBUG] currentLocation=52.3727855,4.9390174, currentYaw=311.0573733047432, previousLocation=52.3728012,4.9391568
+[20:25:59] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:25:59] 💓 [13] STUCK: 0 | YAW: 311° | LOC: 52.3727855,4.9390174
+[20:25:59]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3727855,4.9390174,3a,75y,311.06h,90.26t/data=!3m7!1e1!3m5!1slryfnp4GWiFq-QDRTgP6rA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3Dlryfnp4GWiFq-QDRTgP6rA%26yaw%3D311.0573733047432!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:25:59] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:25:59] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:25:59] [DEBUG] decide() called: stuck=0, orientation=311°, loc=52.3727855,4.9390174
+[20:25:59] [DEBUG] breadcrumbs.length=12, graph.nodes=9
+[20:25:59] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:25:59] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:25:59] 🧭 NEW NODE: Aligning camera to effective bearing 264° (diff=47°)
+[20:25:59] [DEBUG] decision={"turn":true,"angle":312.6458079753924,"direction":"right"}
+[20:25:59]    🔄 ACTION: Turning RIGHT 312.6458079753924°
+[20:25:59] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:00] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:01] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:01] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:01] [DEBUG] currentLocation=52.3728012,4.9391568, currentYaw=20.302425936138604, previousLocation=52.3727855,4.9390174
+[20:26:01] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:01] [DEBUG] Sync wheel orientation: lastUrlYaw=311.0573733047432, currentYaw=20.302425936138604
+[20:26:01] 💓 [14] STUCK: 0 | YAW: 20° | LOC: 52.3728012,4.9391568
+[20:26:01]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728012,4.9391568,3a,75y,20.3h,90.26t/data=!3m7!1e1!3m5!1sjLsRyn6VnsydNFWd8wj8kQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjLsRyn6VnsydNFWd8wj8kQ%26yaw%3D20.302425936138604!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:01] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=3, isFullyScanned=false
+[20:26:01] [DEBUG] Step succeeded! Location changed.
+[20:26:01] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:01] [DEBUG] decide() called: stuck=0, orientation=20°, loc=52.3728012,4.9391568
+[20:26:01] [DEBUG] breadcrumbs.length=13, graph.nodes=9
+[20:26:01] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:01] [DEBUG] currentNode.triedYaws=120,300,240,180, hasUntried=true
+[20:26:01] 🔍 FORWARD: Trying yaw 0° (diff=20° from orientation, 96° from effective bearing)
+[20:26:01] [DEBUG] decision={"turn":true,"angle":339.6975740638614,"direction":"right"}
+[20:26:01]    🔄 ACTION: Turning RIGHT 339.6975740638614°
+[20:26:01] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:02] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:03] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:03] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:03] [DEBUG] currentLocation=52.3728172,4.9393018, currentYaw=86.97253119914122, previousLocation=52.3728012,4.9391568
+[20:26:03] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:03] [DEBUG] Sync wheel orientation: lastUrlYaw=20.302425936138604, currentYaw=86.97253119914122
+[20:26:03] 💓 [15] STUCK: 0 | YAW: 87° | LOC: 52.3728172,4.9393018
+[20:26:03]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728172,4.9393018,3a,75y,86.97h,90.26t/data=!3m7!1e1!3m5!1sjNX2gN1lzoT-p2mf8xOzRg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjNX2gN1lzoT-p2mf8xOzRg%26yaw%3D86.97253119914122!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:03] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=3, isFullyScanned=false
+[20:26:03] [DEBUG] Step succeeded! Location changed.
+[20:26:03] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:03] [DEBUG] decide() called: stuck=0, orientation=87°, loc=52.3728172,4.9393018
+[20:26:03] [DEBUG] breadcrumbs.length=14, graph.nodes=9
+[20:26:03] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:03] [DEBUG] currentNode.triedYaws=120,300,180,0,240, hasUntried=true
+[20:26:03] 🔍 FORWARD: Trying yaw 60° (diff=27° from orientation, 24° from effective bearing)
+[20:26:03] [DEBUG] decision={"turn":true,"angle":333.0274688008588,"direction":"right"}
+[20:26:03]    🔄 ACTION: Turning RIGHT 333.0274688008588°
+[20:26:03] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:04] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:05] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:05] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:05] [DEBUG] currentLocation=52.3728172,4.9393018, currentYaw=155.31000488333763, previousLocation=52.3728172,4.9393018
+[20:26:05] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[20:26:05] [DEBUG] Sync wheel orientation: lastUrlYaw=86.97253119914122, currentYaw=155.31000488333763
+[20:26:05] 💓 [16] STUCK: 1 | YAW: 155° | LOC: 52.3728172,4.9393018
+[20:26:05]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728172,4.9393018,3a,75y,155.31h,90.26t/data=!3m7!1e1!3m5!1sjNX2gN1lzoT-p2mf8xOzRg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DjNX2gN1lzoT-p2mf8xOzRg%26yaw%3D155.31000488333763!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:05] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=4, isFullyScanned=true
+[20:26:05] [DEBUG] Step failed! Still at same location - record failed attempt.
+[20:26:05] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[20:26:05] [DEBUG] tick() END
+[20:26:07] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:07] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:07] [DEBUG] currentLocation=52.3728491,4.9395959, currentYaw=155.31000488333763, previousLocation=52.3728172,4.9393018
+[20:26:07] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:07] 💓 [17] STUCK: 0 | YAW: 155° | LOC: 52.3728491,4.9395959
+[20:26:07]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728491,4.9395959,3a,75y,155.31h,90.26t/data=!3m7!1e1!3m5!1sWu9rmFXtvnnMwDHcxWclYA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DWu9rmFXtvnnMwDHcxWclYA%26yaw%3D155.31000488333763!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:07] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:26:07] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:07] [DEBUG] decide() called: stuck=0, orientation=155°, loc=52.3728491,4.9395959
+[20:26:07] [DEBUG] breadcrumbs.length=15, graph.nodes=9
+[20:26:07] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:07] [DEBUG] currentNode.triedYaws=120,300,0, hasUntried=true
+[20:26:07] [DEBUG] Skipping yaw 60° alignment - turn too large (95° > 90°)
+[20:26:07] [DEBUG] decision={"turn":false}
+[20:26:07] [DEBUG] tick() END
+[20:26:09] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:09] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:09] [DEBUG] currentLocation=52.3728645,4.9397388, currentYaw=155.31000488333763, previousLocation=52.3728491,4.9395959
+[20:26:09] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:09] 💓 [18] STUCK: 0 | YAW: 155° | LOC: 52.3728645,4.9397388
+[20:26:09]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728645,4.9397388,3a,75y,155.31h,90.26t/data=!3m7!1e1!3m5!1sBs5Q6945wCaQDdyUmYRimQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DBs5Q6945wCaQDdyUmYRimQ%26yaw%3D155.31000488333763!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:09] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:26:09] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:09] [DEBUG] decide() called: stuck=0, orientation=155°, loc=52.3728645,4.9397388
+[20:26:09] [DEBUG] breadcrumbs.length=16, graph.nodes=9
+[20:26:09] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:09] [DEBUG] currentNode.triedYaws=120,300,0, hasUntried=true
+[20:26:09] [DEBUG] Skipping yaw 60° alignment - turn too large (95° > 90°)
+[20:26:09] [DEBUG] decision={"turn":false}
+[20:26:09] [DEBUG] tick() END
+[20:26:11] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:11] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:11] [DEBUG] currentLocation=52.372881,4.9398816, currentYaw=155.31000488333763, previousLocation=52.3728645,4.9397388
+[20:26:11] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:11] 💓 [19] STUCK: 0 | YAW: 155° | LOC: 52.372881,4.9398816
+[20:26:11]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.372881,4.9398816,3a,75y,155.31h,90.26t/data=!3m7!1e1!3m5!1sZbAG2ZrjjNITYX3pNuwLcA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DZbAG2ZrjjNITYX3pNuwLcA%26yaw%3D155.31000488333763!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:11] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:26:11] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:11] [DEBUG] decide() called: stuck=0, orientation=155°, loc=52.372881,4.9398816
+[20:26:11] [DEBUG] breadcrumbs.length=17, graph.nodes=9
+[20:26:11] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:11] [DEBUG] currentNode.triedYaws=120,300,0, hasUntried=true
+[20:26:11] [DEBUG] Skipping yaw 60° alignment - turn too large (95° > 90°)
+[20:26:11] [DEBUG] decision={"turn":false}
+[20:26:11] [DEBUG] tick() END
+[20:26:13] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:13] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:13] [DEBUG] currentLocation=52.3727915,4.9400383, currentYaw=155.31000488333763, previousLocation=52.372881,4.9398816
+[20:26:13] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:13] 💓 [20] STUCK: 0 | YAW: 155° | LOC: 52.3727915,4.9400383
+[20:26:13]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3727915,4.9400383,3a,75y,155.31h,90.26t/data=!3m7!1e1!3m5!1suZP6E0pR-zEWS8IUz5TixA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DuZP6E0pR-zEWS8IUz5TixA%26yaw%3D155.31000488333763!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:13] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:26:13] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:13] [DEBUG] decide() called: stuck=0, orientation=155°, loc=52.3727915,4.9400383
+[20:26:13] [DEBUG] breadcrumbs.length=18, graph.nodes=10
+[20:26:13] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:26:13] [DEBUG] currentNode.triedYaws=0, hasUntried=true
+[20:26:13] 🧭 NEW NODE: Aligning camera to effective bearing 84° (diff=71°)
+[20:26:13] [DEBUG] decision={"turn":true,"angle":288.51246461986216,"direction":"right"}
+[20:26:13]    🔄 ACTION: Turning RIGHT 288.51246461986216°
+[20:26:13] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:14] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:15] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:15] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:15] [DEBUG] currentLocation=52.3727915,4.9400383, currentYaw=215.48495225173045, previousLocation=52.3727915,4.9400383
+[20:26:15] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[20:26:15] [DEBUG] Sync wheel orientation: lastUrlYaw=155.31000488333763, currentYaw=215.48495225173045
+[20:26:15] 💓 [21] STUCK: 1 | YAW: 215° | LOC: 52.3727915,4.9400383
+[20:26:15]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3727915,4.9400383,3a,75y,215.48h,90.26t/data=!3m7!1e1!3m5!1suZP6E0pR-zEWS8IUz5TixA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DuZP6E0pR-zEWS8IUz5TixA%26yaw%3D215.48495225173045!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:15] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=1, isFullyScanned=false
+[20:26:15] [DEBUG] Step failed! Still at same location - record failed attempt.
+[20:26:15] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[20:26:15] [DEBUG] tick() END
+[20:26:17] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:17] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:17] [DEBUG] currentLocation=52.3725769,4.9401032, currentYaw=215.48495225173045, previousLocation=52.3727915,4.9400383
+[20:26:17] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:17] 💓 [22] STUCK: 0 | YAW: 215° | LOC: 52.3725769,4.9401032
+[20:26:17]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3725769,4.9401032,3a,75y,215.48h,90.26t/data=!3m7!1e1!3m5!1sZa848N-yGJsYi2FxaHx5Ow!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DZa848N-yGJsYi2FxaHx5Ow%26yaw%3D215.48495225173045!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:17] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:26:17] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:18] [DEBUG] decide() called: stuck=0, orientation=215°, loc=52.3725769,4.9401032
+[20:26:18] [DEBUG] breadcrumbs.length=19, graph.nodes=11
+[20:26:18] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:26:18] [DEBUG] currentNode.triedYaws=60, hasUntried=true
+[20:26:18] 🧭 NEW NODE: Aligning camera to effective bearing 84° (diff=132°)
+[20:26:18] [DEBUG] decision={"turn":true,"angle":228.3375172514693,"direction":"right"}
+[20:26:18]    🔄 ACTION: Turning RIGHT 228.3375172514693°
+[20:26:18] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:18] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:19] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:19] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:20] [DEBUG] currentLocation=52.3726967,4.9400676, currentYaw=281.98832067282547, previousLocation=52.3725769,4.9401032
+[20:26:20] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:20] [DEBUG] Sync wheel orientation: lastUrlYaw=215.48495225173045, currentYaw=281.98832067282547
+[20:26:20] 💓 [23] STUCK: 0 | YAW: 282° | LOC: 52.3726967,4.9400676
+[20:26:20]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3726967,4.9400676,3a,75y,281.99h,90.26t/data=!3m7!1e1!3m5!1s6sqWWqdhImUoDmjzcrES_g!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3D6sqWWqdhImUoDmjzcrES_g%26yaw%3D281.98832067282547!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:20] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:26:20] [DEBUG] Step succeeded! Location changed.
+[20:26:20] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:20] [DEBUG] decide() called: stuck=0, orientation=282°, loc=52.3726967,4.9400676
+[20:26:20] [DEBUG] breadcrumbs.length=20, graph.nodes=12
+[20:26:20] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:26:20] [DEBUG] currentNode.triedYaws=120, hasUntried=true
+[20:26:20] 🧭 NEW NODE: Aligning camera to effective bearing 144° (diff=138°)
+[20:26:20] [DEBUG] decision={"turn":true,"angle":221.93056912405382,"direction":"right"}
+[20:26:20]    🔄 ACTION: Turning RIGHT 221.93056912405382°
+[20:26:20] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:20] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:22] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:22] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:22] [DEBUG] currentLocation=52.3727915,4.9400383, currentYaw=350.40726804117594, previousLocation=52.3726967,4.9400676
+[20:26:22] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:22] [DEBUG] Sync wheel orientation: lastUrlYaw=281.98832067282547, currentYaw=350.40726804117594
+[20:26:22] 💓 [24] STUCK: 0 | YAW: 350° | LOC: 52.3727915,4.9400383
+[20:26:22]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3727915,4.9400383,3a,75y,350.41h,90.26t/data=!3m7!1e1!3m5!1suZP6E0pR-zEWS8IUz5TixA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DuZP6E0pR-zEWS8IUz5TixA%26yaw%3D350.40726804117594!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:22] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:26:22] [DEBUG] Step succeeded! Location changed.
+[20:26:22] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:22] [DEBUG] decide() called: stuck=0, orientation=350°, loc=52.3727915,4.9400383
+[20:26:22] [DEBUG] breadcrumbs.length=21, graph.nodes=12
+[20:26:22] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:22] [DEBUG] currentNode.triedYaws=0,60,240,180, hasUntried=true
+[20:26:22] 🔍 FORWARD: Trying yaw 300° (diff=50° from orientation, 43° from effective bearing)
+[20:26:22] [DEBUG] decision={"turn":true,"angle":309.59273195882406,"direction":"right"}
+[20:26:22]    🔄 ACTION: Turning RIGHT 309.59273195882406°
+[20:26:22] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:22] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:24] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:24] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:24] [DEBUG] currentLocation=52.3727915,4.9400383, currentYaw=58.47379435700776, previousLocation=52.3727915,4.9400383
+[20:26:24] [DEBUG] STUCK DETECTED - same location, stuckCount=1
+[20:26:24] [DEBUG] Sync wheel orientation: lastUrlYaw=350.40726804117594, currentYaw=58.47379435700776
+[20:26:24] 💓 [25] STUCK: 1 | YAW: 58° | LOC: 52.3727915,4.9400383
+[20:26:24]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3727915,4.9400383,3a,75y,58.47h,90.26t/data=!3m7!1e1!3m5!1suZP6E0pR-zEWS8IUz5TixA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DuZP6E0pR-zEWS8IUz5TixA%26yaw%3D58.47379435700776!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:24] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=3, isFullyScanned=false
+[20:26:24] [DEBUG] Step failed! Still at same location - record failed attempt.
+[20:26:24] [DEBUG] Skipping decision - turn cooldown active (1/2)
+[20:26:24] [DEBUG] tick() END
+[20:26:26] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:26] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:26] [DEBUG] currentLocation=52.3727915,4.9400383, currentYaw=58.47379435700776, previousLocation=52.3727915,4.9400383
+[20:26:26] [DEBUG] STUCK DETECTED - same location, stuckCount=2
+[20:26:26] [DEBUG] KEYBOARD BLOCK? stuck+same yaw, count=2/3
+[20:26:26] 💓 [26] STUCK: 2 | YAW: 58° | LOC: 52.3727915,4.9400383
+[20:26:26]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3727915,4.9400383,3a,75y,58.47h,90.26t/data=!3m7!1e1!3m5!1suZP6E0pR-zEWS8IUz5TixA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DuZP6E0pR-zEWS8IUz5TixA%26yaw%3D58.47379435700776!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:26] [DEBUG] isStationary=true, isNewNode=false, justArrived=false, nodeVisitCount=4, isFullyScanned=false
+[20:26:26] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:26] [DEBUG] decide() called: stuck=2, orientation=58°, loc=52.3727915,4.9400383
+[20:26:26] [DEBUG] breadcrumbs.length=22, graph.nodes=12
+[20:26:26] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=false
+[20:26:26] [DEBUG] currentNode.triedYaws=0,60,240,180,300, hasUntried=true
+[20:26:26] 🚨 PANIC! Stuck 2x. Trying untried yaw 120°
+[20:26:26] [DEBUG] decision={"turn":true,"angle":61.52620564299224,"direction":"left"}
+[20:26:26]    🔄 ACTION: Turning LEFT 61.52620564299224°
+[20:26:26] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:26] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:28] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:28] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:28] [DEBUG] currentLocation=52.372881,4.9398816, currentYaw=18.962846988360837, previousLocation=52.3727915,4.9400383
+[20:26:28] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:28] [DEBUG] Sync wheel orientation: lastUrlYaw=58.47379435700776, currentYaw=18.962846988360837
+[20:26:28] 💓 [27] STUCK: 0 | YAW: 19° | LOC: 52.372881,4.9398816
+[20:26:28]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.372881,4.9398816,3a,75y,18.96h,90.26t/data=!3m7!1e1!3m5!1sZbAG2ZrjjNITYX3pNuwLcA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DZbAG2ZrjjNITYX3pNuwLcA%26yaw%3D18.962846988360837!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:28] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:26:28] [DEBUG] Step succeeded! Location changed.
+[20:26:28] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:28] [DEBUG] decide() called: stuck=0, orientation=19°, loc=52.372881,4.9398816
+[20:26:28] [DEBUG] breadcrumbs.length=22, graph.nodes=12
+[20:26:28] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:28] [DEBUG] currentNode.triedYaws=120,300,0,180, hasUntried=true
+[20:26:28] 🔍 FORWARD: Trying yaw 60° (diff=41° from orientation, 77° from effective bearing)
+[20:26:28] [DEBUG] decision={"turn":true,"angle":41.037153011639134,"direction":"left"}
+[20:26:28]    🔄 ACTION: Turning LEFT 41.037153011639134°
+[20:26:28] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:28] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:30] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:30] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:30] [DEBUG] currentLocation=52.3728946,4.9400369, currentYaw=358.53758383032493, previousLocation=52.372881,4.9398816
+[20:26:30] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:30] [DEBUG] Sync wheel orientation: lastUrlYaw=18.962846988360837, currentYaw=358.53758383032493
+[20:26:30] 💓 [28] STUCK: 0 | YAW: 359° | LOC: 52.3728946,4.9400369
+[20:26:30]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728946,4.9400369,3a,75y,358.54h,90.26t/data=!3m7!1e1!3m5!1sQJgVZvAq1n3rPMGTTJw8CA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DQJgVZvAq1n3rPMGTTJw8CA%26yaw%3D358.53758383032493!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:30] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:26:30] [DEBUG] Step succeeded! Location changed.
+[20:26:30] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:30] [DEBUG] decide() called: stuck=0, orientation=359°, loc=52.3728946,4.9400369
+[20:26:30] [DEBUG] breadcrumbs.length=23, graph.nodes=12
+[20:26:30] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:30] [DEBUG] currentNode.triedYaws=120,300,180, hasUntried=true
+[20:26:30] [DEBUG] Already facing target yaw (within ±20° tolerance), moving forward
+[20:26:30] [DEBUG] decision={"turn":false}
+[20:26:30] [DEBUG] tick() END
+[20:26:31] 💾 Walk saved: 29 steps, 12 unique
+[20:26:32] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:32] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:32] [DEBUG] currentLocation=52.3729231,4.9402147, currentYaw=358.53758383032493, previousLocation=52.3728946,4.9400369
+[20:26:32] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:32] 💓 [29] STUCK: 0 | YAW: 359° | LOC: 52.3729231,4.9402147
+[20:26:32]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3729231,4.9402147,3a,75y,358.54h,90.26t/data=!3m7!1e1!3m5!1s5XLitcv0ecBCeryMZkUrMw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3D5XLitcv0ecBCeryMZkUrMw%26yaw%3D358.53758383032493!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:32] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:26:32] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:32] [DEBUG] decide() called: stuck=0, orientation=359°, loc=52.3729231,4.9402147
+[20:26:32] [DEBUG] breadcrumbs.length=24, graph.nodes=12
+[20:26:32] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:32] [DEBUG] currentNode.triedYaws=300,180, hasUntried=true
+[20:26:32] [DEBUG] Already facing target yaw (within ±20° tolerance), moving forward
+[20:26:32] [DEBUG] decision={"turn":false}
+[20:26:32] [DEBUG] tick() END
+[20:26:34] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:34] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:34] [DEBUG] currentLocation=52.3729382,4.9403523, currentYaw=358.53758383032493, previousLocation=52.3729231,4.9402147
+[20:26:34] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:34] 💓 [30] STUCK: 0 | YAW: 359° | LOC: 52.3729382,4.9403523
+[20:26:34]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3729382,4.9403523,3a,75y,358.54h,90.26t/data=!3m7!1e1!3m5!1sM-8khvXezRYWAiYBkLyTNA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DM-8khvXezRYWAiYBkLyTNA%26yaw%3D358.53758383032493!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:34] [DEBUG] isStationary=false, isNewNode=true, justArrived=true, nodeVisitCount=0, isFullyScanned=false
+[20:26:34] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:34] [DEBUG] decide() called: stuck=0, orientation=359°, loc=52.3729382,4.9403523
+[20:26:34] [DEBUG] breadcrumbs.length=25, graph.nodes=13
+[20:26:34] [DEBUG] isNewNode=true, isFullyScanned=false, justArrived=true
+[20:26:34] [DEBUG] currentNode.triedYaws=180, hasUntried=true
+[20:26:34] 🧭 NEW NODE: Aligning camera to effective bearing 83° (diff=84°)
+[20:26:34] [DEBUG] decision={"turn":true,"angle":84.25908357232731,"direction":"left"}
+[20:26:34]    🔄 ACTION: Turning LEFT 84.25908357232731°
+[20:26:34] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:35] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:36] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:36] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:36] [DEBUG] currentLocation=52.3729231,4.9402147, currentYaw=295.507268040823, previousLocation=52.3729382,4.9403523
+[20:26:36] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:36] [DEBUG] Sync wheel orientation: lastUrlYaw=358.53758383032493, currentYaw=295.507268040823
+[20:26:36] 💓 [31] STUCK: 0 | YAW: 296° | LOC: 52.3729231,4.9402147
+[20:26:36]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3729231,4.9402147,3a,75y,295.51h,90.26t/data=!3m7!1e1!3m5!1s5XLitcv0ecBCeryMZkUrMw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3D5XLitcv0ecBCeryMZkUrMw%26yaw%3D295.507268040823!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:36] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:26:36] [DEBUG] Step succeeded! Location changed.
+[20:26:36] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:36] [DEBUG] decide() called: stuck=0, orientation=296°, loc=52.3729231,4.9402147
+[20:26:36] [DEBUG] breadcrumbs.length=26, graph.nodes=13
+[20:26:36] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:36] [DEBUG] currentNode.triedYaws=300,180,0,120, hasUntried=true
+[20:26:36] [DEBUG] Skipping yaw 60° alignment - turn too large (124° > 90°)
+[20:26:36] [DEBUG] decision={"turn":false}
+[20:26:36] [DEBUG] tick() END
+[20:26:38] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:38] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:38] [DEBUG] currentLocation=52.3728946,4.9400369, currentYaw=295.507268040823, previousLocation=52.3729231,4.9402147
+[20:26:38] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:38] 💓 [32] STUCK: 0 | YAW: 296° | LOC: 52.3728946,4.9400369
+[20:26:38]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728946,4.9400369,3a,75y,295.51h,90.26t/data=!3m7!1e1!3m5!1sQJgVZvAq1n3rPMGTTJw8CA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DQJgVZvAq1n3rPMGTTJw8CA%26yaw%3D295.507268040823!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:38] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:26:38] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:38] [DEBUG] decide() called: stuck=0, orientation=296°, loc=52.3728946,4.9400369
+[20:26:38] [DEBUG] breadcrumbs.length=27, graph.nodes=13
+[20:26:38] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:38] [DEBUG] currentNode.triedYaws=120,300,180,0, hasUntried=true
+[20:26:38] 🔍 FORWARD: Trying yaw 240° (diff=56° from orientation, 21° from effective bearing)
+[20:26:38] [DEBUG] decision={"turn":true,"angle":304.492731959177,"direction":"right"}
+[20:26:38]    🔄 ACTION: Turning RIGHT 304.492731959177°
+[20:26:38] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:39] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:40] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:40] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:40] [DEBUG] currentLocation=52.3729231,4.9402147, currentYaw=4.8868469881773535, previousLocation=52.3728946,4.9400369
+[20:26:40] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:40] [DEBUG] Sync wheel orientation: lastUrlYaw=295.507268040823, currentYaw=4.8868469881773535
+[20:26:40] 💓 [33] STUCK: 0 | YAW: 5° | LOC: 52.3729231,4.9402147
+[20:26:40]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3729231,4.9402147,3a,75y,4.89h,90.26t/data=!3m7!1e1!3m5!1s5XLitcv0ecBCeryMZkUrMw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3D5XLitcv0ecBCeryMZkUrMw%26yaw%3D4.8868469881773535!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:40] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=3, isFullyScanned=false
+[20:26:40] [DEBUG] Step succeeded! Location changed.
+[20:26:40] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:40] [DEBUG] decide() called: stuck=0, orientation=5°, loc=52.3729231,4.9402147
+[20:26:40] [DEBUG] breadcrumbs.length=28, graph.nodes=13
+[20:26:40] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:40] [DEBUG] currentNode.triedYaws=300,180,0,120, hasUntried=true
+[20:26:40] [DEBUG] Skipping yaw 240° alignment - turn too large (125° > 90°)
+[20:26:40] [DEBUG] decision={"turn":false}
+[20:26:40] [DEBUG] tick() END
+[20:26:42] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:42] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:42] [DEBUG] currentLocation=52.3729382,4.9403523, currentYaw=4.8868469881773535, previousLocation=52.3729231,4.9402147
+[20:26:42] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:42] 💓 [34] STUCK: 0 | YAW: 5° | LOC: 52.3729382,4.9403523
+[20:26:42]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3729382,4.9403523,3a,75y,4.89h,90.26t/data=!3m7!1e1!3m5!1sM-8khvXezRYWAiYBkLyTNA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DM-8khvXezRYWAiYBkLyTNA%26yaw%3D4.8868469881773535!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:42] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=1, isFullyScanned=false
+[20:26:42] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:42] [DEBUG] decide() called: stuck=0, orientation=5°, loc=52.3729382,4.9403523
+[20:26:42] [DEBUG] breadcrumbs.length=29, graph.nodes=13
+[20:26:42] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:42] [DEBUG] currentNode.triedYaws=180,300, hasUntried=true
+[20:26:42] 🔍 FORWARD: Trying yaw 60° (diff=55° from orientation, 24° from effective bearing)
+[20:26:42] [DEBUG] decision={"turn":true,"angle":55.11315301182265,"direction":"left"}
+[20:26:42]    🔄 ACTION: Turning LEFT 55.11315301182265°
+[20:26:42] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:42] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:44] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:44] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:44] [DEBUG] currentLocation=52.3729231,4.9402147, currentYaw=331.812320672642, previousLocation=52.3729382,4.9403523
+[20:26:44] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:44] [DEBUG] Sync wheel orientation: lastUrlYaw=4.8868469881773535, currentYaw=331.812320672642
+[20:26:44] 💓 [35] STUCK: 0 | YAW: 332° | LOC: 52.3729231,4.9402147
+[20:26:44]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3729231,4.9402147,3a,75y,331.81h,90.26t/data=!3m7!1e1!3m5!1s5XLitcv0ecBCeryMZkUrMw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3D5XLitcv0ecBCeryMZkUrMw%26yaw%3D331.812320672642!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:44] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=4, isFullyScanned=false
+[20:26:44] [DEBUG] Step succeeded! Location changed.
+[20:26:44] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:44] [DEBUG] decide() called: stuck=0, orientation=332°, loc=52.3729231,4.9402147
+[20:26:44] [DEBUG] breadcrumbs.length=30, graph.nodes=13
+[20:26:44] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:44] [DEBUG] currentNode.triedYaws=300,180,0,120, hasUntried=true
+[20:26:44] 🔍 FORWARD: Trying yaw 60° (diff=88° from orientation, 22° from effective bearing)
+[20:26:44] [DEBUG] decision={"turn":true,"angle":88.18767932735801,"direction":"left"}
+[20:26:44]    🔄 ACTION: Turning LEFT 88.18767932735801°
+[20:26:44] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:45] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:46] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:46] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:46] [DEBUG] currentLocation=52.3728946,4.9400369, currentYaw=268.217373304108, previousLocation=52.3729231,4.9402147
+[20:26:46] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:46] [DEBUG] Sync wheel orientation: lastUrlYaw=331.812320672642, currentYaw=268.217373304108
+[20:26:46] 💓 [36] STUCK: 0 | YAW: 268° | LOC: 52.3728946,4.9400369
+[20:26:46]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728946,4.9400369,3a,75y,268.22h,90.26t/data=!3m7!1e1!3m5!1sQJgVZvAq1n3rPMGTTJw8CA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DQJgVZvAq1n3rPMGTTJw8CA%26yaw%3D268.217373304108!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:46] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=3, isFullyScanned=true
+[20:26:46] [DEBUG] Step succeeded! Location changed.
+[20:26:46] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:46] [DEBUG] decide() called: stuck=0, orientation=268°, loc=52.3728946,4.9400369
+[20:26:46] [DEBUG] breadcrumbs.length=31, graph.nodes=13
+[20:26:46] [DEBUG] isNewNode=false, isFullyScanned=true, justArrived=true
+[20:26:46] [DEBUG] currentNode.triedYaws=120,300,180,0,240,60, hasUntried=false
+[20:26:46] 🧱 DEAD END! Forward bearing=261°, turning to wall-follow bearing=6°
+[20:26:46] 🧱 WALL-FOLLOW: Turning to face bearing 6° (diff=98°)
+[20:26:46] [DEBUG] decision={"turn":true,"angle":97.67601186983183,"direction":"left"}
+[20:26:46]    🔄 ACTION: Turning LEFT 97.67601186983183°
+[20:26:46] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:47] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:48] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:48] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:48] [DEBUG] currentLocation=52.372881,4.9398816, currentYaw=202.4908469882056, previousLocation=52.3728946,4.9400369
+[20:26:48] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:48] [DEBUG] Sync wheel orientation: lastUrlYaw=268.217373304108, currentYaw=202.4908469882056
+[20:26:48] 💓 [37] STUCK: 0 | YAW: 202° | LOC: 52.372881,4.9398816
+[20:26:48]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.372881,4.9398816,3a,75y,202.49h,90.26t/data=!3m7!1e1!3m5!1sZbAG2ZrjjNITYX3pNuwLcA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DZbAG2ZrjjNITYX3pNuwLcA%26yaw%3D202.4908469882056!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:48] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=3, isFullyScanned=false
+[20:26:48] [DEBUG] Step succeeded! Location changed.
+[20:26:48] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:48] [DEBUG] decide() called: stuck=0, orientation=202°, loc=52.372881,4.9398816
+[20:26:48] [DEBUG] breadcrumbs.length=32, graph.nodes=13
+[20:26:48] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:48] [DEBUG] currentNode.triedYaws=120,300,0,180, hasUntried=true
+[20:26:48] 🧱 WALL-FOLLOW: Found LEFT exit yaw 60° (diff=159° from forward)
+[20:26:48] [DEBUG] decision={"turn":true,"angle":217.5091530117944,"direction":"right"}
+[20:26:48]    🔄 ACTION: Turning RIGHT 217.5091530117944°
+[20:26:48] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:49] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:50] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:50] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:50] [DEBUG] currentLocation=52.3728645,4.9397388, currentYaw=262.63358383029674, previousLocation=52.372881,4.9398816
+[20:26:50] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:50] [DEBUG] Sync wheel orientation: lastUrlYaw=202.4908469882056, currentYaw=262.63358383029674
+[20:26:50] 💓 [38] STUCK: 0 | YAW: 263° | LOC: 52.3728645,4.9397388
+[20:26:50]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728645,4.9397388,3a,75y,262.63h,90.26t/data=!3m7!1e1!3m5!1sBs5Q6945wCaQDdyUmYRimQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DBs5Q6945wCaQDdyUmYRimQ%26yaw%3D262.63358383029674!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:50] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:26:50] [DEBUG] Step succeeded! Location changed.
+[20:26:50] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:50] [DEBUG] decide() called: stuck=0, orientation=263°, loc=52.3728645,4.9397388
+[20:26:50] [DEBUG] breadcrumbs.length=33, graph.nodes=13
+[20:26:50] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:50] [DEBUG] currentNode.triedYaws=120,300,0,180,60, hasUntried=true
+[20:26:50] 🔍 FORWARD: Trying yaw 240° (diff=23° from orientation, 23° from effective bearing)
+[20:26:50] [DEBUG] decision={"turn":true,"angle":337.36641616970326,"direction":"right"}
+[20:26:50]    🔄 ACTION: Turning RIGHT 337.36641616970326°
+[20:26:50] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:51] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:52] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:52] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:52] [DEBUG] currentLocation=52.3728491,4.9395959, currentYaw=327.50368909365227, previousLocation=52.3728645,4.9397388
+[20:26:52] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:52] [DEBUG] Sync wheel orientation: lastUrlYaw=262.63358383029674, currentYaw=327.50368909365227
+[20:26:52] 💓 [39] STUCK: 0 | YAW: 328° | LOC: 52.3728491,4.9395959
+[20:26:52]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728491,4.9395959,3a,75y,327.5h,90.26t/data=!3m7!1e1!3m5!1sWu9rmFXtvnnMwDHcxWclYA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DWu9rmFXtvnnMwDHcxWclYA%26yaw%3D327.50368909365227!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:52] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=2, isFullyScanned=false
+[20:26:52] [DEBUG] Step succeeded! Location changed.
+[20:26:52] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:52] [DEBUG] decide() called: stuck=0, orientation=328°, loc=52.3728491,4.9395959
+[20:26:52] [DEBUG] breadcrumbs.length=34, graph.nodes=13
+[20:26:52] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:52] [DEBUG] currentNode.triedYaws=120,300,0,180, hasUntried=true
+[20:26:52] 🔍 FORWARD: Trying yaw 240° (diff=88° from orientation, 24° from effective bearing)
+[20:26:52] [DEBUG] decision={"turn":true,"angle":272.49631090634773,"direction":"right"}
+[20:26:52]    🔄 ACTION: Turning RIGHT 272.49631090634773°
+[20:26:52] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:53] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:54] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:54] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:54] [DEBUG] currentLocation=52.3728645,4.9397388, currentYaw=34.0127417251465, previousLocation=52.3728491,4.9395959
+[20:26:54] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:54] [DEBUG] Sync wheel orientation: lastUrlYaw=327.50368909365227, currentYaw=34.0127417251465
+[20:26:54] 💓 [40] STUCK: 0 | YAW: 34° | LOC: 52.3728645,4.9397388
+[20:26:54]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728645,4.9397388,3a,75y,34.01h,90.26t/data=!3m7!1e1!3m5!1sBs5Q6945wCaQDdyUmYRimQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DBs5Q6945wCaQDdyUmYRimQ%26yaw%3D34.0127417251465!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:54] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=3, isFullyScanned=true
+[20:26:54] [DEBUG] Step succeeded! Location changed.
+[20:26:54] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:54] [DEBUG] decide() called: stuck=0, orientation=34°, loc=52.3728645,4.9397388
+[20:26:54] [DEBUG] breadcrumbs.length=35, graph.nodes=13
+[20:26:54] [DEBUG] isNewNode=false, isFullyScanned=true, justArrived=true
+[20:26:54] [DEBUG] currentNode.triedYaws=120,300,0,180,60,240, hasUntried=false
+[20:26:54] 🧱 DEAD END! Forward bearing=264°, turning to wall-follow bearing=9°
+[20:26:54] 🧱 WALL-FOLLOW: Turning to face bearing 9° (diff=25°)
+[20:26:54] [DEBUG] decision={"turn":true,"angle":334.61625288357567,"direction":"right"}
+[20:26:54]    🔄 ACTION: Turning RIGHT 334.61625288357567°
+[20:26:54] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:55] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:56] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:56] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:56] [DEBUG] currentLocation=52.372881,4.9398816, currentYaw=102.09442593572929, previousLocation=52.3728645,4.9397388
+[20:26:56] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:56] [DEBUG] Sync wheel orientation: lastUrlYaw=34.0127417251465, currentYaw=102.09442593572929
+[20:26:56] 💓 [41] STUCK: 0 | YAW: 102° | LOC: 52.372881,4.9398816
+[20:26:56]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.372881,4.9398816,3a,75y,102.09h,90.26t/data=!3m7!1e1!3m5!1sZbAG2ZrjjNITYX3pNuwLcA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DZbAG2ZrjjNITYX3pNuwLcA%26yaw%3D102.09442593572929!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:56] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=4, isFullyScanned=false
+[20:26:56] [DEBUG] Step succeeded! Location changed.
+[20:26:56] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:56] [DEBUG] decide() called: stuck=0, orientation=102°, loc=52.372881,4.9398816
+[20:26:56] [DEBUG] breadcrumbs.length=36, graph.nodes=13
+[20:26:56] [DEBUG] isNewNode=false, isFullyScanned=false, justArrived=true
+[20:26:56] [DEBUG] currentNode.triedYaws=120,300,0,180,60, hasUntried=true
+[20:26:56] 🧱 WALL-FOLLOW: Found LEFT exit yaw 240° (diff=24° from forward)
+[20:26:56] [DEBUG] decision={"turn":true,"angle":137.9055740642707,"direction":"left"}
+[20:26:56]    🔄 ACTION: Turning LEFT 137.9055740642707°
+[20:26:56] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:57] [DEBUG] Turn callback executed - pressing ArrowUp
+[20:26:58] [DEBUG] tick() START - status=WALKING, isUserMouseDown=false, isDrawing=false
+[20:26:58] [DEBUG] currentUrl=https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Book...
+[20:26:58] [DEBUG] currentLocation=52.3728946,4.9400369, currentYaw=33.91800488304125, previousLocation=52.372881,4.9398816
+[20:26:58] [DEBUG] LOCATION CHANGED - resetting stuckCount and turn cooldown
+[20:26:58] [DEBUG] Sync wheel orientation: lastUrlYaw=102.09442593572929, currentYaw=33.91800488304125
+[20:26:58] 💓 [42] STUCK: 0 | YAW: 34° | LOC: 52.3728946,4.9400369
+[20:26:58]    🔗 https://www.google.com/maps/place/The+Book+Exchange+-+Used+English-language+Books/@52.3728946,4.9400369,3a,75y,33.92h,90.26t/data=!3m7!1e1!3m5!1sQJgVZvAq1n3rPMGTTJw8CA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-0.26333180210376383%26panoid%3DQJgVZvAq1n3rPMGTTJw8CA%26yaw%3D33.91800488304125!7i16384!8i8192!4m6!3m5!1s0x47c609bf10f65fc5:0xb090b02b5dd6f794!8m2!3d52.3700725!4d4.8974242!16s%2Fg%2F1tjhww5_?entry=ttu&g_ep=EgoyMDI2MDMxOC4xIKXMDSoASAFQAw%3D%3D
+[20:26:58] [DEBUG] isStationary=false, isNewNode=false, justArrived=true, nodeVisitCount=4, isFullyScanned=true
+[20:26:58] [DEBUG] Step succeeded! Location changed.
+[20:26:58] [DEBUG] ticksSinceTurn=2, calling algorithm.decide()...
+[20:26:58] [DEBUG] decide() called: stuck=0, orientation=34°, loc=52.3728946,4.9400369
+[20:26:58] [DEBUG] breadcrumbs.length=37, graph.nodes=13
+[20:26:58] [DEBUG] isNewNode=false, isFullyScanned=true, justArrived=true
+[20:26:58] [DEBUG] currentNode.triedYaws=120,300,180,0,240,60, hasUntried=false
+[20:26:58] 🧱 DEAD END! Forward bearing=84°, turning to wall-follow bearing=189°
+[20:26:58] 🧱 WALL-FOLLOW: Turning to face bearing 189° (diff=155°)
+[20:26:58] [DEBUG] decision={"turn":true,"angle":154.71098972568097,"direction":"left"}
+[20:26:58]    🔄 ACTION: Turning LEFT 154.71098972568097°
+[20:26:58] [DEBUG] tick() RETURN EARLY - waiting for turn to complete
+[20:26:59] [DEBUG] Turn callback executed - pressing ArrowUp

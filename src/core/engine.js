@@ -338,10 +338,17 @@ export function createEngine(config = {}) {
 
     // 6. Action: Turn (Left or Right)
     if (decision.turn) {
-      const angle = decision.angle || 60;
+      let angle = decision.angle || 60;
       const direction = decision.direction || 'left';  // 'left' or 'right'
-      
-      console.log(`   🔄 ACTION: Turning ${direction.toUpperCase()} ${angle}°`);
+
+      // If direction is 'right', convert left-angle to right-angle
+      // getLeftTurnAngle returns counter-clockwise angle
+      // For clockwise (right) turn: rightAngle = 360 - leftAngle
+      if (direction === 'right') {
+        angle = (360 - angle) % 360;
+      }
+
+      console.log(`   🔄 ACTION: Turning ${direction.toUpperCase()} ${Math.round(angle)}°`);
       isTurning = true;
       turnCompleted = false;
 

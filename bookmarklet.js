@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T20:24:32.493Z
+// Built: 2026-03-23T20:29:56.202Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -123,13 +123,13 @@ function yawDifference(yaw1, yaw2) {
  * Calculate angle to turn LEFT (counter-clockwise) to reach targetYaw from currentYaw
  * 
  * Example: Current=250°, Target=319°
- * - Left turn: 319 - 250 = 69° (counter-clockwise, shorter)
- * - Right turn: 360 - 69 = 291° (clockwise, longer)
+ * - Left turn: 319 - 250 = 69° (counter-clockwise)
+ * - Right turn: 360 - 69 = 291° (clockwise)
  * - This function returns: 69°
  */
 function getLeftTurnAngle(currentYaw, targetYaw) {
-  // LEFT turn = target - current (counter-clockwise)
-  let angle = (normalizeAngle(targetYaw) - normalizeAngle(currentYaw) + 360) % 360;
+  // LEFT turn (counter-clockwise) = current - target
+  let angle = (normalizeAngle(currentYaw) - normalizeAngle(targetYaw) + 360) % 360;
   return angle;
 }
 
@@ -1178,10 +1178,17 @@ function createEngine(config = {}) {
 
     // 6. Action: Turn (Left or Right)
     if (decision.turn) {
-      const angle = decision.angle || 60;
+      let angle = decision.angle || 60;
       const direction = decision.direction || 'left';  // 'left' or 'right'
 
-      console.log(`   🔄 ACTION: Turning ${direction.toUpperCase()} ${angle}°`);
+      // If direction is 'right', convert left-angle to right-angle
+      // getLeftTurnAngle returns counter-clockwise angle
+      // For clockwise (right) turn: rightAngle = 360 - leftAngle
+      if (direction === 'right') {
+        angle = (360 - angle) % 360;
+      }
+
+      console.log(`   🔄 ACTION: Turning ${direction.toUpperCase()} ${Math.round(angle)}°`);
       isTurning = true;
       turnCompleted = false;
 
