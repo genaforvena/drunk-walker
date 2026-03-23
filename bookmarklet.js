@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T20:29:56.202Z
+// Built: 2026-03-23T20:55:11.224Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -436,6 +436,28 @@ function createUnifiedAlgorithm(cfg) {
 
       lastDecisionWasTurn = false;
       return { turn: false };
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🔄 BACKTRACKING DETECTION: At visited node, moving backward
+    // If we just arrived at a visited node and are moving opposite to
+    // the committed direction, we're backtracking → enter wall-follow mode
+    // ═══════════════════════════════════════════════════════════
+    if (justArrived && !isNewNode && !wallFollowMode) {
+      // Calculate movement direction (previous → current)
+      const movementBearing = currentForwardBearing;
+      const oppositeBearing = (movementBearing + 180) % 360;
+
+      // Check if we're moving opposite to committed direction (backtracking)
+      const diffFromOpposite = yawDifference(committedDirection, oppositeBearing);
+
+      if (diffFromOpposite < 45) {
+        // We're backtracking! Enter wall-follow mode
+        wallFollowMode = true;
+        forwardBearing = movementBearing;
+        wallFollowBearing = (forwardBearing + 105) % 360;
+        console.log(`🔄 BACKTRACKING DETECTED! Movement=${Math.round(movementBearing)}°, committed=${Math.round(committedDirection)}° → entering wall-follow mode`);
+      }
     }
 
     // ═══════════════════════════════════════════════════════════

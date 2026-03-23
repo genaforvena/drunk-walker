@@ -343,6 +343,28 @@ export function createUnifiedAlgorithm(cfg) {
     }
 
     // ═══════════════════════════════════════════════════════════
+    // 🔄 BACKTRACKING DETECTION: At visited node, moving backward
+    // If we just arrived at a visited node and are moving opposite to
+    // the committed direction, we're backtracking → enter wall-follow mode
+    // ═══════════════════════════════════════════════════════════
+    if (justArrived && !isNewNode && !wallFollowMode) {
+      // Calculate movement direction (previous → current)
+      const movementBearing = currentForwardBearing;
+      const oppositeBearing = (movementBearing + 180) % 360;
+      
+      // Check if we're moving opposite to committed direction (backtracking)
+      const diffFromOpposite = yawDifference(committedDirection, oppositeBearing);
+      
+      if (diffFromOpposite < 45) {
+        // We're backtracking! Enter wall-follow mode
+        wallFollowMode = true;
+        forwardBearing = movementBearing;
+        wallFollowBearing = (forwardBearing + 105) % 360;
+        console.log(`🔄 BACKTRACKING DETECTED! Movement=${Math.round(movementBearing)}°, committed=${Math.round(committedDirection)}° → entering wall-follow mode`);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // 🧱 DEAD END DETECTION: All yaws tried → TURN LEFT 105°
     // This is the END OF STRAIGHT LINE - start wall-following
     // ═══════════════════════════════════════════════════════════
