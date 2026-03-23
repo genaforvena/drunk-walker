@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.0-SMART-PANIC - BUNDLED BOOKMARKLET
-// Built: 2026-03-23T00:38:53.612Z
+// Built: 2026-03-23T00:42:19.972Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -2133,7 +2133,6 @@ const initialize = () => {
     // Create experiment framework with default configuration
     let experiment = null;
     try {
-      const { createExperiment } = await import('./experiment/index.js');
       experiment = createExperiment(engine, algorithm);
       console.log('🧪 Experiment framework initialized');
     } catch (e) {

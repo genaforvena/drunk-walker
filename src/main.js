@@ -8,6 +8,7 @@ import { simulateKeyPress, simulateLongKeyPress, simulateClick, setupInteraction
 import { createControlPanel } from './ui/controller.js';
 import { createExplorationMap } from './ui/exploration-map.js';
 import { createAutosaver } from './experiment/autosave.js';
+import { createExperiment } from './experiment/index.js';
 
 // Global initialization lock
 let __INITIALIZING__ = false;
@@ -112,7 +113,6 @@ const initialize = () => {
     // Create experiment framework with default configuration
     let experiment = null;
     try {
-      const { createExperiment } = await import('./experiment/index.js');
       experiment = createExperiment(engine, algorithm);
       console.log('🧪 Experiment framework initialized');
     } catch (e) {
