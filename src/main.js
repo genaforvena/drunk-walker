@@ -7,8 +7,6 @@ import { createEngine, VERSION } from './core/engine.js';
 import { simulateKeyPress, simulateLongKeyPress, simulateClick, setupInteractionListeners, findStreetViewTarget } from './input/handlers.js';
 import { createControlPanel } from './ui/controller.js';
 import { createExplorationMap } from './ui/exploration-map.js';
-import { createAutosaver } from './experiment/autosave.js';
-import { createExperiment } from './experiment/index.js';
 
 // Global initialization lock
 let __INITIALIZING__ = false;
@@ -97,26 +95,43 @@ const initialize = () => {
       expOn: true      // Unstuck algorithm enabled by default
     });
 
-    // Create auto-saver for experiment resilience
-    let autosaver = null;
+    // ═══════════════════════════════════════════════════════════
+    // 💾 AUTO-SAVE: Simple walk data persistence
+    // Saves walk progress to localStorage every 60 seconds
+    // ═══════════════════════════════════════════════════════════
+    const AUTOSAVE_INTERVAL = 60000; // 60 seconds
+    let autoSaveTimer = null;
+    const saveWalkData = () => {
+      const walkData = {
+        version: VERSION,
+        timestamp: Date.now(),
+        steps: engine.getSteps(),
+        visited: engine.getVisitedCount(),
+        path: engine.getWalkPath()
+      };
+      try {
+        localStorage.setItem('drunk-walker-autosave', JSON.stringify(walkData));
+        console.log(`💾 Walk saved: ${walkData.steps} steps, ${walkData.visited} unique`);
+      } catch (e) {
+        console.warn('💾 Auto-save failed:', e.message);
+      }
+    };
+    
+    // Load previous walk if exists
     try {
-      autosaver = createAutosaver(engine, engine.getNavigation()?.algorithm || null, {
-        intervalMs: 60000,  // Save every 60 seconds
-        includeGraph: true,
-        includePath: true
-      });
-      console.log('💾 Auto-save module initialized');
+      const saved = localStorage.getItem('drunk-walker-autosave');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const age = Date.now() - data.timestamp;
+        if (age < 3600000 && data.path && data.path.length > 0) { // 1 hour max
+          engine.setSteps(data.steps);
+          engine.setWalkPath(data.path);
+          engine.restoreVisitedFromPath(data.path);
+          console.log(`💾 Previous walk restored: ${data.steps} steps, ${data.visited} unique`);
+        }
+      }
     } catch (e) {
-      console.warn('💾 Auto-save initialization skipped (algorithm not yet available)');
-    }
-
-    // Create experiment framework with default configuration
-    let experiment = null;
-    try {
-      experiment = createExperiment(engine, algorithm);
-      console.log('🧪 Experiment framework initialized');
-    } catch (e) {
-      console.warn('🧪 Experiment framework initialization skipped:', e.message);
+      console.warn('💾 Could not load previous walk:', e.message);
     }
 
     // Restore state if coming from screensaver
@@ -215,31 +230,9 @@ const initialize = () => {
     // Now start walking (after everything is set up)
     engine.start();
 
-    // Start auto-saver after engine is running
-    if (autosaver) {
-      autosaver.start();
-      console.log('💾 Auto-save started: will backup every 60 seconds');
-    }
-
-    // Start experiment framework with default configuration
-    if (experiment) {
-      experiment.start({
-        name: 'default-experiment',
-        targetSteps: 10000,
-        pace: engine.getConfig().pace || 2000,
-        enableMonitoring: true
-      });
-      console.log('🧪 Experiment auto-started with default configuration');
-      console.log('   Target: 10,000 steps');
-      console.log('   Auto-save: every 60 seconds');
-      console.log('   Export: every 500 steps');
-      console.log('   Monitor: every 30 seconds');
-      console.log('');
-      console.log('Commands:');
-      console.log('  DRUNK_WALKER.experiment.stop()    - Stop experiment');
-      console.log('  DRUNK_WALKER.experiment.export()  - Export data now');
-      console.log('  DRUNK_WALKER.experiment.stats()   - Show statistics');
-    }
+    // Start auto-save timer
+    autoSaveTimer = setInterval(saveWalkData, AUTOSAVE_INTERVAL);
+    console.log('💾 Auto-save enabled: walks saved every 60 seconds');
 
     // Resume screensaver session if needed (already started above)
     if (savedState?.isWalking) {
@@ -251,18 +244,36 @@ const initialize = () => {
       engine,
       ui,
       map,
-      autosaver,  // Expose auto-saver for manual control
-      experiment, // Expose experiment framework
       simulateKeyPress,
       simulateClick,
       stop: () => {
-        if (experiment) experiment.stop();
-        if (autosaver) autosaver.stop();
+        if (autoSaveTimer) clearInterval(autoSaveTimer);
+        saveWalkData(); // Final save on stop
         ui.destroy();
         cleanupListeners();
         window.DRUNK_WALKER_ACTIVE = false;
         delete window.DRUNK_WALKER;
         console.log('🤪 Drunk Walker stopped');
+      },
+      exportWalk: () => {
+        // Manual walk export
+        const data = {
+          version: VERSION,
+          timestamp: Date.now(),
+          steps: engine.getSteps(),
+          visited: engine.getVisitedCount(),
+          path: engine.getWalkPath(),
+          graph: engine.getTransitionGraph()
+        };
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `drunk-walker-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        console.log('📤 Walk exported');
       }
     };
 
