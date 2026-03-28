@@ -3,63 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤪 Drunk Walker (End of the World Finder)</title>
+    <title>🤪 Drunk Walker - Browser Extension + Bookmarklet</title>
     <style>
         body { font-family: 'Courier New', Courier, monospace; background: #000; color: #0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; text-align: center; }
-        .container { border: 2px solid #0f0; padding: 40px; border-radius: 15px; box-shadow: 0 0 20px #0f0; max-width: 650px; }
-        h1 { font-size: 2.5em; text-shadow: 0 0 10px #0f0; margin-top: 0; }
+        .container { border: 2px solid #0f0; padding: 40px; border-radius: 15px; box-shadow: 0 0 20px #0f0; max-width: 750px; }
+        h1 { font-size: 2.2em; text-shadow: 0 0 10px #0f0; margin-top: 0; }
+        .version-badge { display: inline-block; background: rgba(0, 255, 0, 0.2); border: 1px solid #0f0; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; margin-bottom: 20px; }
         .quote { font-style: italic; color: #ff00ff; margin-bottom: 30px; line-height: 1.4; opacity: 0.9; }
-        .btn-main { display: inline-block; background: #0f0; color: #000; padding: 25px 50px; font-weight: bold; text-decoration: none; border-radius: 8px; margin: 15px 0; cursor: pointer; font-size: 1.5em; border: none; transition: all 0.2s; min-width: 350px; }
+        
+        /* Extension Section */
+        .extension-section { background: rgba(0, 255, 0, 0.08); border: 1px solid rgba(0, 255, 0, 0.3); border-radius: 10px; padding: 25px; margin-bottom: 25px; }
+        .extension-section h2 { color: #0f0; margin-top: 0; font-size: 1.4em; }
+        .download-links { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+        .btn-download { display: inline-block; background: linear-gradient(135deg, #0f0 0%, #00aa00 100%); color: #000; padding: 15px 25px; font-weight: bold; text-decoration: none; border-radius: 8px; transition: all 0.2s; font-size: 1em; border: none; cursor: pointer; }
+        .btn-download:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
+        .btn-download.firefox { background: linear-gradient(135deg, #ff6600 0%, #cc5200 100%); color: #fff; }
+        .btn-download.firefox:hover { box-shadow: 0 0 20px rgba(255, 102, 0, 0.5); }
+        .size-label { font-size: 0.75em; opacity: 0.7; display: block; margin-top: 5px; }
+        
+        /* Installation Steps */
+        .install-steps { text-align: left; background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 8px; margin-top: 15px; font-size: 0.9em; line-height: 1.6; }
+        .install-steps h3 { color: #0f0; margin-top: 0; font-size: 1.1em; border-bottom: 1px solid rgba(0, 255, 0, 0.3); padding-bottom: 10px; }
+        .install-steps ol { padding-left: 20px; }
+        .install-steps li { margin-bottom: 8px; }
+        .install-steps code { background: #222; padding: 2px 6px; border-radius: 4px; color: #ff00ff; }
+        .note { background: rgba(255, 170, 0, 0.1); border-left: 3px solid #ffaa00; padding: 10px 15px; margin-top: 15px; font-size: 0.85em; text-align: left; }
+        
+        /* Bookmarklet Section */
+        .bookmarklet-section { margin-top: 25px; }
+        .btn-main { display: inline-block; background: #0f0; color: #000; padding: 20px 40px; font-weight: bold; text-decoration: none; border-radius: 8px; margin: 15px 0; cursor: pointer; font-size: 1.3em; border: none; transition: all 0.2s; }
         .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 20px #0f0; }
         .btn-main:active { transform: scale(0.95); }
         .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-latest { background: #cc6600; color: #fff; }
-        .btn-latest:hover { background: #ff8800; box-shadow: 0 0 20px #cc6600; }
-        .version-label { font-size: 0.7em; opacity: 0.8; margin-top: 5px; }
-        .instructions { text-align: left; background: rgba(0, 255, 0, 0.05); padding: 25px; border-left: 4px solid #0f0; border-radius: 0 8px 8px 0; margin-top: 20px; font-size: 1em; line-height: 1.6; }
-        code { background: #222; padding: 2px 6px; border-radius: 4px; color: #ff00ff; font-weight: bold; }
+        .instructions { text-align: left; background: rgba(0, 255, 0, 0.05); padding: 20px; border-left: 4px solid #0f0; border-radius: 0 8px 8px 0; margin-top: 20px; font-size: 0.9em; line-height: 1.6; }
+        
+        /* Footer */
         .footer { margin-top: 30px; font-size: 0.8em; opacity: 0.6; }
+        .footer a { color: #0f0; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
         .success-msg { color: #ff00ff; font-weight: bold; display: none; margin-top: 10px; }
         .loading { color: #ff00ff; font-weight: bold; margin-top: 10px; }
-        .button-group { margin: 25px 0; }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.6em; }
+            .download-links { flex-direction: column; }
+            .btn-download { width: 100%; box-sizing: border-box; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🤪 DRUNK WALKER</h1>
-        
+        <div class="version-badge">Latest Release: v6.1.4</div>
+
         <div class="quote">
-            "The direction isn't a point on a map; it's a constant flight away from the past. The bot is always running away from its own breadcrumbs until it eventually runs out of world to explore."
+            "The bot doesn't have a map. It learns the labyrinth by walking it—one drift at a time."
         </div>
 
-        <div class="button-group">
-            <button class="btn-main btn-latest" id="copyLatestBtn" onclick="copyToClipboard()" disabled>📋 COPY LATEST</button>
-            <div class="version-label">🌍 Explorer • 🏹 Hunter • 🔪 Surgeon</div>
-        </div>
-        
-        <div id="loading" class="loading">⏳ Loading from repository...</div>
-        <div id="success" class="success-msg">✓ CODE COPIED TO CLIPBOARD!</div>
+        <!-- Extension Section -->
+        <div class="extension-section">
+            <h2>📦 Browser Extension (Recommended)</h2>
+            <p>Install once, use anytime. No copy-pasting needed!</p>
+            
+            <div class="download-links">
+                <a href="https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-chrome.zip" class="btn-download">
+                    🌐 Chrome / Edge / Brave
+                    <span class="size-label">32 KB • Download ZIP</span>
+                </a>
+                <a href="https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-firefox.zip" class="btn-download firefox">
+                    🦊 Firefox
+                    <span class="size-label">32 KB • Download ZIP</span>
+                </a>
+            </div>
 
-        <div class="instructions">
-            <strong>HOW TO RUN:</strong><br>
-            1. Open <a href="https://www.google.com/maps" target="_blank" style="color: #0f0;">Street View</a> in your browser.<br>
-            2. Press <code>F12</code> and go to the <strong>Console</strong> tab.<br>
-            3. Paste (<code>Ctrl+V</code>) and press <strong>Enter</strong>.<br>
-            4. Type <code>allow pasting</code> if asked, then paste again.<br>
-            5. Click <strong>START</strong>. Watch it run away from its past.
+            <div class="install-steps">
+                <h3>🔧 Installation: Chrome / Edge / Brave</h3>
+                <ol>
+                    <li><strong>Download</strong> the ZIP file using the button above</li>
+                    <li><strong>Extract</strong> to a folder (remember where you put it)</li>
+                    <li><strong>Open Extensions:</strong> Type <code>chrome://extensions/</code> in address bar</li>
+                    <li><strong>Enable Developer Mode:</strong> Toggle switch in top-right corner</li>
+                    <li><strong>Load Unpacked:</strong> Click button → select your extracted folder</li>
+                    <li><strong>Done!</strong> Extension icon 🤪 appears in toolbar</li>
+                </ol>
+                
+                <h3 style="margin-top: 20px;">🔧 Installation: Firefox</h3>
+                <ol>
+                    <li><strong>Download</strong> the ZIP file using the button above</li>
+                    <li><strong>Extract</strong> to a folder</li>
+                    <li><strong>Open Debugging:</strong> Type <code>about:debugging#/runtime/this-firefox</code></li>
+                    <li><strong>Load Temporary Add-on:</strong> Click button → select <code>manifest.json</code> from your folder</li>
+                    <li><strong>Done!</strong> Extension loads until Firefox restarts</li>
+                </ol>
+                
+                <div class="note">
+                    <strong>⚠️ Firefox Note:</strong> Temporary add-ons unload when browser closes. 
+                    Reload from <code>about:debugging</code> after restart, or use Chrome for permanent installation.
+                </div>
+            </div>
+
+            <div class="install-steps" style="margin-top: 15px;">
+                <h3>🎮 How to Use</h3>
+                <ol>
+                    <li>Open <a href="https://www.google.com/maps" target="_blank" style="color: #0f0;">Google Maps</a></li>
+                    <li>Enter <strong>Street View</strong> mode (click on any blue location)</li>
+                    <li>Click the Drunk Walker extension icon 🤪 in your toolbar</li>
+                    <li>Click <strong>START</strong> and watch it explore!</li>
+                </ol>
+            </div>
         </div>
 
-        <div class="instructions" style="background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; margin-top: 20px;">
-            <strong>THE SANDBOX:</strong><br>
-            • <strong>Memory:</strong> Heatmap tracks every spot to avoid loops.<br>
-            • <strong>Scent:</strong> Breadcrumbs stop the bot from retracing its trail.<br>
-            • <strong>Entropy:</strong> The bot eventually hits equilibrium and forgets.<br>
-            • <strong>Personas:</strong> Cycle between Explorer, Hunter, and Surgeon modes.
+        <!-- Bookmarklet Section -->
+        <div class="bookmarklet-section">
+            <h2>⚡ Quick Start: Bookmarklet</h2>
+            <p>Copy and paste into browser console. No installation!</p>
+            
+            <button class="btn-main" id="copyLatestBtn" onclick="copyToClipboard()" disabled>📋 COPY LATEST</button>
+            <div id="loading" class="loading">⏳ Loading from repository...</div>
+            <div id="success" class="success-msg">✓ CODE COPIED TO CLIPBOARD!</div>
+
+            <div class="instructions">
+                <strong>HOW TO RUN:</strong><br>
+                1. Open <a href="https://www.google.com/maps" target="_blank" style="color: #0f0;">Street View</a> in your browser.<br>
+                2. Press <code>F12</code> and go to the <strong>Console</strong> tab.<br>
+                3. Paste (<code>Ctrl+V</code>) and press <strong>Enter</strong>.<br>
+                4. Type <code>allow pasting</code> if asked, then paste again.<br>
+                5. Click <strong>START</strong> on the control panel that appears.
+            </div>
         </div>
 
         <div class="footer">
-            Runs entirely in your console. Zero install. <br>
-            <a href="https://github.com/genaforvena/drunk-walker" style="color: #0f0;">View Source on GitHub</a>
+            Runs entirely in your browser. Zero tracking. Open source.<br>
+            <a href="https://github.com/genaforvena/drunk-walker" target="_blank">GitHub Repository</a> • 
+            <a href="https://github.com/genaforvena/drunk-walker/releases" target="_blank">Releases</a> • 
+            <a href="https://github.com/genaforvena/drunk-walker/tree/main/docs" target="_blank">Documentation</a>
         </div>
     </div>
 
@@ -85,12 +164,10 @@
             const latestBtn = document.getElementById('copyLatestBtn');
             if (latestLoaded) {
                 latestBtn.disabled = false;
-                latestBtn.innerText = '📋 COPY JS TO CLIPBOARD';
+                latestBtn.innerText = '📋 COPY BOOKMARKLET';
                 document.getElementById('loading').style.display = 'none';
             }
         }
-
-        fetchScript();
 
         function copyToClipboard() {
             if (!latestScriptCode) {
@@ -104,6 +181,8 @@
             };
             navigator.clipboard.writeText(latestScriptCode).then(showSuccess);
         }
+
+        fetchScript();
     </script>
 </body>
 </html>

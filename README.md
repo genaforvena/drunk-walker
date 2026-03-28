@@ -202,28 +202,52 @@ It's a nomadic machine that produces the map by walking it.
 | **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-chrome.zip) | 32 KB |
 | **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-firefox.zip) | 32 KB |
 
-**Install Extension:**
+#### Chrome / Edge / Brave Installation
 
-1. **Chrome/Edge/Brave:**
-   - Download and extract `drunk-walker-chrome.zip`
-   - Open `chrome://extensions/`
-   - Enable **Developer mode** (toggle top right)
-   - Click **Load unpacked**
-   - Select the extracted folder
-   - Extension icon appears in toolbar
+1. **Download** the ZIP file using the link above
 
-2. **Firefox:**
-   - Download and extract `drunk-walker-firefox.zip`
-   - Open `about:debugging#/runtime/this-firefox`
-   - Click **Load Temporary Add-on**
-   - Select `manifest.json` from extracted folder
-   - Extension loads until Firefox restarts
+2. **Extract** to a folder (remember where you put it)
 
-3. **Use it:**
-   - Open [Google Maps Street View](https://www.google.com/maps)
+3. **Open Extensions Page:**
+   - Type `chrome://extensions/` in address bar, OR
+   - Click ⋮ (menu) → Extensions → Manage Extensions
+
+4. **Enable Developer Mode:**
+   - Toggle the switch in the top-right corner
+
+5. **Load Extension:**
+   - Click **"Load unpacked"** button
+   - Select the folder you extracted
+   - Extension icon 🤪 appears in toolbar
+
+6. **Use It:**
+   - Open [Google Maps](https://www.google.com/maps)
    - Enter Street View mode
    - Click the Drunk Walker extension icon
    - Click **START**
+
+#### Firefox Installation
+
+1. **Download** the ZIP file using the link above
+
+2. **Extract** to a folder
+
+3. **Open Debugging Page:**
+   - Type `about:debugging#/runtime/this-firefox` in address bar
+
+4. **Load Temporary Add-on:**
+   - Click **"Load Temporary Add-on..."**
+   - Navigate to extracted folder
+   - Select `manifest.json`
+   - Extension loads until Firefox restarts
+
+5. **Use It:**
+   - Open [Google Maps](https://www.google.com/maps)
+   - Enter Street View mode
+   - Click the Drunk Walker extension icon
+   - Click **START**
+
+> **Note:** Firefox temporary add-ons unload when browser closes. Reload from `about:debugging` after restart.
 
 ### Option 2: Build from Source
 
@@ -249,12 +273,29 @@ Find packaged extensions in `dist/` folder.
 
 ### Controls
 
-- **START/STOP** - Begin or pause exploration
-- **Steps** - Total steps taken
-- **Visited** - Unique locations discovered
-- **Pace** - Speed of decisions (0.5s - 5.0s)
-- **💾 Path** - Export walk as JSON
-- **📄 Logs** - Export session logs
+| Control | Action |
+|---------|--------|
+| **START/STOP** | Begin or pause exploration |
+| **Steps** | Total movements made |
+| **Visited** | Unique locations discovered |
+| **Pace** | Decision speed (0.5s - 5.0s) |
+| **💾 Path** | Export walk as JSON |
+| **📄 Logs** | Export session logs |
+
+### Troubleshooting
+
+**Extension not showing?**
+- Make sure you're on `google.com/maps` in Street View mode
+- Check if extension is enabled in browser's extension manager
+
+**Not starting?**
+- Ensure you're in Street View (not map view)
+- Refresh the page and try again
+- Check browser console (F12) for errors
+
+**Panel not visible?**
+- Panel might be off-screen - resize browser window
+- Try STOP then START again
 
 ---
 
