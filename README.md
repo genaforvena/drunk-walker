@@ -1,4 +1,4 @@
-# 🤪 Drunk Walker v6.1.3 (PLEDGE Wall-Following Explorer)
+# 🤪 Drunk Walker v6.1.4 (Browser Extension + PLEDGE Wall-Following Explorer)
 
 https://github.com/user-attachments/assets/8dc63065-8eb7-427f-b4c4-729473e61dff
 
@@ -7,7 +7,7 @@ https://github.com/user-attachments/assets/8dc63065-8eb7-427f-b4c4-729473e61dff
 ![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)
 ![License](https://img.shields.io/github/license/genaforvena/drunk-walker)
 
-**[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)**
+**[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)** • **[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)**
 
 > "The bot doesn't have a map. It learns the labyrinth by walking it—one drift at a time."
 
@@ -27,7 +27,12 @@ Drunk Walker is a sandbox experiment in **Blind Graph Traversal**. It's a bot th
 
 **Core guarantee:** Each node visited **at most twice**.
 
-### Latest Improvements (v6.1.3)
+### Latest Improvements (v6.1.4)
+
+**🎉 Browser Extension Release:**
+- Chrome and Firefox extension with popup controls
+- Auto-injection into Street View
+- No more copy-pasting bookmarklet!
 
 **Camera Alignment Fix:**
 - **Update committed direction on movement** - after turning and moving, always align to actual movement bearing
@@ -190,9 +195,12 @@ It's a nomadic machine that produces the map by walking it.
 
 **📥 Download Pre-built Extension:**
 
-Go to [GitHub Releases](https://github.com/genaforvena/drunk-walker/releases) and download:
-- `drunk-walker-chrome.zip` - For Chrome, Edge, Brave
-- `drunk-walker-firefox.zip` - For Firefox
+**Latest Release: v6.1.4**
+
+| Browser | Download | Size |
+|---------|----------|------|
+| **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-chrome.zip) | 32 KB |
+| **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-firefox.zip) | 32 KB |
 
 **Install Extension:**
 
