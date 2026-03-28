@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v6.1.0-SMART-PANIC - EXTENSION BUNDLE
-// Built: 2026-03-28T10:42:28.473Z
+// Drunk Walker v6.1.4 - EXTENSION BUNDLE
+// Built: 2026-03-28T10:45:31.709Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -18,7 +18,7 @@
   window.DRUNK_WALKER_EXTENSION_INJECTED = true;
 
   // === VERSION ===
-  const VERSION = '6.1.0-SMART-PANIC';
+  const VERSION = '6.1.4';
 
 
   // === WHEEL ===
