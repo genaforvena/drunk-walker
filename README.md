@@ -90,13 +90,13 @@ The bot uses wall-following to guarantee exploration with each location visited 
 
 ### Performance
 
-| Metric | Target | Real-World |
-|--------|--------|------------|
-| Progress Ratio (unique/steps) | > 0.70 | ~0.55-0.68 |
-| Steps per Location | < 2.0 | ~1.5-1.8 |
+| Metric | Target | Real-World (v6.1.4) |
+|--------|--------|---------------------|
+| Progress Ratio (unique/steps) | > 0.70 | **0.74** (1777/2385) |
+| Steps per Location | < 2.0 | **1.34** |
 | Max Revisits | ≤ 2 | ✅ Guaranteed |
 
-**Example:** 342 unique nodes in ~700 steps (50% efficiency, no infinite loops)
+**Latest walk:** 1,777 unique locations in 2,385 steps (74% efficiency, near-optimal PLEDGE performance)
 
 ---
 
