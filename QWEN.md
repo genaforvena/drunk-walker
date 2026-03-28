@@ -217,4 +217,4 @@ window.DRUNK_WALKER.engine.getConfig()   // Read current config
 
 - **GitHub:** https://github.com/genaforvena/drunk-walker
 - **Live Demo:** https://genaforvena.github.io/drunk-walker/
-- **License:** MIT
+- **License:** CC0 (Public Domain)

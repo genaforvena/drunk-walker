@@ -8,7 +8,7 @@
 
 [![Release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)](https://github.com/genaforvena/drunk-walker/releases/latest)
 [![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)](https://github.com/genaforvena/drunk-walker/actions)
-[![License](https://img.shields.io/github/license/genaforvena/drunk-walker)](LICENSE)
+[![License](https://img.shields.io/badge/license-CC0-blue)](LICENSE)
 
 **[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)**
 
@@ -174,7 +174,7 @@ npm test             # Run 150+ tests
 - ✅ Runs entirely in your browser
 - ✅ No data sent to external servers
 - ✅ No cookies or tracking
-- ✅ Open source (MIT license)
+- ✅ Public domain (CC0)
 
 **Not affiliated with Google or Google Maps.** This is a technical experiment for fun, not a scraping tool.
 
