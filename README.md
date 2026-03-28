@@ -188,37 +188,48 @@ It's a nomadic machine that produces the map by walking it.
 
 ### Option 1: Browser Extension (Recommended)
 
-**📦 Download Extension:**
-- [Chrome/Edge ZIP](https://github.com/genaforvena/drunk-walker/archive/refs/heads/main.zip) - Extract and load unpacked
-- [Firefox ZIP](https://github.com/genaforvena/drunk-walker/archive/refs/heads/main.zip) - Extract and load temporary add-on
+**📥 Download Pre-built Extension:**
 
-**Install Extension from Source:**
+Go to [GitHub Releases](https://github.com/genaforvena/drunk-walker/releases) and download:
+- `drunk-walker-chrome.zip` - For Chrome, Edge, Brave
+- `drunk-walker-firefox.zip` - For Firefox
 
-1. **Download and extract:**
-   ```bash
-   git clone https://github.com/genaforvena/drunk-walker.git
-   cd drunk-walker
-   npm install
-   npm run build
-   ```
+**Install Extension:**
 
-2. **Chrome/Edge:**
+1. **Chrome/Edge/Brave:**
+   - Download and extract `drunk-walker-chrome.zip`
    - Open `chrome://extensions/`
    - Enable **Developer mode** (toggle top right)
    - Click **Load unpacked**
-   - Select the `extension/` folder
+   - Select the extracted folder
+   - Extension icon appears in toolbar
 
-3. **Firefox:**
+2. **Firefox:**
+   - Download and extract `drunk-walker-firefox.zip`
    - Open `about:debugging#/runtime/this-firefox`
    - Click **Load Temporary Add-on**
-   - Select `extension/manifest.json`
+   - Select `manifest.json` from extracted folder
+   - Extension loads until Firefox restarts
 
-4. **Use it:**
+3. **Use it:**
    - Open [Google Maps Street View](https://www.google.com/maps)
+   - Enter Street View mode
    - Click the Drunk Walker extension icon
    - Click **START**
 
-### Option 2: Bookmarklet (Console)
+### Option 2: Build from Source
+
+```bash
+git clone https://github.com/genaforvena/drunk-walker.git
+cd drunk-walker
+npm install
+npm run build
+npm run extension:package
+```
+
+Find packaged extensions in `dist/` folder.
+
+### Option 3: Bookmarklet (Console)
 
 1. Go to [Google Maps Street View](https://www.google.com/maps)
 2. Enter Street View mode
