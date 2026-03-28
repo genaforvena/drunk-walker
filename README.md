@@ -1,7 +1,6 @@
 # 🤪 Drunk Walker v6.1.3 (PLEDGE Wall-Following Explorer)
 
-
-https://github.com/user-attachments/assets/c6b57a74-5d14-4e09-ac78-185ab758c848
+https://github.com/user-attachments/assets/8dc63065-8eb7-427f-b4c4-729473e61dff
 
 
 ![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
