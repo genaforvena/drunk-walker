@@ -1,172 +1,106 @@
-# 🤪 Drunk Walker v6.1.4 (Browser Extension + PLEDGE Wall-Following Explorer)
+# 🤪 Drunk Walker
 
-https://github.com/user-attachments/assets/8dc63065-8eb7-427f-b4c4-729473e61dff
-
-
-![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)
-![GitHub release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)
-![License](https://img.shields.io/github/license/genaforvena/drunk-walker)
-
-**[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)** • **[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)**
-
-> ### 🚶 A bot that walks forever through Google Street View
+> ### A bot that walks forever through Google Street View
 > 
 > It doesn't know where it's going. It just knows it has to keep moving.
 > Never backtracking. Never arriving. Always forward into the unknown,
 > one street at a time, until the world runs out.
-> 
-> *"The bot doesn't have a map. It learns the labyrinth by walking it—one drift at a time."*
 
-## What is this?
+[![Release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)](https://github.com/genaforvena/drunk-walker/releases/latest)
+[![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)](https://github.com/genaforvena/drunk-walker/actions)
+[![License](https://img.shields.io/github/license/genaforvena/drunk-walker)](LICENSE)
 
-Drunk Walker is a sandbox experiment in **Blind Graph Traversal**. It's a bot that lives inside Google Street View, pressing "Up" and "Left" according to simple rules designed to explore every corner of the digital world.
-
-**Key insight:** The bot is blind—it doesn't know where panoramas exist until it tries to walk there. Every movement is physical probing of the graph structure.
+**[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)** • **[🎨 Visual Simulation](https://claude.ai/public/artifacts/7e23ea9e-5108-4fd6-abe0-b6c0c4aa80e7)**
 
 ---
 
-## 🧭 How It Walks: PLEDGE Algorithm
+## What Is This?
 
-### The PLEDGE Approach
+Drunk Walker is a **blind graph traversal** experiment living inside Google Street View. It presses keyboard arrows according to the **PLEDGE algorithm** (Parametric Labyrinth Exploration with Drift-Guided Escape), exploring the digital world without a map.
 
-**PLEDGE** (Parametric Labyrinth Exploration with Drift-Guided Escape) is a wall-following algorithm adapted for Street View's unique geometry.
+**The bot is blind** — it doesn't know where panoramas exist until it tries to walk there. Every movement is physical probing of the graph structure. It produces the map by walking it.
 
-**Core guarantee:** Each node visited **at most twice**.
+![Drunk Walker in action](https://github.com/user-attachments/assets/8dc63065-8eb7-427f-b4c4-729473e61dff)
 
-### Latest Improvements (v6.1.4)
+---
 
-**🎉 Browser Extension Release:**
-- Chrome and Firefox extension with popup controls
-- Auto-injection into Street View
-- No more copy-pasting bookmarklet!
+## Quick Start
 
-**Camera Alignment Fix:**
-- **Update committed direction on movement** - after turning and moving, always align to actual movement bearing
-- Prevents massive realignment turns (e.g., 324° wasted turns)
-- Fixed hysteresis that was preventing proper direction updates
+### Option 1: Browser Extension (Recommended)
 
-**Wall-Follow Loop Detection:**
-- **Track revisits during wall-follow** - breaks out after 3+ loop detections
-- Prevents infinite cycles in highly connected territories
-- Reduces max revisits from 8x to 3-4x per location
+| Browser | Download |
+|---------|----------|
+| **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-chrome.zip) (32 KB) |
+| **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-firefox.zip) (32 KB) |
 
-**Yaw Optimization:**
-- **Removed 5-move scan timer** - eliminated wasteful micro-turns on straight roads
-- **Committed direction hysteresis** - prevents oscillation (updates on movement, not just >45° diff)
-- **±20° yaw tolerance** (was ±5°) - accepts natural drift
-- **40° alignment threshold** (was 60°) - tracks gradual curves proactively
+**Install (Chrome/Edge):**
+1. Download and extract the ZIP
+2. Go to `chrome://extensions/`
+3. Enable **Developer mode** (top-right toggle)
+4. Click **"Load unpacked"** → select extracted folder
+5. Open [Google Maps](https://www.google.com/maps) → Street View → click extension icon 🤪
 
-**Expected Impact:**
-- Turns per 100 steps: ~40-50 → ~18-35
-- Micro-adjustments per 100: ~8-12 → ~0-4
-- Visited/Steps ratio: ~0.50 → ~0.55-0.68
+**Install (Firefox):**
+1. Download and extract the ZIP
+2. Go to `about:debugging#/runtime/this-firefox`
+3. Click **"Load Temporary Add-on"** → select `manifest.json`
+4. Extension loads until Firefox restarts
 
-**See [docs/WALK_ANALYSIS.md](docs/WALK_ANALYSIS.md) for detailed metrics from real walks.**
+### Option 2: Bookmarklet (Console)
 
-### State Machine
+1. Visit [genaforvena.github.io/drunk-walker/](https://genaforvena.github.io/drunk-walker/)
+2. Click **"COPY BOOKMARKLET"**
+3. Open Google Maps Street View
+4. Press `F12` → Console tab → paste and press Enter
+5. Control panel appears → click **START**
+
+---
+
+## How It Walks
+
+### PLEDGE Algorithm
+
+The bot uses wall-following to guarantee exploration with each location visited **at most twice**:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  PLEDGE STATE MACHINE                                   │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  FORWARD MODE:                                          │
-│  • Face: prev→cur bearing                               │
-│  • Move: Forward into new territory                     │
-│  • Check: Cul-de-sac verification at 10+ nodes          │
-│                                                         │
-│  ↓ (Hit dead end - all yaws tried)                      │
-│                                                         │
-│  TURN LEFT:                                             │
-│  • Turn: 120° LEFT from forward bearing                 │
-│  • Face: Left wall, slightly back                       │
-│                                                         │
+│  FORWARD MODE                                           │
+│  • Face direction of travel (prev→cur bearing)          │
+│  • Move straight into new territory                     │
+│  ↓ (All 6 yaws tried - dead end)                        │
+│  TURN LEFT 120°                                         │
 │  ↓                                                      │
-│                                                         │
-│  WALL-FOLLOW MODE:                                      │
-│  • Scan: Left exits (90-180° from forward)              │
-│  • Found exit: Take it, resume FORWARD mode             │
-│                                                         │
-│  ↓ (Truly stuck - no exits found)                       │
-│                                                         │
-│  BREAK WALL:                                            │
-│  • Retry: Random successful yaw                         │
-│  • Escape: The dead end                                 │
-│                                                         │
+│  WALL-FOLLOW MODE                                       │
+│  • Scan for LEFT exits (90-180° from forward)           │
+│  • Found exit → take it, resume FORWARD                 │
+│  ↓ (Truly stuck)                                        │
+│  BREAK WALL                                             │
+│  • Retry successful yaw from graph memory               │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Forward Bearing
+### Key Mechanics
 
-At each new node, calculate direction of travel from previous node:
+| Concept | Description |
+|---------|-------------|
+| **6 Yaw Buckets** | Street View divides 360° into: 0°, 60°, 120°, 180°, 240°, 300° |
+| **Forward Bearing** | Always face direction of travel (prev→cur) |
+| **Cul-de-Sac Check** | After 10+ straight nodes, verify not a false dead-end |
+| **Graph Memory** | Records every successful movement for escape routes |
 
-```javascript
-const dLat = currentLat - prevLat;
-const dLng = currentLng - prevLng;
-const forwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
-```
+### Performance
 
-**Why face forward?**
-- Google rotates camera at curve points
-- Facing forward ensures natural path following
-- Prevents misaligned exploration
+| Metric | Target | Real-World |
+|--------|--------|------------|
+| Progress Ratio (unique/steps) | > 0.70 | ~0.55-0.68 |
+| Steps per Location | < 2.0 | ~1.5-1.8 |
+| Max Revisits | ≤ 2 | ✅ Guaranteed |
 
-### Cul-de-Sac Verification
-
-After 10+ straight new nodes, verify it's not a false dead-end:
-
-```
-10+ straight new nodes detected
-    ↓
-Turn to side exit (60-150° from forward)
-    ↓
-Check for hidden branch
-    ↓
-Resume forward if clear
-```
-
-**Why verify at 10 nodes?**
-- Prevents 16+ step false cul-de-sacs
-- Catches hidden branches early
-- Minimal overhead (1 turn per 10 nodes)
-
-### Wall-Follow Backtracking
-
-When hitting dead end (all 6 yaws tried):
-
-1. **Turn LEFT 120°** from forward bearing
-2. **Face left wall**, slightly backward
-3. **Scan each node** for left exits (90-180° from forward)
-4. **Found exit?** Take it, resume FORWARD mode
-5. **No exit?** Continue wall-follow backward
-
-### Break-Wall Escape
-
-When truly stuck (wall-follow found no exits):
-
-1. **Retry random successful yaw** (graph may have changed)
-2. **Reset wall-follow state**
-3. **Escape the dead end**
-4. **Resume FORWARD exploration**
+**Example:** 342 unique nodes in ~700 steps (50% efficiency, no infinite loops)
 
 ---
 
-## 🗺️ The Six Yaw Buckets
-
-We divide 360° into 6 yaw buckets (0°, 60°, 120°, 180°, 240°, 300°):
-
-| Node Type | Tried Yaws | Action |
-|-----------|------------|--------|
-| **NEW** | 0-4 | Go straight, face forward bearing |
-| **JUNCTION** | 2-4 untried | Potential left exit in wall-follow |
-| **DEAD_END** | 6 (all tried) | Turn LEFT 120°, start wall-follow |
-| **FULLY_EXPLORED** | 6 (all tried) | Skip in wall-follow scan |
-
-**No true dead ends:** Every node has at least the reverse direction (we came from somewhere!).
-
----
-
-## 🧠 Why "Drunk"?
+## Why "Drunk"?
 
 The bot wanders without a master plan. Someone called it "Anti-Oedipus" (Deleuze reference about rhizomatic movement). They meant "Anti-Odysseus" (the hero who never gets home).
 
@@ -176,108 +110,42 @@ Turns out both work:
 
 It's a nomadic machine that produces the map by walking it.
 
-**See [docs/ANTI-OEDIPUS.md](docs/ANTI-OEDIPUS.md)** for the full (casual) philosophical framing.
+📖 **[Read the philosophical framing →](docs/ANTI-OEDIPUS.md)**
 
 ---
 
-## 📊 Performance Metrics
+## Documentation
 
-| Metric | Formula | Target | Meaning |
-|--------|---------|--------|---------|
-| **Progress Ratio** | `unique / totalSteps` | > 0.70 | Exploration efficiency |
-| **Steps/Location** | `totalSteps / unique` | < 2.0 | Inverse of progress |
-| **Node Visits** | `max visits per node` | ≤ 2 | PLEDGE guarantee |
+### Getting Started
+- **[HOW_IT_WALKS.md](docs/HOW_IT_WALKS.md)** — PLEDGE algorithm deep-dive
+- **[WALK_ANALYSIS.md](docs/WALK_ANALYSIS.md)** — Real walk metrics and optimization
 
-**Real-world performance:**
-- 342 unique nodes in ~700 steps (50% efficiency)
-- No infinite loops (guaranteed progress)
-- Handles yaw drift naturally
+### Technical
+- **[ALGORITHM.md](docs/ALGORITHM.md)** — API reference (engine, wheel, traversal)
+- **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Theory of blind graph traversal
+- **[src/README.md](src/README.md)** — Developer guide (build, test, deploy)
+
+### Advanced
+- **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)
+- **[SURGEON_MODE.md](docs/SURGEON_MODE.md)** — Efficiency-focused mode
+- **[TRANSITION_GRAPH_LEARNING.md](docs/TRANSITION_GRAPH_LEARNING.md)** — Learning connectivity
 
 ---
 
-## Quick Start
-
-### Option 1: Browser Extension (Recommended)
-
-**📥 Download Pre-built Extension:**
-
-**Latest Release: v6.1.4**
-
-| Browser | Download | Size |
-|---------|----------|------|
-| **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-chrome.zip) | 32 KB |
-| **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-firefox.zip) | 32 KB |
-
-#### Chrome / Edge / Brave Installation
-
-1. **Download** the ZIP file using the link above
-
-2. **Extract** to a folder (remember where you put it)
-
-3. **Open Extensions Page:**
-   - Type `chrome://extensions/` in address bar, OR
-   - Click ⋮ (menu) → Extensions → Manage Extensions
-
-4. **Enable Developer Mode:**
-   - Toggle the switch in the top-right corner
-
-5. **Load Extension:**
-   - Click **"Load unpacked"** button
-   - Select the folder you extracted
-   - Extension icon 🤪 appears in toolbar
-
-6. **Use It:**
-   - Open [Google Maps](https://www.google.com/maps)
-   - Enter Street View mode
-   - Click the Drunk Walker extension icon
-   - Click **START**
-
-#### Firefox Installation
-
-1. **Download** the ZIP file using the link above
-
-2. **Extract** to a folder
-
-3. **Open Debugging Page:**
-   - Type `about:debugging#/runtime/this-firefox` in address bar
-
-4. **Load Temporary Add-on:**
-   - Click **"Load Temporary Add-on..."**
-   - Navigate to extracted folder
-   - Select `manifest.json`
-   - Extension loads until Firefox restarts
-
-5. **Use It:**
-   - Open [Google Maps](https://www.google.com/maps)
-   - Enter Street View mode
-   - Click the Drunk Walker extension icon
-   - Click **START**
-
-> **Note:** Firefox temporary add-ons unload when browser closes. Reload from `about:debugging` after restart.
-
-### Option 2: Build from Source
+## Build from Source
 
 ```bash
 git clone https://github.com/genaforvena/drunk-walker.git
 cd drunk-walker
 npm install
-npm run build
-npm run extension:package
+npm run build        # Generates bookmarklet.js + extension bundle
+npm run extension:package  # Creates ZIP files for release
+npm test             # Run 150+ tests
 ```
 
-Find packaged extensions in `dist/` folder.
+---
 
-### Option 3: Bookmarklet (Console)
-
-1. Go to [Google Maps Street View](https://www.google.com/maps)
-2. Enter Street View mode
-3. Press **F12** (Console)
-4. Visit [genaforvena.github.io/drunk-walker/](https://genaforvena.github.io/drunk-walker/)
-5. Click **COPY LATEST**
-6. Paste into console, press Enter
-7. Use the **draggable control panel** (grab anywhere to move)
-
-### Controls
+## Controls
 
 | Control | Action |
 |---------|--------|
@@ -288,44 +156,46 @@ Find packaged extensions in `dist/` folder.
 | **💾 Path** | Export walk as JSON |
 | **📄 Logs** | Export session logs |
 
-### Troubleshooting
+---
 
-**Extension not showing?**
-- Make sure you're on `google.com/maps` in Street View mode
-- Check if extension is enabled in browser's extension manager
+## Troubleshooting
 
-**Not starting?**
-- Ensure you're in Street View (not map view)
-- Refresh the page and try again
-- Check browser console (F12) for errors
-
-**Panel not visible?**
-- Panel might be off-screen - resize browser window
-- Try STOP then START again
+| Issue | Solution |
+|-------|----------|
+| Extension not showing | Ensure you're on `google.com/maps` in Street View mode |
+| Not starting | Refresh page, check console (F12) for errors |
+| Panel not visible | Resize browser window, try STOP → START |
+| Firefox add-on missing | Reload from `about:debugging` after browser restart |
 
 ---
 
-## Documentation
+## Privacy & Legal
 
-### Core Concepts
-- **[HOW_IT_WALKS.md](docs/HOW_IT_WALKS.md)** — **Start here!** PLEDGE algorithm, wall-following, forward bearing
-- **[ALGORITHM.md](docs/ALGORITHM.md)** — Technical implementation (engine, wheel, traversal)
-- **[THE_TRAVERSAL_PROBLEM.md](docs/THE_TRAVERSAL_PROBLEM.md)** — Theory of blind graph traversal
-- **[WALK_ANALYSIS.md](docs/WALK_ANALYSIS.md)** — **New!** Real walk metrics and optimization impact analysis
-- **[ANTI-OEDIPUS.md](docs/ANTI-OEDIPUS.md)** — Why "Drunk"? (fun philosophical framing)
+- ✅ Runs entirely in your browser
+- ✅ No data sent to external servers
+- ✅ No cookies or tracking
+- ✅ Open source (MIT license)
 
-### Advanced Topics
-- **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)
-- **[SURGEON_MODE.md](docs/SURGEON_MODE.md)** — Efficiency-focused mode (1:1 steps/visited target)
-- **[TRANSITION_GRAPH_LEARNING.md](docs/TRANSITION_GRAPH_LEARNING.md)** — Learning connectivity from walks
-- **[src/README.md](src/README.md)** — Developer guide (build, test, deploy)
+**Not affiliated with Google or Google Maps.** This is a technical experiment for fun, not a scraping tool.
 
 ---
 
-## ⚠️ Note
+## Version History
 
-This is a technical experiment for fun. It is not a tool for mass scraping. Use it to explore the weird edges of digital maps.
+| Version | Changes |
+|---------|---------|
+| **v6.1.4** | Browser extension release, camera alignment fix, loop detection |
+| **v6.1.0** | PLEDGE wall-following implementation |
+| **v5.1.0** | Smart nodes, enhanced transition graph |
 
-**Not affiliated with Google or Google Maps.**
+[View all releases →](https://github.com/genaforvena/drunk-walker/releases)
+
+---
+
+<div align="center">
+
+**[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)** • **[🎨 Visual Simulation](https://claude.ai/public/artifacts/7e23ea9e-5108-4fd6-abe0-b6c0c4aa80e7)**
 
 *Created with confused ❤️. The bot explores by following the left wall.*
+
+</div>
