@@ -30,7 +30,10 @@
   "scripts": {
     "build": "node build.js",
     "test": "vitest run --exclude=src/integration.test.js",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "extension:icons": "node scripts/generate-icons.js",
+    "extension:package": "node scripts/package-extension.js",
+    "extension": "npm run build && npm run extension:package"
   },
   "devDependencies": {
     "vitest": "^1.3.1",

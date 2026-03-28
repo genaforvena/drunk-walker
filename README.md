@@ -186,6 +186,40 @@ It's a nomadic machine that produces the map by walking it.
 
 ## Quick Start
 
+### Option 1: Browser Extension (Recommended)
+
+**📦 Download Extension:**
+- [Chrome/Edge ZIP](https://github.com/genaforvena/drunk-walker/archive/refs/heads/main.zip) - Extract and load unpacked
+- [Firefox ZIP](https://github.com/genaforvena/drunk-walker/archive/refs/heads/main.zip) - Extract and load temporary add-on
+
+**Install Extension from Source:**
+
+1. **Download and extract:**
+   ```bash
+   git clone https://github.com/genaforvena/drunk-walker.git
+   cd drunk-walker
+   npm install
+   npm run build
+   ```
+
+2. **Chrome/Edge:**
+   - Open `chrome://extensions/`
+   - Enable **Developer mode** (toggle top right)
+   - Click **Load unpacked**
+   - Select the `extension/` folder
+
+3. **Firefox:**
+   - Open `about:debugging#/runtime/this-firefox`
+   - Click **Load Temporary Add-on**
+   - Select `extension/manifest.json`
+
+4. **Use it:**
+   - Open [Google Maps Street View](https://www.google.com/maps)
+   - Click the Drunk Walker extension icon
+   - Click **START**
+
+### Option 2: Bookmarklet (Console)
+
 1. Go to [Google Maps Street View](https://www.google.com/maps)
 2. Enter Street View mode
 3. Press **F12** (Console)
