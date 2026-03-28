@@ -9,7 +9,13 @@ https://github.com/user-attachments/assets/8dc63065-8eb7-427f-b4c4-729473e61dff
 
 **[👉 Launch Instantly](https://genaforvena.github.io/drunk-walker/)** • **[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)**
 
-> "The bot doesn't have a map. It learns the labyrinth by walking it—one drift at a time."
+> ### 🚶 A bot that walks forever through Google Street View
+> 
+> It doesn't know where it's going. It just knows it has to keep moving.
+> Never backtracking. Never arriving. Always forward into the unknown,
+> one street at a time, until the world runs out.
+> 
+> *"The bot doesn't have a map. It learns the labyrinth by walking it—one drift at a time."*
 
 ## What is this?
 
