@@ -10,7 +10,7 @@
 [![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)](https://github.com/genaforvena/drunk-walker/actions)
 [![License](https://img.shields.io/github/license/genaforvena/drunk-walker)](LICENSE)
 
-**[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)** • **[🎨 Visual Simulation](https://claude.ai/public/artifacts/7e23ea9e-5108-4fd6-abe0-b6c0c4aa80e7)**
+**[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)**
 
 ---
 
@@ -194,7 +194,7 @@ npm test             # Run 150+ tests
 
 <div align="center">
 
-**[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)** • **[🎨 Visual Simulation](https://claude.ai/public/artifacts/7e23ea9e-5108-4fd6-abe0-b6c0c4aa80e7)**
+**[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)**
 
 *Created with confused ❤️. The bot explores by following the left wall.*
 
