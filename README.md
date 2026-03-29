@@ -127,11 +127,14 @@ It's a nomadic machine that produces the map by walking it.
 - **[src/README.md](src/README.md)** — Developer guide (build, test, deploy)
 
 ### Advanced
-- **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)
 - **[WALK_DRIVEN_DEVELOPMENT.md](docs/WALK_DRIVEN_DEVELOPMENT.md)** — Walk-driven development workflow
 
 ### Philosophy
 - **[ANTI-OEDIPUS.md](docs/ANTI-OEDIPUS.md)** — Philosophical framing (Deleuze, nomadic machines)
+
+### Historical (superseded by PLEDGE)
+- **v5.x:** Smart nodes, enhanced transition graph
+- **v4.x:** Surgeon mode, Hunter mode, Explorer mode
 
 ---
 

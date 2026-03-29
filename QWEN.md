@@ -161,10 +161,9 @@ Look for improvements in:
 |------|-------------|
 | `docs/HOW_IT_WALKS.md` | **Start here!** PLEDGE algorithm walkthrough |
 | `docs/ALGORITHM.md` | Full API reference |
-| `docs/WALK_ANALYSIS.md` | Real walk metrics and optimization impact |
+| `docs/WALK_REPORTS.md` | Walk analysis and fix documentation |
+| `docs/WALK_DRIVEN_DEVELOPMENT.md` | Walk-driven development workflow |
 | `docs/THE_TRAVERSAL_PROBLEM.md` | Theory of blind graph traversal |
-| `docs/SMART_NODES.md` | Node classification (NEW, JUNCTION, DEAD_END) |
-| `docs/SURGEON_MODE.md` | Efficiency-focused mode |
 | `docs/ANTI-OEDIPUS.md` | Philosophical framing (fun read) |
 | `src/README.md` | Developer guide |
 

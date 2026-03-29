@@ -491,7 +491,6 @@ if (isExhausted && successfulYaws.size === 0) {
 ## Related Documentation
 
 - [`ALGORITHM.md`](ALGORITHM.md) - Full API reference
-- [`SMART_NODES.md`](SMART_NODES.md) - Node classification
 - [`THE_TRAVERSAL_PROBLEM.md`](THE_TRAVERSAL_PROBLEM.md) - Theory of blind graph traversal
 - [`WALK_ANALYSIS.md`](WALK_ANALYSIS.md) - Real walk metrics and optimization impact
 

@@ -533,7 +533,7 @@ it('should verify at 10+ straight new nodes', () => {
 
 - **Core:** `src/core/engine.js`, `src/core/traversal.js`
 - **Tests:** `src/core/engine.test.js`, `src/core/log-replay.test.js`
-- **Docs:** `docs/HOW_IT_WALKS.md`, `docs/SMART_NODES.md`
+- **Docs:** `docs/HOW_IT_WALKS.md`
 
 ---
 

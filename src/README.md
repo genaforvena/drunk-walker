@@ -362,14 +362,14 @@ window.DRUNK_WALKER.engine.getConfig()        // Read current config
 
 | Version | Key Changes |
 |---------|-------------|
-| **v6.1.5** | Mandatory release process, extension manifest fix, gh.io links fixed |
+| **v6.1.5** | One-click release script, dual browser manifests, gh.io extension folders |
 | **v6.1.4** | Territory Oracle, walk-driven development, wall-follow loop detection |
 | **v6.1.2** | Camera alignment 40°, perpendicular yaw scan, yaw hysteresis, ±20° tolerance |
 | **v6.1.0** | PLEDGE wall-following (forward → turn LEFT 105° → wall-follow → break wall) |
-| **v5.1.0** | Smart nodes, enhanced transition graph |
-| **v4.2.0** | Surgeon mode, veto logic, breadcrumb buffer (100 steps) |
-| **v4.1.0** | Hunter mode, 180° snap-back |
-| **v4.0.0** | Decoupled architecture (wheel/traversal) |
+
+**Historical versions** (superseded by PLEDGE):
+- **v5.x:** Smart nodes, enhanced transition graph
+- **v4.x:** Surgeon mode, Hunter mode, Explorer mode
 
 ---
 
