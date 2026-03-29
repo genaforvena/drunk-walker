@@ -189,7 +189,7 @@ Handles the "Physicality" of the bot.
 - Ensures all movement is "Left-Turn only."
 
 ### 3. The Traversal (`src/core/traversal.js`)
-**PLEDGE Wall-Following Algorithm** (v6.1.4):
+**PLEDGE Wall-Following Algorithm** (v6.1.5):
 
 | State | Trigger | Action |
 |-------|---------|--------|
@@ -198,10 +198,10 @@ Handles the "Physicality" of the bot.
 | **WALL-FOLLOW** | Backtracking | Scan for left exits (90-180° from forward) |
 | **BREAK_WALL** | Truly stuck | Retry random successful yaw |
 
-**v6.1.4 Features:**
+**v6.1.5 Features:**
 - Territory Oracle for deterministic testing
-- Wall-follow loop detection
 - Walk-driven development workflow
+- Mandatory release checklist
 
 ---
 
@@ -362,8 +362,8 @@ window.DRUNK_WALKER.engine.getConfig()        // Read current config
 
 | Version | Key Changes |
 |---------|-------------|
+| **v6.1.5** | Mandatory release process, extension manifest fix, gh.io links fixed |
 | **v6.1.4** | Territory Oracle, walk-driven development, wall-follow loop detection |
-| **v6.1.3** | Camera alignment fix, wall-follow loop detection |
 | **v6.1.2** | Camera alignment 40°, perpendicular yaw scan, yaw hysteresis, ±20° tolerance |
 | **v6.1.0** | PLEDGE wall-following (forward → turn LEFT 105° → wall-follow → break wall) |
 | **v5.1.0** | Smart nodes, enhanced transition graph |

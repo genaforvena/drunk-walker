@@ -1,4 +1,4 @@
-# Walking Algorithm Guide (v6.1.4 PLEDGE)
+# Walking Algorithm Guide (v6.1.5 PLEDGE)
 
 **Comprehensive documentation of the PLEDGE Wall-Following Traversal Engine**
 
@@ -6,9 +6,9 @@
 
 ## Architecture Overview
 
-The v6.1.4 PLEDGE algorithm uses **systematic wall-following** for guaranteed maze exploration with each node visited **at most twice**.
+The v6.1.5 PLEDGE algorithm uses **systematic wall-following** for guaranteed maze exploration with each node visited **at most twice**.
 
-### v6.1.4 Changes
+### v6.1.5 Changes
 
 **Territory Oracle System:**
 - Mock Street View for deterministic algorithm testing

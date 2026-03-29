@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v6.1.4 - BUNDLED BOOKMARKLET
-// Built: 2026-03-29T20:20:01.070Z
+// Drunk Walker v6.1.5 - BUNDLED BOOKMARKLET
+// Built: 2026-03-29T20:24:44.773Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -11,7 +11,7 @@ void function initDrunkWalker(){
   // Main entry point handles restart logic now
   
   // === VERSION ===
-  const VERSION = '6.1.4';
+  const VERSION = '6.1.5';
 
 
   // === WHEEL ===

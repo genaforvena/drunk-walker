@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Drunk Walker - Street View Explorer",
-  "version": "6.1.4",
+  "version": "6.1.5",
   "description": "Automated Google Street View explorer using the PLEDGE algorithm. Watch it discover new paths by following walls and avoiding loops.",
   "author": "Drunk Walker Contributors",
   "homepage_url": "https://genaforvena.github.io/drunk-walker/",
