@@ -41,10 +41,15 @@ Drunk Walker is a **blind graph traversal** experiment living inside Google Stre
 5. Open [Google Maps](https://www.google.com/maps) → Street View → click extension icon 🤪
 
 **Install (Firefox):**
-1. Download and extract the ZIP
+1. Download the **Firefox ZIP** (orange button) - NOT the Chrome ZIP
 2. Go to `about:debugging#/runtime/this-firefox`
-3. Click **"Load Temporary Add-on"** → select `manifest.json` from the extracted folder
-4. Extension loads until Firefox restarts
+3. Click **"Load Temporary Add-on"**
+4. Navigate to the **extracted folder** and select `manifest.json`
+5. Extension loads until Firefox restarts
+
+**⚠️ Firefox Troubleshooting:**
+- If you get "Extension is invalid" error: Delete the extracted folder, **re-download the Firefox ZIP**, extract again, and try loading `manifest.json` again
+- Make sure you're loading from the **Firefox ZIP folder**, not Chrome ZIP folder
 
 ### Option 2: Bookmarklet (Console)
 
@@ -128,8 +133,10 @@ It's a nomadic machine that produces the map by walking it.
 
 ### Advanced
 - **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)
-- **[SURGEON_MODE.md](docs/SURGEON_MODE.md)** — Efficiency-focused mode
 - **[WALK_DRIVEN_DEVELOPMENT.md](docs/WALK_DRIVEN_DEVELOPMENT.md)** — Walk-driven development workflow
+
+### Philosophy
+- **[ANTI-OEDIPUS.md](docs/ANTI-OEDIPUS.md)** — Philosophical framing (Deleuze, nomadic machines)
 
 ---
 
@@ -170,7 +177,8 @@ npm test             # Run 162+ tests
 | Extension not showing | Ensure you're on `google.com/maps` in Street View mode |
 | Not starting | Refresh page, check console (F12) for errors |
 | Panel not visible | Resize browser window, try STOP → START |
-| Firefox add-on error | Make sure you select `manifest.json` from the Firefox ZIP folder |
+| Firefox: "Extension is invalid" | **Make sure you downloaded the Firefox ZIP**, not Chrome. Extract and load `manifest.json` from `drunk-walker-firefox/` folder |
+| Firefox: Still getting error | Clear Firefox cache, restart browser, try loading from `about:debugging` again |
 
 ---
 

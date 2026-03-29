@@ -100,16 +100,20 @@
                 
                 <h3 style="margin-top: 20px;">🔧 Installation: Firefox</h3>
                 <ol>
-                    <li><strong>Download</strong> the ZIP file using the button above</li>
+                    <li><strong>Download</strong> the <strong>Firefox ZIP</strong> (orange button) using the button above</li>
                     <li><strong>Extract</strong> to a folder</li>
                     <li><strong>Open Debugging:</strong> Type <code>about:debugging#/runtime/this-firefox</code></li>
-                    <li><strong>Load Temporary Add-on:</strong> Click button → select <code>manifest.json</code> from your folder</li>
+                    <li><strong>Load Temporary Add-on:</strong> Click button → select <code>manifest.json</code> from your extracted folder</li>
                     <li><strong>Done!</strong> Extension loads until Firefox restarts</li>
                 </ol>
-                
+
                 <div class="note">
-                    <strong>⚠️ Firefox Note:</strong> Temporary add-ons unload when browser closes. 
-                    Reload from <code>about:debugging</code> after restart, or use Chrome for permanent installation.
+                    <strong>⚠️ Firefox Note:</strong> 
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Make sure you downloaded the <strong>Firefox ZIP</strong> (orange button), NOT the Chrome ZIP</li>
+                        <li>Temporary add-ons unload when browser closes. Reload from <code>about:debugging</code> after restart</li>
+                        <li>If you get "Extension is invalid" error, delete the extracted folder, re-download the ZIP, and try again</li>
+                    </ul>
                 </div>
             </div>
 
