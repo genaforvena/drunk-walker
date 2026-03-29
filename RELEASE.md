@@ -13,12 +13,24 @@
 ```bash
 # Check current version
 grep -r "version" package.json src/version.js extension/manifest.json
+
+# Check for OLD version strings in source files (CRITICAL!)
+grep -r "6\.1\.[0-4]\|6\.0\.0" src/ --include="*.js" | grep -v test.js
+# Should return EMPTY - all should be updated to current version
 ```
 
 **Files to update:**
 - [ ] `package.json` - `"version": "X.Y.Z"`
 - [ ] `src/version.js` - `export const VERSION = 'X.Y.Z';`
+- [ ] `src/core/engine.js` - Update comment `vX.Y.Z`
+- [ ] `src/core/traversal.js` - Update comment `vX.Y.Z`
+- [ ] `src/ui/exploration-map.js` - Update comment `vX.Y.Z`
 - [ ] `extension/manifest.json` - Updated automatically by build
+- [ ] `index.html` - Update "Latest Release: vX.Y.Z"
+- [ ] `index.html` - Update download links to vX.Y.Z
+- [ ] `docs/ALGORITHM.md` - Update version in title
+- [ ] `src/README.md` - Update version history table
+- [ ] All test files - Update version expectations
 
 ### 2. Run All Tests
 
@@ -38,6 +50,17 @@ npm run build
 - [ ] `bookmarklet.js` generated (~85 KB)
 - [ ] `extension/drunk-walker.js` generated (~86 KB)
 - [ ] `extension/manifest.json` version updated
+
+**CRITICAL: Check for OLD version strings in built files!**
+
+```bash
+# Check bookmarklet.js for old versions (MUST be empty!)
+grep -E "6\.1\.[0-4]|6\.0\.0-CYBERPUNK" bookmarklet.js
+# If this returns anything, DO NOT RELEASE - fix version strings first!
+
+# Check extension/drunk-walker.js for old versions
+grep -E "6\.1\.[0-4]|6\.0\.0-CYBERPUNK" extension/drunk-walker.js
+```
 
 ### 4. Test Extension Loads
 

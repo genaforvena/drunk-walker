@@ -1,5 +1,5 @@
 /**
- * Traversal Algorithm v6.1.0 - PURE PLEDGE Wall-Following
+ * Traversal Algorithm v6.1.5 - PURE PLEDGE Wall-Following
  *
  * SIMPLE PLEDGE: FORWARD → TURN LEFT 120° → WALL-FOLLOW → BREAK WALL
  * NO breadcrumb navigation - pure wall-following only!
@@ -148,7 +148,7 @@ class EnhancedTransitionGraph {
 }
 
 /**
- * PURE PLEDGE ALGORITHM v6.1.0
+ * PURE PLEDGE ALGORITHM v6.1.5
  */
 export function createUnifiedAlgorithm(cfg) {
   const panicThreshold = cfg.panicThreshold || 3;
