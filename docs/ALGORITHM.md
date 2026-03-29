@@ -1,4 +1,4 @@
-# Walking Algorithm Guide (v6.1.3 PLEDGE)
+# Walking Algorithm Guide (v6.1.4 PLEDGE)
 
 **Comprehensive documentation of the PLEDGE Wall-Following Traversal Engine**
 
@@ -6,24 +6,19 @@
 
 ## Architecture Overview
 
-The v6.1.3 PLEDGE algorithm uses **systematic wall-following** for guaranteed maze exploration with each node visited **at most twice**.
+The v6.1.4 PLEDGE algorithm uses **systematic wall-following** for guaranteed maze exploration with each node visited **at most twice**.
 
-### v6.1.3 Changes
+### v6.1.4 Changes
 
-**Camera Alignment Fix:**
-- Update `committedDirection` on successful movement (not just when diff >45°)
-- Prevents massive realignment turns (e.g., 324° wasted turns)
-- Fixed hysteresis that was preventing proper direction updates after turns
+**Territory Oracle System:**
+- Mock Street View for deterministic algorithm testing
+- All changes verified against actual walk data
+- Walk-driven development workflow
 
 **Wall-Follow Loop Detection:**
-- Track `wallFollowRevisitCount` during backtracking
-- Break out after 3+ revisits to nodes with visitCount >= 3
-- Prevents infinite cycles in highly connected territories
-
-**Removed 5-Move Scan Timer:**
-- Eliminated periodic perpendicular scans on straight roads
-- Wall-follow already catches missed branches
-- Reduced micro-adjustments by 50%+
+- Track nodes visited during wall-follow phase
+- Break out when loop detected (visiting same node twice)
+- Prevents infinite loops in cyclic territories
 
 ### Core Principles
 
