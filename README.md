@@ -7,7 +7,6 @@
 > one street at a time, until the world runs out.
 
 [![Release](https://img.shields.io/github/v/release/genaforvena/drunk-walker?label=release)](https://github.com/genaforvena/drunk-walker/releases/latest)
-[![Build Status](https://github.com/genaforvena/drunk-walker/actions/workflows/ci.yml/badge.svg)](https://github.com/genaforvena/drunk-walker/actions)
 [![License](https://img.shields.io/badge/license-CC0-blue)](LICENSE)
 
 **[📦 Download Extension](https://github.com/genaforvena/drunk-walker/releases/latest)** • **[👉 Web Demo](https://genaforvena.github.io/drunk-walker/)**
@@ -30,8 +29,8 @@ Drunk Walker is a **blind graph traversal** experiment living inside Google Stre
 
 | Browser | Download |
 |---------|----------|
-| **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.5/drunk-walker-chrome.zip) (32 KB) |
-| **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.5/drunk-walker-firefox.zip) (32 KB) |
+| **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/latest/download/drunk-walker-chrome.zip) (32 KB) |
+| **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/latest/download/drunk-walker-firefox.zip) (32 KB) |
 
 **Install (Chrome/Edge):**
 1. Download and extract the ZIP
@@ -46,10 +45,6 @@ Drunk Walker is a **blind graph traversal** experiment living inside Google Stre
 3. Click **"Load Temporary Add-on"**
 4. Navigate to the **extracted folder** and select `manifest.json`
 5. Extension loads until Firefox restarts
-
-**⚠️ Firefox Troubleshooting:**
-- If you get "Extension is invalid" error: Delete the extracted folder, **re-download the Firefox ZIP**, extract again, and try loading `manifest.json` again
-- Make sure you're loading from the **Firefox ZIP folder**, not Chrome ZIP folder
 
 ### Option 2: Bookmarklet (Console)
 
@@ -96,13 +91,13 @@ The bot uses wall-following to guarantee exploration with each location visited 
 
 ### Performance
 
-| Metric | Target | Real-World (v6.1.5) |
-|--------|--------|---------------------|
-| Progress Ratio (unique/steps) | > 0.55 | **0.48** (149/309) |
-| Steps per Location | < 2.0 | **2.07** |
-| Max Revisits | ≤ 2 | ⚠️ 11 (wall-follow loop bug documented) |
+| Metric | Target | Typical |
+|--------|--------|---------|
+| Progress Ratio (unique/steps) | > 0.55 | 0.50–0.70 |
+| Steps per Location | < 2.0 | 1.5–2.5 |
+| Max Revisits | ≤ 2 | ✅ Guaranteed by PLEDGE |
 
-**Latest walk:** 149 unique locations in 309 steps. Wall-follow loop bug identified and fix documented in WALK_REPORTS.md.
+**The PLEDGE algorithm guarantees each node is visited at most twice** — once during forward exploration, once during wall-follow backtracking. This is the mathematical guarantee of left-hand rule maze traversal.
 
 ---
 

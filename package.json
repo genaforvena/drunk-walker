@@ -33,7 +33,8 @@
     "test:watch": "vitest",
     "extension:icons": "node scripts/generate-icons.js",
     "extension:package": "node scripts/package-extension.js",
-    "extension": "npm run build && npm run extension:package"
+    "extension": "npm run build && npm run extension:package",
+    "release": "node scripts/release.js"
   },
   "devDependencies": {
     "vitest": "^1.3.1",
