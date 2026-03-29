@@ -1,7 +1,7 @@
 # 🤪 Drunk Walker
 
 > ### A bot that walks forever through Google Street View
-> 
+>
 > It doesn't know where it's going. It just knows it has to keep moving.
 > Never backtracking. Never arriving. Always forward into the unknown,
 > one street at a time, until the world runs out.
@@ -30,8 +30,8 @@ Drunk Walker is a **blind graph traversal** experiment living inside Google Stre
 
 | Browser | Download |
 |---------|----------|
-| **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-chrome.zip) (32 KB) |
-| **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.4/drunk-walker-firefox.zip) (32 KB) |
+| **Chrome/Edge/Brave** | [drunk-walker-chrome.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.5/drunk-walker-chrome.zip) (32 KB) |
+| **Firefox** | [drunk-walker-firefox.zip](https://github.com/genaforvena/drunk-walker/releases/download/v6.1.5/drunk-walker-firefox.zip) (32 KB) |
 
 **Install (Chrome/Edge):**
 1. Download and extract the ZIP
@@ -43,7 +43,7 @@ Drunk Walker is a **blind graph traversal** experiment living inside Google Stre
 **Install (Firefox):**
 1. Download and extract the ZIP
 2. Go to `about:debugging#/runtime/this-firefox`
-3. Click **"Load Temporary Add-on"** → select `manifest.json`
+3. Click **"Load Temporary Add-on"** → select `manifest.json` from the extracted folder
 4. Extension loads until Firefox restarts
 
 ### Option 2: Bookmarklet (Console)
@@ -68,12 +68,12 @@ The bot uses wall-following to guarantee exploration with each location visited 
 │  • Face direction of travel (prev→cur bearing)          │
 │  • Move straight into new territory                     │
 │  ↓ (All 6 yaws tried - dead end)                        │
-│  TURN LEFT 120°                                         │
+│  TURN LEFT 105°                                         │
 │  ↓                                                      │
 │  WALL-FOLLOW MODE                                       │
 │  • Scan for LEFT exits (90-180° from forward)           │
 │  • Found exit → take it, resume FORWARD                 │
-│  ↓ (Truly stuck)                                        │
+│  ↓ (Truly stuck or loop detected)                       │
 │  BREAK WALL                                             │
 │  • Retry successful yaw from graph memory               │
 └─────────────────────────────────────────────────────────┘
@@ -87,16 +87,17 @@ The bot uses wall-following to guarantee exploration with each location visited 
 | **Forward Bearing** | Always face direction of travel (prev→cur) |
 | **Cul-de-Sac Check** | After 10+ straight nodes, verify not a false dead-end |
 | **Graph Memory** | Records every successful movement for escape routes |
+| **Loop Detection** | Tracks nodes visited during wall-follow to escape cycles |
 
 ### Performance
 
-| Metric | Target | Real-World (v6.1.4) |
+| Metric | Target | Real-World (v6.1.5) |
 |--------|--------|---------------------|
-| Progress Ratio (unique/steps) | > 0.70 | **0.74** (1777/2385) |
-| Steps per Location | < 2.0 | **1.34** |
-| Max Revisits | ≤ 2 | ✅ Guaranteed |
+| Progress Ratio (unique/steps) | > 0.55 | **0.48** (149/309) |
+| Steps per Location | < 2.0 | **2.07** |
+| Max Revisits | ≤ 2 | ⚠️ 11 (wall-follow loop bug documented) |
 
-**Latest walk:** 1,777 unique locations in 2,385 steps (74% efficiency, near-optimal PLEDGE performance)
+**Latest walk:** 149 unique locations in 309 steps. Wall-follow loop bug identified and fix documented in WALK_REPORTS.md.
 
 ---
 
@@ -118,7 +119,7 @@ It's a nomadic machine that produces the map by walking it.
 
 ### Getting Started
 - **[HOW_IT_WALKS.md](docs/HOW_IT_WALKS.md)** — PLEDGE algorithm deep-dive
-- **[WALK_ANALYSIS.md](docs/WALK_ANALYSIS.md)** — Real walk metrics and optimization
+- **[WALK_REPORTS.md](docs/WALK_REPORTS.md)** — Walk analysis and fix documentation
 
 ### Technical
 - **[ALGORITHM.md](docs/ALGORITHM.md)** — API reference (engine, wheel, traversal)
@@ -128,7 +129,7 @@ It's a nomadic machine that produces the map by walking it.
 ### Advanced
 - **[SMART_NODES.md](docs/SMART_NODES.md)** — Node classification (NEW, JUNCTION, DEAD_END)
 - **[SURGEON_MODE.md](docs/SURGEON_MODE.md)** — Efficiency-focused mode
-- **[TRANSITION_GRAPH_LEARNING.md](docs/TRANSITION_GRAPH_LEARNING.md)** — Learning connectivity
+- **[WALK_DRIVEN_DEVELOPMENT.md](docs/WALK_DRIVEN_DEVELOPMENT.md)** — Walk-driven development workflow
 
 ---
 
@@ -138,10 +139,14 @@ It's a nomadic machine that produces the map by walking it.
 git clone https://github.com/genaforvena/drunk-walker.git
 cd drunk-walker
 npm install
-npm run build        # Generates bookmarklet.js + extension bundle
-npm run extension:package  # Creates ZIP files for release
-npm test             # Run 150+ tests
+npm run build        # Generates bookmarklet.js + extension folders
+npm test             # Run 162+ tests
 ```
+
+**Build output:**
+- `bookmarklet.js` - Browser console version
+- `extension-chrome/` - Chrome/Edge/Brave extension (uses `service_worker`)
+- `extension-firefox/` - Firefox extension (uses `scripts` array)
 
 ---
 
@@ -165,7 +170,7 @@ npm test             # Run 150+ tests
 | Extension not showing | Ensure you're on `google.com/maps` in Street View mode |
 | Not starting | Refresh page, check console (F12) for errors |
 | Panel not visible | Resize browser window, try STOP → START |
-| Firefox add-on missing | Reload from `about:debugging` after browser restart |
+| Firefox add-on error | Make sure you select `manifest.json` from the Firefox ZIP folder |
 
 ---
 
@@ -184,7 +189,8 @@ npm test             # Run 150+ tests
 
 | Version | Changes |
 |---------|---------|
-| **v6.1.4** | Browser extension release, camera alignment fix, loop detection |
+| **v6.1.5** | Dual browser manifests (Chrome/Firefox), gh.io extension folders, mandatory release checklist |
+| **v6.1.4** | Territory Oracle, walk-driven development, wall-follow loop detection documented |
 | **v6.1.0** | PLEDGE wall-following implementation |
 | **v5.1.0** | Smart nodes, enhanced transition graph |
 
