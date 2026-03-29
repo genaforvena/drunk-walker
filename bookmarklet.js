@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.4 - BUNDLED BOOKMARKLET
-// Built: 2026-03-28T10:50:41.987Z
+// Built: 2026-03-29T20:13:29.670Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -808,7 +808,7 @@ const __default_export = {
 
   // === CORE ENGINE ===
   /**
- * Drunk Walker Core Engine v6.1.0-SMART-PANIC
+ * Drunk Walker Core Engine v6.1.4
  *
  * ARCHITECTURE:
  * - Engine: State management, tick timing, path recording

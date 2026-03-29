@@ -1,4 +1,4 @@
-# 🧑‍💻 Developer Guide (v6.1.2 PLEDGE)
+# 🧑‍💻 Developer Guide (v6.1.4 PLEDGE)
 
 ## Quick Start
 
@@ -33,6 +33,116 @@ node build.js
 - ✅ Running `npm test`
 - ✅ Running `node build.js`
 - ✅ Verifying `bookmarklet.js` is updated
+
+---
+
+## Walk-Driven Development Workflow
+
+**All algorithm changes MUST be based on actual walk data.**
+
+### Overview
+
+The **Territory Oracle** is a mock Street View that knows the actual connectivity from walk logs. It enables deterministic replay testing without browser integration.
+
+**Key Properties:**
+1. **Deterministic:** Same algorithm → same results
+2. **Verifiable:** Oracle metrics match real walk metrics  
+3. **Baseline-Protected:** No change should make baselines worse
+4. **Fast:** Pure JavaScript, no browser needed
+
+### Step 1: Identify Issue from Walk Log
+
+```bash
+# Find problematic walk logs
+ls -lt walks/*.txt | head -5
+
+# Search for high visit counts (nodes visited >2 times = bug)
+grep "nodeVisitCount=[3-9]" walks/dw-logs-*.txt | head -20
+
+# Trace specific node through walk
+grep "31.8010261,35.2140383" walks/dw-logs-1774812201528.txt
+```
+
+### Step 2: Create Walk Report
+
+Before implementing any fix, create a walk report in `docs/WALK_REPORTS.md`:
+
+```markdown
+## Walk Report: [Walk ID]
+
+**File:** `walks/dw-logs-[ID].txt`
+**Issue:** [Brief description]
+
+### Issue Identified
+
+**Pattern:** [Describe the problematic pattern]
+**Example Sequence:** [Steps X-Y showing the issue]
+**Root Cause:** [Analysis of why this happens]
+
+### Proposed Fix
+
+**Algorithm Change:** [Describe the fix]
+**Expected Impact:** [What metrics should improve]
+```
+
+### Step 3: Verify Oracle Works
+
+Before making changes, verify the oracle correctly represents the walk:
+
+```bash
+npm test -- src/core/territory-oracle.test.js
+```
+
+Expected output:
+```
+✓ should parse new format walk logs
+✓ should verify oracle against original walk
+✓ should match oracle metrics with real walk metrics
+```
+
+### Step 4: Record Current Baseline
+
+```bash
+# Run tests and save output
+npm test -- src/core/territory-oracle.test.js 2>&1 | tee baseline-before.txt
+```
+
+Key metrics to record:
+- **Visited/Steps ratio:** Exploration efficiency (target: >0.55)
+- **Max visits:** PLEDGE guarantee (target: ≤2)
+- **Turns per 100:** Excessive turning (target: <25)
+- **Stuck ratio:** Time spent stuck (target: <0.20)
+
+### Step 5: Implement Fix
+
+Make changes in `src/core/traversal.js`.
+
+### Step 6: Verify Fix Improves Metrics
+
+```bash
+# Run tests again
+npm test -- src/core/territory-oracle.test.js 2>&1 | tee baseline-after.txt
+
+# Compare
+diff baseline-before.txt baseline-after.txt
+```
+
+### Step 7: Verify No Regressions
+
+```bash
+# Run full test suite
+npm test
+```
+
+All 150+ tests must pass.
+
+### Step 8: Update Documentation
+
+- Add walk report to `docs/WALK_REPORTS.md`
+- Update `docs/HOW_IT_WALKS.md` with algorithm changes
+- Update `docs/THE_TRAVERSAL_PROBLEM.md` with design principles
+
+See [`docs/WALK_DRIVEN_DEVELOPMENT.md`](../docs/WALK_DRIVEN_DEVELOPMENT.md) for complete documentation.
 
 ---
 
@@ -253,9 +363,25 @@ window.DRUNK_WALKER.engine.getConfig()        // Read current config
 
 | Version | Key Changes |
 |---------|-------------|
+| **v6.1.4** | Wall-follow loop detection, stuck detection in wall-follow, exit direction preservation |
+| **v6.1.3** | Camera alignment fix, wall-follow loop detection |
 | **v6.1.2** | Camera alignment 40°, perpendicular yaw scan, yaw hysteresis, ±20° tolerance |
 | **v6.1.0** | PLEDGE wall-following (forward → turn LEFT 105° → wall-follow → break wall) |
 | **v5.1.0** | Smart nodes, enhanced transition graph |
 | **v4.2.0** | Surgeon mode, veto logic, breadcrumb buffer (100 steps) |
 | **v4.1.0** | Hunter mode, 180° snap-back |
 | **v4.0.0** | Decoupled architecture (wheel/traversal) |
+
+---
+
+## Walk-Driven Development
+
+**All algorithm changes must be based on actual walk data.**
+
+See [`docs/WALK_REPORTS.md`](../docs/WALK_REPORTS.md) for the walk-driven development workflow and documented walk reports.
+
+**Key principle:** Before implementing any fix:
+1. Identify the issue in a walk log
+2. Create a walk report with analysis
+3. Propose the fix with expected impact
+4. Implement and verify against the same walk log

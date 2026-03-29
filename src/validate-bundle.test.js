@@ -46,8 +46,8 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('selfAvoiding:');
   });
   
-  it('should have correct version 6.1.0-SMART-PANIC', () => {
-    expect(bundleCode).toContain('6.1.0-SMART-PANIC');
+  it('should have correct version 6.1.4', () => {
+    expect(bundleCode).toContain('6.1.4');
   });
   
   it('should have engine.start() called in main initialization', () => {

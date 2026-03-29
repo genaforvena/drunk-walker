@@ -51,6 +51,7 @@ The v6.1.3 PLEDGE algorithm uses **systematic wall-following** for guaranteed ma
 - **Forward Bearing**: Always face direction of travel (prev→cur)
 - **Dead-End Detection**: All 6 yaws tried → turn LEFT 120°
 - **Wall-Follow Mode**: Scan for left exits (90-180° from forward)
+- **Loop Detection**: Track nodes visited during wall-follow phase
 - **Break-Wall Escape**: Retry successful yaw when truly stuck
 
 ---
@@ -192,15 +193,20 @@ if (isDeadEnd && !wallFollowMode) {
 
 **Trigger:** `wallFollowMode === true`
 
+**Loop Detection:** Track nodes visited during current wall-follow phase to detect cycles.
+
 ```javascript
+// Track nodes visited during wall-follow phase
+let wallFollowNodes = new Set();
+
 if (wallFollowMode && currentNode.hasUntriedYaws()) {
   const untriedYaws = [0, 60, 120, 180, 240, 300]
     .filter(y => !currentNode.triedYaws.has(y));
-  
+
   // Find leftmost untried yaw (90-180° LEFT from forward bearing)
   let bestYaw = null;
   let bestDiff = 90;
-  
+
   for (const yaw of untriedYaws) {
     const diff = yawDifference(forwardBearing, yaw);
     if (diff >= 90 && diff <= 180 && diff > bestDiff) {
@@ -208,14 +214,28 @@ if (wallFollowMode && currentNode.hasUntriedYaws()) {
       bestYaw = yaw;
     }
   }
-  
+
   // Found left exit! Take it and resume FORWARD mode
   if (bestYaw !== null) {
     wallFollowMode = false;
     wallFollowBearing = null;
     forwardBearing = null;
+    committedDirection = bestYaw;  // Preserve exit direction
+    wallFollowNodes.clear();  // Reset loop tracking
     return { turn: true, angle: getLeftTurnAngle(orientation, bestYaw) };
   }
+}
+
+// Loop detection: arrived at visited, fully-explored node during wall-follow
+if (wallFollowMode && !isNewNode && currentNode.isFullyExplored) {
+  if (wallFollowNodes.has(currentLocation)) {
+    // LOOP DETECTED! Break out using BREAK_WALL
+    console.log(`🚨 WALL-FOLLOW LOOP! Breaking out...`);
+    wallFollowMode = false;
+    wallFollowBearing = null;
+    // Fall through to BREAK_WALL logic
+  }
+  wallFollowNodes.add(currentLocation);
 }
 
 // Continue wall-follow: face wall-follow bearing
@@ -224,7 +244,14 @@ if (wallFollowMode && wallFollowBearing !== null) {
   if (diff > 10) {
     return { turn: true, angle: getLeftTurnAngle(orientation, wallFollowBearing) };
   }
-  return { turn: false };  // Facing correct direction, move
+  
+  // Check if stuck (ArrowUp failed) - try untried yaws
+  if (stuckCount >= 1 && currentNode.hasUntriedYaws()) {
+    const nextYaw = untriedYaws[0];
+    return { turn: true, angle: getLeftTurnAngle(orientation, nextYaw) };
+  }
+  
+  return { turn: false };  // First attempt - press ArrowUp
 }
 ```
 
@@ -348,7 +375,9 @@ class NodeInfo {
     if (success) {
       this.successfulYaws.add(yaw);
     }
-    // Mark as fully explored when 5+ yaws tried
+    // Mark as fully explored when 5+ yaws tried (pragmatic optimization)
+    // Street View nodes typically have 2-4 exits, not 6
+    // After 5 yaws, the 6th is unlikely to succeed
     if (this.triedYaws.size >= 5) {
       this.isFullyExplored = true;
     }
@@ -359,6 +388,14 @@ class NodeInfo {
   }
 }
 ```
+
+**Note on `isFullyExplored` threshold:**
+
+The threshold of 5 yaws (not 6) is a **pragmatic optimization**:
+- Street View nodes typically have 2-4 exits, not 6
+- After trying 5 yaws, the 6th is unlikely to succeed
+- Prevents wasting ticks on exhaustive scanning
+- Still allows escape via BREAK_WALL (uses `successfulYaws`)
 
 ---
 

@@ -234,3 +234,197 @@ To get closer to a 1:1 ratio, the bot has to become a **Better Guesser.**
 **Basically, the "Drunk Walker" is just a way to see how a simple set of rules (avoid the past, run straight, turn when stuck) handles the messy, inconsistent metadata of the real world.**
 
 **With PLEDGE, we've added one more rule: follow the left wall, face forward, and break walls when stuck. The result? Guaranteed exploration without infinite loops.**
+
+---
+
+## 12. Critical Design Principles
+
+### The "Can't Be Truly Stuck" Guarantee
+
+**Fundamental insight:** If you can reach a node, you can return the way you came.
+
+```
+Every node has at least ONE exit: the reverse direction (where you entered).
+```
+
+**Why this matters:**
+- The bot always has an escape route
+- BREAK_WALL uses this guarantee (retries successful yaws)
+- If `successfulYaws` is empty, use graph connections to calculate reverse yaw
+
+**Implementation:**
+```javascript
+// In recordMovement(fromLoc, toLoc, fromYaw, toYaw):
+// Record reverse yaw geometrically at toLoc
+const dLat = fromParts[0] - toParts[0];  // FROM neighbor TO current
+const dLng = fromParts[1] - toParts[1];
+let reverseYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
+if (reverseYaw < 0) reverseYaw += 360;
+toNode.recordAttempt(reverseYaw, true, fromLoc);
+```
+
+### Yaw Buckets and Geometry
+
+**The 6-yaw bucket system:**
+- Buckets: 0°, 60°, 120°, 180°, 240°, 300°
+- Each yaw rounds to nearest bucket: `Math.round(yaw / 60) * 60`
+- A single physical connection can span multiple buckets
+
+**Critical insight:** The same physical connection might be accessible from different yaw buckets.
+
+```
+Example:
+  Move A→B at yaw 346° (bucket 0°)
+  Reverse at B: yaw 166° (bucket 180°) ← Recorded
+
+  But yaw 240° at B might ALSO lead to A!
+  - Different bucket, same physical connection
+  - Street View panoramas have multiple entry angles
+  - This creates cycles in wall-follow
+```
+
+**Implication for wall-follow:**
+- Wall-follow scans for untried yaws in LEFT arc (90-180°)
+- An untried yaw might lead to an already-visited node
+- This creates loops: A→C→A→C...
+- **Solution:** Detect loops by tracking nodes visited during wall-follow phase
+
+### Why We Can't Predict Connections
+
+**The bot is blind:** It can't see where a yaw leads without trying it.
+
+| Approach | Why It Doesn't Work |
+|----------|---------------------|
+| Check if yaw was successful before | Untried yaws have no history |
+| Check graph connections | Graph only knows tried yaws, not untried |
+| Check if target is visited | Can't know target without physical probe |
+
+**The only solution:** Try the yaw, observe the result, then adapt.
+
+### Wall-Follow Loop Detection
+
+**Problem:** Wall-follow can create cycles in Street View's graph:
+
+```
+    B
+   / \
+  A---C   ← Wall-follow: A→C, then C→A (cycle!)
+```
+
+**Detection:** Track nodes visited during current wall-follow phase.
+
+```javascript
+let wallFollowNodes = new Set();
+
+// When arriving at node during wall-follow:
+if (!isNewNode && currentNode.isFullyExplored) {
+  if (wallFollowNodes.has(currentLocation)) {
+    // LOOP DETECTED! Break out.
+    wallFollowMode = false;
+    // Use BREAK_WALL to escape
+  }
+  wallFollowNodes.add(currentLocation);
+}
+```
+
+**Why this is pure PLEDGE:**
+- Still follows left-hand rule
+- Still uses BREAK_WALL for escape
+- Just detects cycles earlier (before infinite loop)
+
+### No Hacks Principle
+
+When fixing bugs, prefer solutions that:
+
+1. **Use existing mechanisms:** BREAK_WALL already exists, just trigger it earlier
+2. **Add minimal state:** `wallFollowNodes` set is cleared after each phase
+3. **Preserve algorithm:** Left-hand rule, forward-facing, break-wall all unchanged
+4. **Respect blindness:** Don't assume knowledge the bot can't have
+
+**Bad hack:** Clear the graph when stuck (throws away learned information)
+**Good fix:** Detect loops and use BREAK_WALL (preserves graph, escapes cleanly)
+
+---
+
+## 13. Common Pitfalls and Corrections
+
+### Pitfall 1: "Wall-Follow Should Check All Yaws"
+
+**Wrong:** Wall-follow tries ANY untried yaw (forward, right, left) when backtracking.
+
+**Right:** Wall-follow should **ONLY check LEFT exits** (90-180° from forward bearing).
+
+**Why:** Forward/right yaws will be explored on future forward passes. Checking them during backtracking breaks the ≤2 visits guarantee.
+
+### Pitfall 2: "Clearing successfulYaws Helps Escape"
+
+**Wrong:** Clear `successfulYaws` to "force new path" when stuck.
+
+**Right:** Never throw away escape routes. The graph remembers connections - use them.
+
+**Why:** BREAK_WALL needs `successfulYaws` to retry exits. If empty, must calculate reverse yaw from graph (more complex, less reliable).
+
+### Pitfall 3: "2-Node Oscillation is Normal"
+
+**Wrong:** Allow 2-node loops (A→B→A→B) as "normal backtracking behavior".
+
+**Right:** 2-node oscillation is a BUG. Detect and break out after 3+ cycles.
+
+**Why:** Real wall-follow backtracking moves AWAY from dead ends, not back-and-forth.
+
+### Pitfall 4: "More Yaws Tried = Better Exploration"
+
+**Wrong:** Mark nodes as fully explored only after all 6 yaws are tried.
+
+**Right:** Mark as fully explored after 5+ yaws (pragmatic optimization).
+
+**Why:** 
+- Street View nodes typically have 2-4 exits, not 6
+- After 5 yaws, the 6th is unlikely to succeed
+- Prevents wasting ticks on exhaustive scanning
+
+### Pitfall 5: "Resetting committedDirection Prevents Loops"
+
+**Wrong:** Reset `committedDirection = null` after wall-follow exit to "fresh start".
+
+**Right:** Set `committedDirection` to the exit yaw direction.
+
+**Why:** Null causes the bot to adopt whatever bearing it calculates at the next node, which might point back to the previous node.
+
+---
+
+## 14. Debugging Checklist
+
+When analyzing walk logs for issues:
+
+1. **Check node visit counts:** Any node with >3 visits indicates a problem
+2. **Look for "STUCK" patterns:** Multiple consecutive stuck at same location
+3. **Trace wall-follow sequences:** A→C→A pattern indicates loop
+4. **Verify reverse yaw recording:** Graph should have bidirectional connections
+5. **Check BREAK_WALL triggers:** Should escape stuck situations within 2-3 steps
+
+### Key Log Patterns
+
+**Healthy walk:**
+```
+[DEBUG] isNewNode=true, nodeVisitCount=0  ← New territory
+[DEBUG] LOCATION CHANGED - resetting stuckCount  ← Making progress
+```
+
+**Wall-follow loop:**
+```
+[DEBUG] nodeVisitCount=5, isFullyScanned=true  ← Already explored
+[DEBUG] 🧱 DEAD END! ... turning to wall-follow  ← Restarting wall-follow
+[DEBUG] 🧱 WALL-FOLLOW: Found LEFT exit  ← Taking exit
+[DEBUG] nodeVisitCount=6, isFullyScanned=true  ← Back at same node!
+```
+
+**Stuck detection working:**
+```
+[DEBUG] STUCK! Trying untried yaw 180°  ← Fast-fail triggered
+[DEBUG] LOCATION CHANGED  ← Escaped successfully
+```
+
+---
+
+*Documentation updated with wall-follow loop analysis and design principles.*

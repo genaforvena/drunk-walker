@@ -1,5 +1,5 @@
 /**
- * Drunk Walker Core Engine v6.1.0-SMART-PANIC
+ * Drunk Walker Core Engine v6.1.4
  *
  * ARCHITECTURE:
  * - Engine: State management, tick timing, path recording
