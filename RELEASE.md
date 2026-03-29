@@ -2,6 +2,8 @@
 
 **Every release is now automated. No manual checks needed.**
 
+**IMPORTANT:** This creates a NEW release with a NEW version number. It does NOT delete old releases!
+
 ---
 
 ## One-Click Release
@@ -24,13 +26,30 @@ npm run release 6.1.6
 6. ✅ Creates ZIP files (dist/drunk-walker-*.zip)
 7. ✅ Commits changes to git
 8. ✅ Pushes to GitHub
-9. ✅ Creates git tag
-10. ✅ Pushes tag to GitHub
-11. ✅ Updates GitHub Release (deletes old assets, uploads new)
+9. ✅ Creates git tag (vX.Y.Z)
+10. ✅ Pushes tag to GitHub (creates GitHub Release)
+11. ✅ Uploads assets to the NEW release (does NOT touch old releases!)
 12. ✅ Verifies release assets (downloads and checks manifests)
 
-**If it succeeds:** Release is complete and verified!
+**If it succeeds:** New release is complete and verified!
 **If it fails:** Script shows recovery steps.
+
+---
+
+## How Releases Work
+
+Each release version (v6.1.5, v6.1.6, etc.) is **separate and independent**:
+- Old releases are NEVER deleted
+- New release is created with new tag
+- Assets are uploaded to the new release only
+- Users can download any version they want
+
+**Example:**
+```bash
+npm run release 6.1.5  # Creates v6.1.5 release
+npm run release 6.1.6  # Creates v6.1.6 release (v6.1.5 still exists!)
+npm run release 6.2.0  # Creates v6.2.0 release (all previous versions still exist!)
+```
 
 ---
 
@@ -87,16 +106,11 @@ git tag -a vX.Y.Z -m "vX.Y.Z: Release"
 git push origin vX.Y.Z
 ```
 
-### 6. Update Release
+### 6. Create GitHub Release
 
 ```bash
-# Delete old assets
-gh release delete-asset vX.Y.Z drunk-walker-chrome.zip --yes
-gh release delete-asset vX.Y.Z drunk-walker-firefox.zip --yes
-gh release delete-asset vX.Y.Z bookmarklet.js --yes
-
-# Upload new assets
-gh release upload vX.Y.Z dist/drunk-walker-chrome.zip dist/drunk-walker-firefox.zip dist/bookmarklet.js
+# Create release and upload assets
+gh release create vX.Y.Z dist/drunk-walker-chrome.zip dist/drunk-walker-firefox.zip dist/bookmarklet.js --title "vX.Y.Z" --notes "Release notes"
 ```
 
 ### 7. Verify Release
@@ -117,11 +131,11 @@ cat chrome/manifest.json | python3 -c "import sys,json; d=json.load(sys.stdin); 
 
 ## Common Mistakes to Avoid
 
-1. **Forgetting to update release assets** - Script handles this automatically
-2. **Wrong Firefox manifest** - Script verifies `"scripts"` array
-3. **Not verifying downloaded ZIPs** - Script downloads and verifies
+1. **Trying to delete old releases** - Script creates NEW releases, old ones stay
+2. **Wrong Firefox manifest** - Script verifies `"scripts"` array automatically
+3. **Not verifying downloaded ZIPs** - Script downloads and verifies automatically
 4. **Committing extension/ folder** - Only commit extension-chrome/ and extension-firefox/
-5. **Old version strings in code** - Script updates all files
+5. **Old version strings in code** - Script updates all files automatically
 
 ---
 

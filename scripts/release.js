@@ -203,16 +203,16 @@ print('Created ZIP files')
   // Step 9: Update GitHub Release
   console.log('📋 Updating GitHub Release...');
   
-  // Delete old assets if they exist
+  // Delete ONLY the assets for this specific version if they exist (not all assets!)
   try {
     run(`gh release delete-asset v${version} drunk-walker-chrome.zip --yes 2>/dev/null`, { silent: true });
     run(`gh release delete-asset v${version} drunk-walker-firefox.zip --yes 2>/dev/null`, { silent: true });
     run(`gh release delete-asset v${version} bookmarklet.js --yes 2>/dev/null`, { silent: true });
   } catch (e) {
-    // Ignore errors - assets may not exist
+    // Ignore errors - assets may not exist yet
   }
   
-  // Upload new assets
+  // Upload new assets (this ADDS to the release, doesn't replace old releases!)
   run(`gh release upload v${version} dist/drunk-walker-chrome.zip dist/drunk-walker-firefox.zip dist/bookmarklet.js --clobber`, { verbose: true });
   console.log('');
   
