@@ -199,14 +199,77 @@ fs.writeFileSync(extensionOutfile, extensionContent);
 console.log(`✓ Built ${extensionOutfile} (${(extensionContent.length / 1024).toFixed(1)} KB)`);
 
 // Update extension manifest with current version
+// Create browser-specific manifests for Chrome and Firefox
 const manifestPath = 'extension/manifest.json';
+const firefoxManifestPath = 'extension/manifest-firefox.json';
+
 if (fs.existsSync(manifestPath)) {
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  let manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   manifest.version = VERSION;
+  
+  // Chrome manifest (service_worker)
+  manifest.background = {
+    "service_worker": "background.js"
+  };
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-  console.log(`✓ Updated extension manifest to v${VERSION}`);
+  
+  // Firefox manifest (scripts array)
+  const firefoxManifest = JSON.parse(JSON.stringify(manifest));
+  firefoxManifest.background = {
+    "scripts": ["background.js"]
+  };
+  // Remove Chrome-specific settings for Firefox
+  if (firefoxManifest.browser_specific_settings?.gecko) {
+    // Keep Firefox settings
+  }
+  fs.writeFileSync(firefoxManifestPath, JSON.stringify(firefoxManifest, null, 2));
+  
+  console.log(`✓ Updated Chrome manifest to v${VERSION} (extension/manifest.json)`);
+  console.log(`✓ Created Firefox manifest v${VERSION} (extension/manifest-firefox.json)`);
 }
 
 console.log(`\n📦 Extension ready in ./extension/`);
 console.log(`   Load in Chrome: chrome://extensions → Developer mode → Load unpacked`);
 console.log(`   Load in Firefox: about:debugging → This Firefox → Load Temporary Add-on`);
+
+// Create browser-specific distribution ZIPs
+const distDir = 'dist';
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir);
+}
+
+// Copy extension folder for Chrome (uses manifest.json)
+const chromeZip = `${distDir}/drunk-walker-chrome.zip`;
+const firefoxZip = `${distDir}/drunk-walker-firefox.zip`;
+
+// Use system zip command if available
+const { execSync } = await import('child_process');
+try {
+  // Chrome ZIP (uses manifest.json with service_worker)
+  execSync(`cd extension && zip -r ../${chromeZip} . -x "*.git*"`, { stdio: 'ignore' });
+  console.log(`✓ Created ${chromeZip}`);
+  
+  // Firefox ZIP (uses manifest-firefox.json, renamed to manifest.json)
+  const firefoxDir = `${distDir}/extension-firefox`;
+  if (fs.existsSync(firefoxDir)) fs.rmSync(firefoxDir, { recursive: true });
+  fs.mkdirSync(firefoxDir, { recursive: true });
+  
+  // Copy extension files
+  for (const file of fs.readdirSync('extension')) {
+    if (file === 'manifest-firefox.json') {
+      // Copy as manifest.json for Firefox
+      fs.copyFileSync(`extension/${file}`, `${firefoxDir}/manifest.json`);
+    } else if (file !== 'manifest.json') {
+      // Copy other files as-is
+      fs.copyFileSync(`extension/${file}`, `${firefoxDir}/${file}`);
+    }
+  }
+  
+  execSync(`cd ${firefoxDir} && zip -r ../../${firefoxZip} .`, { stdio: 'ignore' });
+  fs.rmSync(firefoxDir, { recursive: true });
+  console.log(`✓ Created ${firefoxZip}`);
+  
+  console.log(`\n📦 Distribution ZIPs ready in ./${distDir}/`);
+} catch (e) {
+  console.log('⚠️  Could not create ZIP files (zip command not available)');
+}

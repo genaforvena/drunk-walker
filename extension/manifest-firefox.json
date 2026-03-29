@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "Drunk Walker - Street View Explorer",
+  "version": "6.1.5",
+  "description": "Automated Google Street View explorer using the PLEDGE algorithm. Watch it discover new paths by following walls and avoiding loops.",
+  "author": "Drunk Walker Contributors",
+  "homepage_url": "https://genaforvena.github.io/drunk-walker/",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.google.com/maps/*",
+    "https://maps.google.com/*",
+    "https://genaforvena.github.io/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icons/icon-48.png",
+      "96": "icons/icon-96.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "Drunk Walker"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.google.com/maps/*",
+        "https://maps.google.com/*"
+      ],
+      "js": [
+        "drunk-walker.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "drunk-walker@genaforvena.github.io",
+      "strict_min_version": "109.0"
+    },
+    "gecko_android": {
+      "strict_min_version": "109.0"
+    }
+  }
+}

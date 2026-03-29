@@ -49,7 +49,8 @@ npm run build
 **Verify:**
 - [ ] `bookmarklet.js` generated (~85 KB)
 - [ ] `extension/drunk-walker.js` generated (~86 KB)
-- [ ] `extension/manifest.json` version updated
+- [ ] `extension/manifest.json` created (Chrome - uses `service_worker`)
+- [ ] `extension/manifest-firefox.json` created (Firefox - uses `scripts`)
 
 **CRITICAL: Check for OLD version strings in built files!**
 
@@ -61,6 +62,10 @@ grep -E "6\.1\.[0-4]|6\.0\.0-CYBERPUNK" bookmarklet.js
 # Check extension/drunk-walker.js for old versions
 grep -E "6\.1\.[0-4]|6\.0\.0-CYBERPUNK" extension/drunk-walker.js
 ```
+
+**Note:** The build script now creates two manifests:
+- `manifest.json` - Chrome/Edge/Brave (uses `"service_worker"`)
+- `manifest-firefox.json` - Firefox (uses `"scripts"` array)
 
 ### 4. Test Extension Loads
 
@@ -75,8 +80,10 @@ grep -E "6\.1\.[0-4]|6\.0\.0-CYBERPUNK" extension/drunk-walker.js
 1. Go to `about:debugging`
 2. Click "This Firefox"
 3. Click "Load Temporary Add-on"
-4. Select `extension/manifest.json`
+4. Select `extension/manifest-firefox.json` (IMPORTANT: use manifest-firefox.json!)
 5. **Verify:** No errors
+
+**Note:** Firefox requires `manifest-firefox.json` which uses `"scripts"` array instead of `"service_worker"`.
 
 ---
 
