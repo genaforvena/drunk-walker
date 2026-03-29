@@ -1,100 +1,269 @@
-# Creating GitHub Releases
+# Release Checklist - MANDATORY
 
-This guide explains how to create releases for the Drunk Walker extension.
+**Every release MUST follow this checklist. No exceptions.**
 
-## Manual Release Process
+---
 
-### 1. Build and Package
+## Pre-Release Checks
+
+### 1. Version Bump
+
+**Mandatory:** Update version in ALL locations:
 
 ```bash
-# Make sure you have latest code
-git pull
-
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Build extension
-npm run build
-
-# Package for distribution
-npm run extension:package
+# Check current version
+grep -r "version" package.json src/version.js extension/manifest.json
 ```
 
-This creates:
-- `dist/drunk-walker-chrome.zip`
-- `dist/drunk-walker-firefox.zip`
+**Files to update:**
+- [ ] `package.json` - `"version": "X.Y.Z"`
+- [ ] `src/version.js` - `export const VERSION = 'X.Y.Z';`
+- [ ] `extension/manifest.json` - Updated automatically by build
 
-### 2. Create Release on GitHub
+### 2. Run All Tests
+
+```bash
+npm test
+```
+
+**Required:** All tests must pass (162+ tests)
+
+### 3. Build Extension
+
+```bash
+npm run build
+```
+
+**Verify:**
+- [ ] `bookmarklet.js` generated (~85 KB)
+- [ ] `extension/drunk-walker.js` generated (~86 KB)
+- [ ] `extension/manifest.json` version updated
+
+### 4. Test Extension Loads
+
+**Chrome/Edge:**
+1. Go to `chrome://extensions/`
+2. Enable "Developer mode"
+3. Click "Load unpacked"
+4. Select `extension/` folder
+5. **Verify:** No errors in console
+
+**Firefox:**
+1. Go to `about:debugging`
+2. Click "This Firefox"
+3. Click "Load Temporary Add-on"
+4. Select `extension/manifest.json`
+5. **Verify:** No errors
+
+---
+
+## Release Steps
+
+### 5. Commit Changes
+
+```bash
+git add .
+git commit -m "vX.Y.Z: Release summary"
+git push
+```
+
+### 6. Create Git Tag
+
+```bash
+git tag -a vX.Y.Z -m "vX.Y.Z: Release summary"
+git push origin vX.Y.Z
+```
+
+### 7. Create GitHub Release
 
 1. Go to https://github.com/genaforvena/drunk-walker/releases
 2. Click **Draft a new release**
-3. **Tag version**: Enter version number (e.g., `v6.1.4`)
-4. **Release title**: Same as tag or descriptive name
-5. **Description**: Add release notes (changes, fixes, features)
-6. **Upload files**: Drag and drop both ZIP files from `dist/`
+3. **Tag:** `vX.Y.Z`
+4. **Title:** `vX.Y.Z`
+5. **Description:** Use template below
+6. **Upload:** Both ZIP files from `dist/` (if using packaging)
 7. Click **Publish release**
 
-### 3. Verify Release
+### 8. Publish to All Channels
 
-After publishing:
-- Both ZIP files should be downloadable
-- Release appears at https://github.com/genaforvena/drunk-walker/releases
-- README download links work
+**GitHub Releases:**
+- [ ] Release created at https://github.com/genaforvena/drunk-walker/releases
+- [ ] ZIP files uploaded (bookmarklet.js, extension ZIPs)
 
-## Automated Releases (GitHub Actions)
+**GitHub Pages (Bookmarklet):**
+- [ ] `bookmarklet.js` committed to `main` branch
+- [ ] https://genaforvena.github.io/drunk-walker/ updated
 
-If Actions are enabled, the workflow `.github/workflows/build-extension.yml` will:
+**Extension (Manual Distribution):**
+- [ ] Extension ZIPs created in `dist/`
+- [ ] Uploaded to GitHub Releases
+- [ ] Distribution instructions in release notes
 
-1. **On every push to main**: Create/update `latest-build` pre-release
-2. **On version tags (v*)**: Create official release with ZIP files
+---
 
-### Trigger Automated Release
+## Post-Release Verification
 
-```bash
-# Tag a release
-git tag v6.1.4
-git push origin v6.1.4
-```
+### 9. Verify Release
 
-This triggers the workflow which:
-- Runs tests
-- Builds extension
-- Creates GitHub release with ZIP files attached
+**Check:**
+- [ ] GitHub Release exists and is downloadable
+- [ ] Bookmarklet works in browser console
+- [ ] Extension loads without errors
+- [ ] Version shown in extension matches release
+
+### 10. Update Documentation
+
+**In release notes:**
+- [ ] List of changes (features, fixes, performance)
+- [ ] Installation instructions
+- [ ] Known issues (if any)
+
+---
 
 ## Release Notes Template
 
 ```markdown
-## Changes
+## vX.Y.Z - [Release Name]
 
-### Features
-- New feature description
+**Date:** YYYY-MM-DD
 
-### Fixes
+### Changes
+
+#### Features
+- Feature description
+
+#### Fixes
 - Bug fix description
 
-### Performance
+#### Performance
 - Optimization description
 
-## Installation
+### Installation
 
-Download the appropriate ZIP file for your browser:
-- **Chrome/Edge/Brave**: `drunk-walker-chrome.zip`
-- **Firefox**: `drunk-walker-firefox.zip`
+#### Bookmarklet (Browser Console)
+1. Go to https://genaforvena.github.io/drunk-walker/
+2. Copy bookmarklet code
+3. Paste into browser console on Google Maps
 
-Extract and load as unpacked extension (see README for detailed instructions).
+#### Browser Extension
+1. Download `drunk-walker-chrome.zip` (Chrome/Edge/Brave)
+   or `drunk-walker-firefox.zip` (Firefox)
+2. Extract ZIP file
+3. Load as unpacked extension (see README for details)
+
+### Verification
+
+- All 162+ tests passing
+- Extension loads without errors
+- Bookmarklet works in latest Chrome/Firefox
+
+### Files
+
+- `bookmarklet.js` (XX KB)
+- `drunk-walker-chrome.zip` (XX KB)
+- `drunk-walker-firefox.zip` (XX KB)
 ```
+
+---
+
+## Automated Release (GitHub Actions)
+
+If Actions are enabled, tagging a release triggers automated build:
+
+```bash
+# Tag and push
+git tag -a vX.Y.Z -m "vX.Y.Z: Summary"
+git push origin vX.Y.Z
+```
+
+**Workflow creates:**
+- GitHub Release with tag
+- ZIP files attached (if configured)
+- Deployment to GitHub Pages (if configured)
+
+**Still required:**
+- Manual verification that extension loads
+- Manual testing of bookmarklet
+- Manual distribution to any other channels
+
+---
 
 ## Version Numbering
 
 Follow semantic versioning: `MAJOR.MINOR.PATCH`
 
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backwards compatible)
-- **PATCH**: Bug fixes (backwards compatible)
+- **MAJOR** (6.0.0 → 7.0.0): Breaking changes
+- **MINOR** (6.1.0 → 6.2.0): New features (backwards compatible)
+- **PATCH** (6.1.3 → 6.1.4): Bug fixes (backwards compatible)
 
-Current version is stored in:
-- `src/version.js`
-- `extension/manifest.json` (updated automatically by build)
+**Current version locations:**
+- `package.json` - NPM package version
+- `src/version.js` - Single source of truth
+- `extension/manifest.json` - Extension version (auto-updated by build)
+
+---
+
+## Troubleshooting
+
+### Extension Won't Load
+
+**Error:** "Extension is invalid"
+
+**Check:**
+1. Manifest version is 3 (not 2)
+2. No `"type": "module"` in background (MV3 doesn't support it)
+3. All required files exist in `extension/` folder
+4. Icons are valid PNG files
+
+**Fix:**
+```bash
+# Rebuild extension
+npm run build
+
+# Check manifest
+cat extension/manifest.json | grep -A2 '"background"'
+# Should NOT have "type": "module"
+```
+
+### Tests Fail After Build
+
+**Cause:** Build may introduce issues
+
+**Fix:**
+1. Check build output for errors
+2. Verify `bookmarklet.js` size is reasonable (~85 KB)
+3. Run tests again: `npm test`
+
+### Version Mismatch
+
+**Symptom:** Different files show different versions
+
+**Fix:**
+1. Update `src/version.js` (source of truth)
+2. Update `package.json`
+3. Run `npm run build` (updates manifest automatically)
+4. Commit all changes together
+
+---
+
+## Quick Reference
+
+```bash
+# Full release process
+npm test                    # Run all tests
+npm run build               # Build extension
+git add .                   # Stage changes
+git commit -m "vX.Y.Z: ..." # Commit
+git push                    # Push to GitHub
+git tag -a vX.Y.Z -m "..."  # Create tag
+git push origin vX.Y.Z      # Push tag (triggers release)
+```
+
+---
+
+**REMEMBER:** Every version MUST be published to ALL channels:
+1. ✅ GitHub Releases (tag + ZIP files)
+2. ✅ GitHub Pages (bookmarklet.js)
+3. ✅ Extension (loadable from `extension/` folder)
+
+**No release is complete until all channels are updated.**
