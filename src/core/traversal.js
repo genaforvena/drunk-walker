@@ -417,6 +417,19 @@ export function createUnifiedAlgorithm(cfg) {
       if (isExhausted) {
         console.log(`🧱 WALL-FOLLOW: All yaws exhausted at dead end - breaking wall to escape!`);
         // Fall through to BREAK_WALL logic below
+      } else if (stuckCount >= 1) {
+        // Stuck but has untried yaws - try them immediately!
+        const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+        if (untriedYaws.length > 0) {
+          const nextYaw = untriedYaws[0];
+          console.log(`🧱 WALL-FOLLOW: Stuck! Trying untried yaw ${nextYaw}° to escape`);
+          const turnAngle = getLeftTurnAngle(orientation, nextYaw);
+          const turnDirection = getTurnDirection(orientation, nextYaw);
+          consecutiveStraightMoves = 0;
+          lastDecisionWasTurn = true;
+          return { turn: true, angle: turnAngle, direction: turnDirection };
+        }
+        // No untried yaws - fall through to BREAK_WALL
       } else {
         // Still have untried yaws - just press ArrowUp to continue backtracking
         console.log(`🧱 WALL-FOLLOW: Backtracking (press ArrowUp)`);

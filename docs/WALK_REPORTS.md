@@ -8,6 +8,93 @@
 
 ---
 
+## Walk Report: dw-logs-1774820738896.txt
+
+**File:** `walks/dw-logs-1774820738896.txt`
+**Date:** 2026-03-29
+**Steps:** 5000 (partial log)
+
+### Issue Identified: Wall-Follow Stuck Without Trying Untired Yaws
+
+**Pattern:** Node visited 12+ times, stuckCount reaches 8, bot just presses ArrowUp instead of trying untried yaw
+
+**Node:** `52.3660656,4.877676`
+
+**Example Sequence (Steps 523-528):**
+
+```
+Step 523: Node 52.3660656,4.877676, stuckCount=3, nodeVisitCount=7
+          triedYaws=0,120,60,180,240, hasUntried=true (yaw 300° available)
+          WALL-FOLLOW mode, facing correct bearing
+          Action: Press ArrowUp (doesn't move)
+
+Step 524: stuckCount=4, nodeVisitCount=8
+          Same situation - has untried yaw 300°
+          Action: Press ArrowUp (doesn't move)
+
+Step 525: stuckCount=5, nodeVisitCount=9
+          Still has untried yaw 300°
+          Action: Press ArrowUp (doesn't move)
+
+... continues until ...
+
+Step 528: stuckCount=8, nodeVisitCount=12
+          Finally escapes after multiple failed ArrowUp presses
+```
+
+**Root Cause:**
+
+In WALL-FOLLOW mode, when the bot is stuck (ArrowUp fails) but has untried yaws available, the code returns `{turn: false}` and just presses ArrowUp again:
+
+```javascript
+// BUG in traversal.js lines 404-423
+if (wallFollowMode && wallFollowBearing !== null) {
+  // Face bearing...
+  
+  if (isExhausted) {
+    // Fall through to BREAK_WALL
+  } else {
+    // Still have untried yaws - just press ArrowUp to continue backtracking
+    console.log(`🧱 WALL-FOLLOW: Backtracking (press ArrowUp)`);
+    return { turn: false };  // ← BUG! Just presses ArrowUp forever
+  }
+}
+```
+
+**The Fix:**
+
+Check if stuck (`stuckCount >= 1`) and try untried yaws immediately:
+
+```javascript
+if (wallFollowMode && wallFollowBearing !== null) {
+  // Face bearing...
+  
+  if (isExhausted) {
+    // Fall through to BREAK_WALL
+  } else if (stuckCount >= 1) {
+    // Stuck but has untried yaws - try them immediately!
+    const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
+    if (untriedYaws.length > 0) {
+      const nextYaw = untriedYaws[0];
+      console.log(`🧱 WALL-FOLLOW: Stuck! Trying untried yaw ${nextYaw}° to escape`);
+      return { turn: true, angle: getLeftTurnAngle(orientation, nextYaw) };
+    }
+    // No untried yaws - fall through to BREAK_WALL
+  } else {
+    // Not stuck - continue backtracking normally
+    return { turn: false };
+  }
+}
+```
+
+**Expected Impact:**
+
+- Nodes stuck in wall-follow with untried yaws will escape immediately
+- Max visits should drop from 12+ to ≤3
+- Steps wasted per stuck situation: from 8+ to 1-2
+
+---
+
 ## Walk Report: dw-logs-1774812201528.txt
 
 **File:** `walks/dw-logs-1774812201528.txt`
