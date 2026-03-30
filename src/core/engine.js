@@ -25,8 +25,7 @@ export const defaultConfig = {
   targetX: 0.4,
   targetY: 0.8,
   turnDuration: 600,
-  collectPath: true,
-  selfAvoiding: true
+  collectPath: true
 };
 
 export function createEngine(config = {}) {
@@ -493,7 +492,6 @@ export function createEngine(config = {}) {
     setSteps,
     getWalkPath,
     clearWalkPath,
-    setSelfAvoiding: (enabled) => { cfg.selfAvoiding = enabled; },
     getVisitedCount,
     clearVisitedUrls,
     isUrlVisited,
@@ -512,8 +510,7 @@ export function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
-    getNavigation: () => null,
-    getNavigationState: () => ({}),
-    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; }
+    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; },
+    getTransitionGraph: () => algorithm.enhancedGraph || null
   };
 }

@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.8 - BUNDLED BOOKMARKLET
-// Built: 2026-03-30T19:49:10.903Z
+// Built: 2026-03-30T21:08:29.940Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -758,9 +758,7 @@ function createUnifiedAlgorithm(cfg) {
 
   return {
     decide,
-    enhancedGraph,
-    isReturning: () => false,  // PLEDGE doesn't have return mode
-    getNavigationTarget: () => null
+    enhancedGraph
   };
 }
 
@@ -840,8 +838,7 @@ const defaultConfig = {
   targetX: 0.4,
   targetY: 0.8,
   turnDuration: 600,
-  collectPath: true,
-  selfAvoiding: true
+  collectPath: true
 };
 
 function createEngine(config = {}) {
@@ -1308,7 +1305,6 @@ function createEngine(config = {}) {
     setSteps,
     getWalkPath,
     clearWalkPath,
-    setSelfAvoiding: (enabled) => { cfg.selfAvoiding = enabled; },
     getVisitedCount,
     clearVisitedUrls,
     isUrlVisited,
@@ -1327,9 +1323,8 @@ function createEngine(config = {}) {
     reset,
     tick,
     getConfig: () => ({ ...cfg }),
-    getNavigation: () => null,
-    getNavigationState: () => ({}),
-    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; }
+    setAlgorithm: (newAlgorithm) => { algorithm = newAlgorithm; },
+    getTransitionGraph: () => algorithm.enhancedGraph || null
   };
 }
 
@@ -2088,7 +2083,6 @@ function createControlPanel(engine, options = {}) {
     makeDraggable(container);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
-    engine.setSelfAvoiding(true);
   };
 
   const updateStartStopBtn = () => {
@@ -2245,11 +2239,10 @@ const initialize = () => {
       console.log('🤪 No saved session found');
     }
 
-    // Create engine with default config (keyboard mode ON, unstuck enabled)
+    // Create engine with default config (keyboard mode ON)
     const engine = createEngine({
       pace: savedState?.pace || 2000,
-      kbOn: true,      // Keyboard mode is DEFAULT
-      expOn: true      // Unstuck algorithm enabled by default
+      kbOn: true      // Keyboard mode is DEFAULT
     });
 
     // ═══════════════════════════════════════════════════════════

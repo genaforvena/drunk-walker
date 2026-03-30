@@ -662,9 +662,7 @@ export function createUnifiedAlgorithm(cfg) {
 
   return {
     decide,
-    enhancedGraph,
-    isReturning: () => false,  // PLEDGE doesn't have return mode
-    getNavigationTarget: () => null
+    enhancedGraph
   };
 }
 

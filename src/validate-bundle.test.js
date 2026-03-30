@@ -41,10 +41,6 @@ describe('Bundle Validation', () => {
     expect(bundleCode).toContain('createUnstuckNavigation');
     expect(bundleCode).toContain('createNavigationController');
   });
-
-  it('should have self-avoiding config option', () => {
-    expect(bundleCode).toContain('selfAvoiding:');
-  });
   
   it('should have correct version 6.1.5', () => {
     expect(bundleCode).toContain('6.1.5');

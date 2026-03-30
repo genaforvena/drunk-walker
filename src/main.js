@@ -88,11 +88,10 @@ const initialize = () => {
       console.log('🤪 No saved session found');
     }
 
-    // Create engine with default config (keyboard mode ON, unstuck enabled)
+    // Create engine with default config (keyboard mode ON)
     const engine = createEngine({
       pace: savedState?.pace || 2000,
-      kbOn: true,      // Keyboard mode is DEFAULT
-      expOn: true      // Unstuck algorithm enabled by default
+      kbOn: true      // Keyboard mode is DEFAULT
     });
 
     // ═══════════════════════════════════════════════════════════

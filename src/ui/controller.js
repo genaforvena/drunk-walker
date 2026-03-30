@@ -212,7 +212,6 @@ export function createControlPanel(engine, options = {}) {
     makeDraggable(container);
 
     if (onPathCollectionToggle) onPathCollectionToggle(true);
-    engine.setSelfAvoiding(true);
   };
 
   const updateStartStopBtn = () => {

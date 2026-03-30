@@ -184,8 +184,7 @@ describe('Bundled Bookmarklet Validation', () => {
       expect(bookmarkletCode).toMatch(/isUserMouseDown.*isDrawing|isDrawing.*isUserMouseDown/);
     });
 
-    it('should have experimental mode support (kept in code)', () => {
-      expect(bookmarkletCode).toContain('expOn');
+    it('should have stuck detection support', () => {
       expect(bookmarkletCode).toContain('stuckCount');
     });
 
