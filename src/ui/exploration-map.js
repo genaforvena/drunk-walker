@@ -1,7 +1,7 @@
 /**
  * Exploration Map Component
  * Renders a mini-map showing explored territory from walker's perspective
- * v6.1.5
+ * v6.1.9
  */
 
 export function createExplorationMap() {

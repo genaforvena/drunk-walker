@@ -1,4 +1,4 @@
-# 🧑‍💻 Developer Guide (v6.1.4 PLEDGE)
+# 🧑‍💻 Developer Guide (v6.1.9 PLEDGE)
 
 ## Quick Start
 
@@ -214,7 +214,7 @@ Handles orientation and turning:
 - Translates degrees into `ArrowLeft`/ArrowRight hold durations.
 
 ### 3. The Traversal (`src/core/traversal.js`)
-**PLEDGE Wall-Following Algorithm** (v6.1.8):
+**PLEDGE Wall-Following Algorithm** (v6.1.9):
 
 | State | Trigger | Action |
 |-------|---------|--------|
@@ -232,7 +232,7 @@ Handles orientation and turning:
 | **Graph** | `graph.js` | EnhancedTransitionGraph with NodeInfo |
 | **URL Utils** | `url-utils.js` | Extract location/yaw from Google Maps URLs |
 
-**v6.1.8 Features:**
+**v6.1.9 Features:**
 - Modular architecture (config, yaw, graph, url-utils)
 - 234 tests covering all modules
 - Territory Oracle for deterministic testing

@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v6.1.8 - EXTENSION BUNDLE
-// Built: 2026-03-30T21:48:07.990Z
+// Drunk Walker v6.1.9 - EXTENSION BUNDLE
+// Built: 2026-03-30T21:54:27.572Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -18,7 +18,7 @@
   window.DRUNK_WALKER_EXTENSION_INJECTED = true;
 
   // === VERSION ===
-  const VERSION = '6.1.8';
+  const VERSION = '6.1.9';
 
 
   // === WHEEL ===
@@ -102,7 +102,7 @@ function createWheel(callbacks) {
 
   // === TRAVERSAL ALGORITHMS ===
   /**
- * Traversal Algorithm v6.1.5 - PURE PLEDGE Wall-Following
+ * Traversal Algorithm v6.1.9 - PURE PLEDGE Wall-Following
  *
  * SIMPLE PLEDGE: FORWARD → TURN LEFT 105° → WALL-FOLLOW → BREAK WALL
  * NO breadcrumb navigation - pure wall-following only!
@@ -125,7 +125,7 @@ const __export_dummy = { extractLocationFromUrl, extractYawFromUrl } from './url
  */
 
 /**
- * PURE PLEDGE ALGORITHM v6.1.5
+ * PURE PLEDGE ALGORITHM v6.1.9
  */
 function createUnifiedAlgorithm(cfg) {
   const panicThreshold = cfg.panicThreshold || 3;
@@ -692,7 +692,7 @@ const __default_export = {
 
   // === CORE ENGINE ===
   /**
- * Drunk Walker Core Engine v6.1.5
+ * Drunk Walker Core Engine v6.1.9
  *
  * ARCHITECTURE:
  * - Engine: State management, tick timing, path recording
@@ -1371,7 +1371,7 @@ function setupInteractionListeners(callbacks = {}) {
   /**
  * Exploration Map Component
  * Renders a mini-map showing explored territory from walker's perspective
- * v6.1.5
+ * v6.1.9
  */
 
 function createExplorationMap() {

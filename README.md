@@ -195,7 +195,8 @@ npm test             # Run 162+ tests
 
 | Version | Changes |
 |---------|---------|
-| **v6.1.8** | Latest release
+| **v6.1.9** | Latest release
+| **v6.1.7** | Latest release
 | **v6.1.7** | Latest release
 | **v6.1.7** | Latest release
 | **v6.1.7** | Latest release
