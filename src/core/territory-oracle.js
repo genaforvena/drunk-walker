@@ -307,7 +307,8 @@ export class TerritoryOracle {
           yawBucket: bucket,
           targetLocation: conn.targetLocation,
           isReverse: conn.isReverse || false,
-          exactYaw: conn.exactYaw
+          exactYaw: conn.exactYaw,
+          exactToYaw: conn.exactToYaw  // CRITICAL: yaw after landing at target
         });
       }
     }

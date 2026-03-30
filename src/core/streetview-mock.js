@@ -165,10 +165,10 @@ export class StreetViewMock {
   /**
    * Initialize at a starting location
    */
-  initialize(startLocation) {
+  initialize(startLocation, startYaw = 0) {
     this.currentLocation = startLocation;
-    this.currentYaw = 0;
-    this.url = generateUrl(startLocation, 0);
+    this.currentYaw = startYaw;
+    this.url = generateUrl(startLocation, startYaw);
     this.stuckCount = 0;
     this.lastLocation = null;
     return this.url;

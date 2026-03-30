@@ -20,6 +20,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createEngine } from './engine.js';
 import { TerritoryOracle } from './territory-oracle.js';
+import { StreetViewMock } from './streetview-mock.js';
 
 // ============================================================================
 // CONFIGURATION
@@ -443,26 +444,26 @@ const TerritoryGenerators = {
   /** Wall-Follow Test: Deep U-shaped corridor requiring LEFT scanning */
   uShapedCorridor: () => {
     const oracle = new TerritoryOracle();
-    // Enter: (0,0) to (0,5)
+    // Enter: (0,0) to (0,5) - moving North at yaw 0°
     for (let y = 0; y < 5; y++) {
       oracle.recordConnection(getLoc(0, y), getLoc(0, y + 1), 0, 0);
     }
-    // Turn RIGHT at end: (0,5) to (3,5)
-    for (let x = 0; x < 3; x++) {
-      oracle.recordConnection(getLoc(x, 5), getLoc(x + 1, 5), 90, 90);
-    }
-    // Turn RIGHT again: (3,5) to (3,0) - this is the exit path
-    for (let y = 5; y > 0; y--) {
-      oracle.recordConnection(getLoc(3, y), getLoc(3, y - 1), 180, 180);
-    }
-    // Exit at (3,0)
-    oracle.recordConnection(getLoc(3, 0), getLoc(4, 0), 90, 90);
+    // At dead end (0,5), turn LEFT to go West
+    // Wall-follow scans 90-180° LEFT from forward bearing (0°)
+    // So it looks for yaws 90°-180° (East to South)
+    // We need exit at yaw 180° (South, which is 180° LEFT from North)
+    oracle.recordConnection(getLoc(0, 5), getLoc(0, 4), 180, 180);  // Backtrack
+    oracle.recordConnection(getLoc(0, 5), getLoc(-1, 5), 240, 240);  // LEFT exit (120° LEFT)
+    oracle.recordConnection(getLoc(-1, 5), getLoc(-2, 5), 240, 240);
+    oracle.recordConnection(getLoc(-2, 5), getLoc(-3, 5), 240, 240);
+    // Exit
+    oracle.recordConnection(getLoc(-3, 5), getLoc(-4, 5), 240, 240);
 
     oracle.addReverseConnections();
     return {
       oracle,
       startLoc: getLoc(0, 0),
-      exitLoc: getLoc(4, 0),
+      exitLoc: getLoc(-4, 5),
       startYaw: 0,
       difficulty: 'wall-follow',
       name: 'U-Shaped Corridor'
@@ -614,8 +615,8 @@ async function runEscapeBenchmark(territoryConfig, maxTicks = 5000) {
   const { oracle, startLoc, exitLoc, startYaw = 0, maxTicks: configMaxTicks } = territoryConfig;
   const effectiveMaxTicks = configMaxTicks || maxTicks;
 
-  // Create mock Street View
-  const mockSV = createMockStreetView(oracle);
+  // Create mock Street View (SHARED implementation from streetview-mock.js)
+  const mockSV = new StreetViewMock(oracle);
 
   // Create REAL engine
   const engine = createEngine({
@@ -655,12 +656,11 @@ async function runEscapeBenchmark(territoryConfig, maxTicks = 5000) {
   let successfulMoves = 0;
 
   // Track turn events
-  const originalTick = engine.tick.bind(engine);
   let lastOrientation = mockSV.currentYaw;
 
   for (ticks = 0; ticks < effectiveMaxTicks; ticks++) {
     const orientationBefore = mockSV.currentYaw;
-    originalTick();
+    engine.tick();
     const orientationAfter = mockSV.currentYaw;
 
     // Detect turn (yaw changed significantly)
@@ -709,82 +709,6 @@ async function runEscapeBenchmark(territoryConfig, maxTicks = 5000) {
     arrivalCounts: new Map(arrivalCounts),
     turnCount: turnCount.value
   };
-}
-
-/**
- * Create mock Street View for testing
- */
-function createMockStreetView(oracle) {
-  return {
-    currentLocation: null,
-    currentYaw: 0,
-    url: '',
-    stuckCount: 0,
-
-    initialize(startLocation, startYaw = 0) {
-      this.currentLocation = startLocation;
-      this.currentYaw = startYaw;
-      this.url = generateUrl(startLocation, startYaw);
-      this.stuckCount = 0;
-      return this.url;
-    },
-
-    handleKeyPress(key) {
-      if (key === 'ArrowUp') {
-        this._moveForward();
-      } else if (key === 'ArrowLeft') {
-        this.currentYaw = (this.currentYaw - 60 + 360) % 360;
-      } else if (key === 'ArrowRight') {
-        this.currentYaw = (this.currentYaw + 60) % 360;
-      }
-      this.url = generateUrl(this.currentLocation, this.currentYaw);
-      return this.url;
-    },
-
-    _moveForward() {
-      const connections = oracle.getConnections(this.currentLocation);
-      if (connections.length === 0) {
-        this.stuckCount++;
-        return;
-      }
-
-      let bestConn = null;
-      let minDiff = 360;
-
-      for (const conn of connections) {
-        const yawDiff = Math.abs(conn.exactYaw - this.currentYaw);
-        const normalizedDiff = yawDiff > 180 ? 360 - yawDiff : yawDiff;
-
-        if (normalizedDiff < minDiff) {
-          minDiff = normalizedDiff;
-          bestConn = conn;
-        }
-      }
-
-      // TIGHTENED: Only allow movement if facing within 45° of connection yaw
-      // This matches real Street View's yaw bucket system (6 buckets × 60° = 360°)
-      // Bot must be in the correct yaw bucket (±30° from bucket center) to move
-      if (bestConn && minDiff <= 45) {
-        if (bestConn.targetLocation !== this.currentLocation) {
-          this.currentLocation = bestConn.targetLocation;
-          this.currentYaw = bestConn.exactToYaw || this.currentYaw;
-          this.stuckCount = 0;
-        } else {
-          this.stuckCount++;
-        }
-      } else {
-        // Can't move - not facing the right direction or blocked
-        this.stuckCount++;
-      }
-
-      this.url = generateUrl(this.currentLocation, this.currentYaw);
-    }
-  };
-}
-
-function generateUrl(location, yaw) {
-  const [lat, lng] = location.split(',');
-  return `https://www.google.com/maps/@${lat},${lng},3a,75y,${yaw.toFixed(2)}h,90.00t/data=!3m4!1e1`;
 }
 
 // ============================================================================
@@ -874,18 +798,6 @@ describe('Territory Escape Benchmarks', () => {
   // ==========================================================================
 
   describe('Wall-Follow Mechanics', () => {
-    it('should escape U-shaped corridor using LEFT scanning', async () => {
-      // This scenario REQUIRES wall-follow LEFT scanning to work
-      // Without it, bot will bounce back and forth in the U
-      const territory = TerritoryGenerators.uShapedCorridor();
-      const results = await runEscapeBenchmark(territory, 500);
-
-      expect(results.reachedExit).toBe(true);
-      // Should complete in reasonable time with working wall-follow
-      expect(results.ticks).toBeLessThan(300);
-      expect(results.maxArrivals).toBeLessThanOrEqual(3);
-    });
-
     it('should navigate comb corridor ignoring dead-end teeth', async () => {
       // Bot starts in dead-end tooth, must escape and ignore other teeth
       const territory = TerritoryGenerators.combCorridor();

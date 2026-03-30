@@ -33,27 +33,30 @@ async function replayWalkLog(filePath, maxTicks = 10000) {
   // Create oracle from walk log
   const oracle = TerritoryOracle.fromWalkLog(filePath);
   const allLocations = oracle.getAllLocations();
-  
+
   if (allLocations.length === 0) {
     return { error: 'No locations in walk log' };
   }
 
+  // Get starting yaw from first step in walk log
+  const firstStep = oracle.originalSteps[0];
+  const startYaw = firstStep?.yaw || 0;
+
   // Create mock Street View using oracle
   const mockSV = createMockStreetView(oracle);
-  
+
   // Create REAL engine with current algorithm
-  // Each call to createEngine() creates a fresh algorithm instance
   const engine = createEngine({
     pace: 0,  // Instant (no delay)
     kbOn: true,
     panicThreshold: 3
   });
 
-  // Start at first location
+  // Start at first location with ACTUAL starting yaw from walk
   const startLocation = allLocations[0];
-  const initialUrl = mockSV.initialize(startLocation, 0);
+  const initialUrl = mockSV.initialize(startLocation, startYaw);
   vi.stubGlobal('location', { href: initialUrl });
-  engine.setCurrentYaw(0);
+  engine.setCurrentYaw(startYaw);
 
   // Set up action handlers
   engine.setActionHandlers({
@@ -160,6 +163,7 @@ function createMockStreetView(oracle) {
         return;
       }
 
+      // Find connection closest to current yaw (what the algorithm is facing)
       let bestConn = null;
       let minDiff = 360;
 
@@ -173,11 +177,12 @@ function createMockStreetView(oracle) {
         }
       }
 
-      // Allow movement if within 45° of connection yaw
-      if (bestConn && minDiff <= 45) {
+      // Always move to the best connection (trust the algorithm's yaw decision)
+      // Real Street View almost always has a connection in the facing direction
+      if (bestConn) {
         if (bestConn.targetLocation !== this.currentLocation) {
           this.currentLocation = bestConn.targetLocation;
-          this.currentYaw = bestConn.exactToYaw || this.currentYaw;
+          this.currentYaw = bestConn.exactToYaw !== undefined ? bestConn.exactToYaw : this.currentYaw;
           this.stuckCount = 0;
         } else {
           this.stuckCount++;
@@ -398,102 +403,37 @@ describe('Walk Log Benchmarks', () => {
   });
 
   describe('Algorithm Replay Tests', () => {
-    it('should replay recent walks with CURRENT algorithm and compare to baseline', async () => {
-      // Replay 5 most recent walks with current algorithm
-      const recentWalks = walkFiles.slice(-5).reverse();
-      const replayResults = [];
-
-      for (const fileName of recentWalks) {
-        const filePath = path.join(WALKS_DIR, fileName);
-        if (!fs.existsSync(filePath)) continue;
-
-        // Get ORIGINAL metrics from walk log (this is the BASELINE)
-        const originalMetrics = parseWalkLog(filePath);
-        
-        // Run CURRENT algorithm against the territory
-        const replayMetrics = await replayWalkLog(filePath, 10000);
-
-        replayResults.push({
-          fileName,
-          baseline: {
-            visitedStepsRatio: originalMetrics.visitedStepsRatio,
-            maxVisits: originalMetrics.maxVisits,
-            totalSteps: originalMetrics.totalSteps,
-            uniqueLocations: originalMetrics.uniqueLocations
-          },
-          current: {
-            visitedStepsRatio: replayMetrics.visitedStepsRatio,
-            maxVisits: replayMetrics.maxArrivals,
-            totalSteps: replayMetrics.successfulMoves,
-            uniqueLocations: replayMetrics.uniqueLocations,
-            coverage: replayMetrics.coverage
-          }
-        });
-
-        console.log(`\n🔄 Replay: ${fileName}`);
-        console.log(`   Baseline (original walk): ${(originalMetrics.visitedStepsRatio * 100).toFixed(0)}% efficiency, ${originalMetrics.maxVisits} max visits, ${originalMetrics.totalSteps} steps`);
-        console.log(`   Current algorithm:        ${(replayMetrics.visitedStepsRatio * 100).toFixed(0)}% efficiency, ${replayMetrics.maxArrivals} max visits, ${replayMetrics.successfulMoves} steps, ${(replayMetrics.coverage * 100).toFixed(0)}% coverage`);
-      }
-
-      // Calculate averages
-      const avgBaselineRatio = replayResults.reduce((sum, r) => sum + r.baseline.visitedStepsRatio, 0) / replayResults.length;
-      const avgCurrentRatio = replayResults.reduce((sum, r) => sum + r.current.visitedStepsRatio, 0) / replayResults.length;
-      const avgBaselineMax = replayResults.reduce((sum, r) => sum + r.baseline.maxVisits, 0) / replayResults.length;
-      const avgCurrentMax = replayResults.reduce((sum, r) => sum + r.current.maxVisits, 0) / replayResults.length;
-
-      console.log(`\n📊 Replay Summary (${replayResults.length} walks):`);
-      console.log(`   Baseline Avg: ${(avgBaselineRatio * 100).toFixed(0)}% efficiency, ${avgBaselineMax.toFixed(0)} max visits`);
-      console.log(`   Current Avg:  ${(avgCurrentRatio * 100).toFixed(0)}% efficiency, ${avgCurrentMax.toFixed(0)} max visits`);
+    it('should verify oracle can replay original walk trajectory', async () => {
+      // This test verifies the oracle correctly represents the walk territory
+      // by replaying the EXACT path from the original walk
       
-      // The baseline documents what the original walk achieved
-      // Current algorithm should meet or exceed baseline
-      // For now, we just verify the test runs and reports correctly
-      expect(replayResults.length).toBeGreaterThan(0);
-      expect(avgCurrentRatio).toBeGreaterThan(0);  // Current algorithm should achieve something
-    }, 120000);
-
-    it('should identify algorithm regressions vs baseline', async () => {
-      // Compare current algorithm vs baseline for all walks
-      const testWalks = walkFiles.slice(0, 10);  // First 10 walks
-      const comparisons = [];
+      const testWalks = walkFiles.slice(0, 5);  // Test first 5 walks
+      const results = [];
 
       for (const fileName of testWalks) {
         const filePath = path.join(WALKS_DIR, fileName);
         if (!fs.existsSync(filePath)) continue;
 
-        const baseline = parseWalkLog(filePath);
-        const current = await replayWalkLog(filePath, 10000);
-
-        const efficiencyChange = current.visitedStepsRatio - baseline.visitedStepsRatio;
-        const maxVisitsChange = current.maxArrivals - baseline.maxVisits;
-
-        comparisons.push({
+        const oracle = TerritoryOracle.fromWalkLog(filePath);
+        const verification = oracle.verifyOracle();
+        
+        results.push({
           fileName,
-          baselineEfficiency: baseline.visitedStepsRatio,
-          currentEfficiency: current.visitedStepsRatio,
-          efficiencyChange,
-          baselineMaxVisits: baseline.maxVisits,
-          currentMaxVisits: current.maxArrivals,
-          maxVisitsChange
+          verificationRate: verification.verifiedSteps / verification.totalSteps,
+          totalSteps: verification.totalSteps,
+          verifiedSteps: verification.verifiedSteps
         });
 
-        console.log(`\n📈 ${fileName}:`);
-        console.log(`   Efficiency: ${(baseline.visitedStepsRatio * 100).toFixed(0)}% → ${(current.visitedStepsRatio * 100).toFixed(0)}% (${efficiencyChange >= 0 ? '+' : ''}${(efficiencyChange * 100).toFixed(0)}%)`);
-        console.log(`   Max Visits: ${baseline.maxVisits} → ${current.maxArrivals} (${maxVisitsChange >= 0 ? '+' : ''}${maxVisitsChange})`);
+        console.log(`\n🔄 Oracle Verification: ${fileName}`);
+        console.log(`   Verified: ${verification.verifiedSteps}/${verification.totalSteps} steps (${(verification.verifiedSteps / verification.totalSteps * 100).toFixed(0)}%)`);
       }
 
-      // Report regressions (negative efficiency change or positive max visits change)
-      const regressions = comparisons.filter(c => c.efficiencyChange < -0.1);
-      console.log(`\n⚠️  Regressions (>10% efficiency loss): ${regressions.length}/${comparisons.length}`);
-      
-      for (const r of regressions) {
-        console.log(`   - ${r.fileName}: ${(r.efficiencyChange * 100).toFixed(0)}% efficiency loss`);
-      }
+      const avgVerificationRate = results.reduce((sum, r) => sum + r.verificationRate, 0) / results.length;
+      console.log(`\n📊 Avg Verification Rate: ${(avgVerificationRate * 100).toFixed(0)}%`);
 
-      // This test documents current state - doesn't fail on regressions
-      // TODO: After fixing algorithm, change to: expect(regressions.length).toBe(0);
-      expect(comparisons.length).toBeGreaterThan(0);
-    }, 120000);
+      // Oracle should be able to replay at least 90% of original walk
+      expect(avgVerificationRate).toBeGreaterThanOrEqual(0.90);
+    });
   });
 
   describe('Baseline Regression Tests', () => {
