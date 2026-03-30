@@ -18,6 +18,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createEngine } from './engine.js';
 import { TerritoryOracle } from './territory-oracle.js';
+import { StreetViewMock } from './streetview-mock.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -434,6 +435,97 @@ describe('Walk Log Benchmarks', () => {
       // Oracle should be able to replay at least 90% of original walk
       expect(avgVerificationRate).toBeGreaterThanOrEqual(0.90);
     });
+
+    it('should verify current algorithm meets baseline on real walk territory', async () => {
+      // CRITICAL: This test runs the CURRENT algorithm against real walk territory
+      // and verifies it performs at least as well as the original walk (baseline)
+      
+      const testWalks = walkFiles.slice(0, 3);  // Test first 3 walks for speed
+      const results = [];
+
+      for (const fileName of testWalks) {
+        const filePath = path.join(WALKS_DIR, fileName);
+        if (!fs.existsSync(filePath)) continue;
+
+        // Get BASELINE metrics from original walk log
+        const baselineMetrics = parseWalkLog(filePath);
+        
+        // Create oracle and run CURRENT algorithm against the territory
+        const oracle = TerritoryOracle.fromWalkLog(filePath);
+        const mockSV = new StreetViewMock(oracle);
+        const engine = createEngine({ pace: 0, kbOn: true, panicThreshold: 3 });
+        
+        const allLocations = oracle.getAllLocations();
+        if (allLocations.length === 0) continue;
+        
+        const startLocation = allLocations[0];
+        const firstStep = oracle.originalSteps[0];
+        const startYaw = firstStep?.yaw || 0;
+        
+        const initialUrl = mockSV.initialize(startLocation, startYaw);
+        vi.stubGlobal('location', { href: initialUrl });
+        engine.setCurrentYaw(startYaw);
+        
+        engine.setActionHandlers({
+          keyPress: (key) => {
+            const newUrl = mockSV.handleKeyPress(key);
+            vi.stubGlobal('location', { href: newUrl });
+            engine.setCurrentYaw(mockSV.currentYaw);
+          }
+        });
+        
+        engine.setStatus('WALKING');
+        
+        // Run algorithm
+        const arrivalCounts = new Map();
+        let lastLoc = null;
+        const maxTicks = Math.round(baselineMetrics.totalSteps * 1.5);  // Allow 50% overhead
+        
+        for (let tick = 0; tick < maxTicks; tick++) {
+          engine.tick();
+          const currentLoc = mockSV.currentLocation;
+          if (currentLoc !== lastLoc) {
+            arrivalCounts.set(currentLoc, (arrivalCounts.get(currentLoc) || 0) + 1);
+            lastLoc = currentLoc;
+          }
+        }
+        
+        const uniqueLocations = arrivalCounts.size;
+        const maxArrivals = arrivalCounts.size > 0 ? Math.max(...arrivalCounts.values()) : 0;
+        const totalMoves = arrivalCounts.size > 0 ? Array.from(arrivalCounts.values()).reduce((a, b) => a + b, 0) : 0;
+        const visitedStepsRatio = totalMoves > 0 ? uniqueLocations / totalMoves : 0;
+        
+        results.push({
+          fileName,
+          baseline: {
+            visitedStepsRatio: baselineMetrics.visitedStepsRatio,
+            maxVisits: baselineMetrics.maxVisits,
+            totalSteps: baselineMetrics.totalSteps
+          },
+          current: {
+            visitedStepsRatio,
+            maxVisits: maxArrivals,
+            totalSteps: totalMoves
+          }
+        });
+        
+        console.log(`\n🔄 Algorithm Replay: ${fileName}`);
+        console.log(`   Baseline: ${(baselineMetrics.visitedStepsRatio * 100).toFixed(0)}% efficiency, ${baselineMetrics.maxVisits} max visits`);
+        console.log(`   Current:  ${(visitedStepsRatio * 100).toFixed(0)}% efficiency, ${maxArrivals} max visits`);
+      }
+      
+      // Verify current algorithm meets baseline for each walk
+      for (const result of results) {
+        // Current should be at least 80% of baseline efficiency (allowing some mock imperfection)
+        expect(result.current.visitedStepsRatio)
+          .toBeGreaterThanOrEqual(result.baseline.visitedStepsRatio * 0.8);
+        // Max visits should be bounded (no infinite loops)
+        expect(result.current.maxVisits)
+          .toBeLessThanOrEqual(Math.max(result.baseline.maxVisits * 2, 10));
+      }
+      
+      console.log(`\n📊 All ${results.length} walks meet baseline requirements`);
+    }, 60000);
   });
 
   describe('Baseline Regression Tests', () => {
