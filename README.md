@@ -200,6 +200,7 @@ npm test             # Run 162+ tests
 | **v6.1.7** | Latest release
 | **v6.1.7** | Latest release
 | **v6.1.7** | Latest release
+| **v6.1.7** | Latest release
 | **v6.1.5** | Latest release
 | **v6.1.5** | Latest release
 | **v6.1.5** | Latest release
