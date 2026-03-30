@@ -437,6 +437,90 @@ const TerritoryGenerators = {
   },
 
   // ==========================================================================
+  // WALL-FOLLOW SPECIFIC TESTS
+  // ==========================================================================
+
+  /** Wall-Follow Test: Deep U-shaped corridor requiring LEFT scanning */
+  uShapedCorridor: () => {
+    const oracle = new TerritoryOracle();
+    // Enter: (0,0) to (0,5)
+    for (let y = 0; y < 5; y++) {
+      oracle.recordConnection(getLoc(0, y), getLoc(0, y + 1), 0, 0);
+    }
+    // Turn RIGHT at end: (0,5) to (3,5)
+    for (let x = 0; x < 3; x++) {
+      oracle.recordConnection(getLoc(x, 5), getLoc(x + 1, 5), 90, 90);
+    }
+    // Turn RIGHT again: (3,5) to (3,0) - this is the exit path
+    for (let y = 5; y > 0; y--) {
+      oracle.recordConnection(getLoc(3, y), getLoc(3, y - 1), 180, 180);
+    }
+    // Exit at (3,0)
+    oracle.recordConnection(getLoc(3, 0), getLoc(4, 0), 90, 90);
+
+    oracle.addReverseConnections();
+    return {
+      oracle,
+      startLoc: getLoc(0, 0),
+      exitLoc: getLoc(4, 0),
+      startYaw: 0,
+      difficulty: 'wall-follow',
+      name: 'U-Shaped Corridor'
+    };
+  },
+
+  /** Wall-Follow Test: Deep dead-end requiring LEFT scan to find side exit */
+  deadEndWithLeftExit: () => {
+    const oracle = new TerritoryOracle();
+    // Long corridor: (0,0) to (0,8)
+    for (let y = 0; y < 8; y++) {
+      oracle.recordConnection(getLoc(0, y), getLoc(0, y + 1), 0, 0);
+    }
+    // Dead end at (0,8) - no forward exit
+    // LEFT exit at (0,5) going to (-1,5) - this is the ONLY escape
+    // Use 180° (South) which is exactly 180° LEFT from North (forward bearing)
+    oracle.recordConnection(getLoc(0, 5), getLoc(-1, 5), 180, 180);
+    oracle.recordConnection(getLoc(-1, 5), getLoc(-2, 5), 180, 180);
+    // Exit from (-2,5)
+    oracle.recordConnection(getLoc(-2, 5), getLoc(-3, 5), 180, 180);
+
+    oracle.addReverseConnections();
+    return {
+      oracle,
+      startLoc: getLoc(0, 0),
+      exitLoc: getLoc(-3, 5),
+      startYaw: 0,
+      difficulty: 'wall-follow',
+      name: 'Dead End with LEFT Exit'
+    };
+  },
+
+  /** Wall-Follow Test: Comb requiring LEFT scan at each tooth */
+  combCorridor: () => {
+    const oracle = new TerritoryOracle();
+    // Main corridor: (0,0) to (0,10)
+    for (let y = 0; y < 10; y++) {
+      oracle.recordConnection(getLoc(0, y), getLoc(0, y + 1), 0, 0);
+    }
+    // Dead-end teeth on the RIGHT side (bot should ignore these)
+    for (let y = 2; y < 10; y += 2) {
+      oracle.recordConnection(getLoc(0, y), getLoc(1, y), 90, 90);
+    }
+    // Exit at top
+    oracle.recordConnection(getLoc(0, 10), getLoc(0, 11), 0, 0);
+
+    oracle.addReverseConnections();
+    return {
+      oracle,
+      startLoc: getLoc(1, 2),  // Start in first dead-end tooth
+      exitLoc: getLoc(0, 11),
+      startYaw: 270,  // Facing west into main corridor
+      difficulty: 'wall-follow',
+      name: 'Comb Corridor'
+    };
+  },
+
+  // ==========================================================================
   // STRESS TESTS (3 Large-scale scenarios)
   // ==========================================================================
 
@@ -677,6 +761,9 @@ function createMockStreetView(oracle) {
         }
       }
 
+      // TIGHTENED: Only allow movement if facing within 45° of connection yaw
+      // This matches real Street View's yaw bucket system (6 buckets × 60° = 360°)
+      // Bot must be in the correct yaw bucket (±30° from bucket center) to move
       if (bestConn && minDiff <= 45) {
         if (bestConn.targetLocation !== this.currentLocation) {
           this.currentLocation = bestConn.targetLocation;
@@ -686,6 +773,7 @@ function createMockStreetView(oracle) {
           this.stuckCount++;
         }
       } else {
+        // Can't move - not facing the right direction or blocked
         this.stuckCount++;
       }
 
@@ -782,6 +870,35 @@ describe('Territory Escape Benchmarks', () => {
   });
 
   // ==========================================================================
+  // WALL-FOLLOW SPECIFIC TESTS
+  // ==========================================================================
+
+  describe('Wall-Follow Mechanics', () => {
+    it('should escape U-shaped corridor using LEFT scanning', async () => {
+      // This scenario REQUIRES wall-follow LEFT scanning to work
+      // Without it, bot will bounce back and forth in the U
+      const territory = TerritoryGenerators.uShapedCorridor();
+      const results = await runEscapeBenchmark(territory, 500);
+
+      expect(results.reachedExit).toBe(true);
+      // Should complete in reasonable time with working wall-follow
+      expect(results.ticks).toBeLessThan(300);
+      expect(results.maxArrivals).toBeLessThanOrEqual(3);
+    });
+
+    it('should navigate comb corridor ignoring dead-end teeth', async () => {
+      // Bot starts in dead-end tooth, must escape and ignore other teeth
+      const territory = TerritoryGenerators.combCorridor();
+      const results = await runEscapeBenchmark(territory, 500);
+
+      expect(results.reachedExit).toBe(true);
+      // Should not waste time in other dead-end teeth
+      expect(results.stepsPerLocation).toBeLessThan(3.0);
+      expect(results.maxArrivals).toBeLessThanOrEqual(3);
+    });
+  });
+
+  // ==========================================================================
   // STRESS TESTS
   // ==========================================================================
 
@@ -844,5 +961,87 @@ describe('Territory Escape Benchmarks', () => {
     console.log(`   Avg Turns/100: ${avgTurnsPer100.toFixed(1)}`);
 
     expect(escapeRate).toBeGreaterThanOrEqual(0.75);  // At least 75% escape rate
+  });
+
+  // ==========================================================================
+  // EFFICIENCY TESTS - Verify algorithm performs WELL, not just escapes
+  // ==========================================================================
+
+  describe('Algorithm Efficiency', () => {
+    it('should escape cul-de-sac with PLEDGE efficiency (≤2 visits per node)', async () => {
+      const territory = TerritoryGenerators.culDeSac();
+      const results = await runEscapeBenchmark(territory);
+
+      // PLEDGE guarantee: each node visited at most twice
+      expect(results.maxArrivals).toBeLessThanOrEqual(2);
+      // Efficient exploration: close to 1 step per location
+      expect(results.stepsPerLocation).toBeLessThan(2.0);
+    });
+
+    it('should handle double cul-de-sac without excessive revisits', async () => {
+      const territory = TerritoryGenerators.doubleCulDeSac();
+      const results = await runEscapeBenchmark(territory);
+
+      // Should escape both dead ends efficiently
+      expect(results.maxArrivals).toBeLessThanOrEqual(2);
+      expect(results.stepsPerLocation).toBeLessThan(2.5);
+    });
+
+    it('should navigate figure-8 without getting stuck in loops', async () => {
+      const territory = TerritoryGenerators.figure8();
+      const results = await runEscapeBenchmark(territory);
+
+      // Figure-8 has cycles - algorithm must not loop infinitely
+      expect(results.maxArrivals).toBeLessThanOrEqual(3);  // Allow 3 for oscillation
+      expect(results.stepsPerLocation).toBeLessThan(3.0);
+    });
+
+    it('should show wall-follow efficiency on complex city', async () => {
+      const territory = TerritoryGenerators.complexCity();
+      const results = await runEscapeBenchmark(territory);
+
+      // Complex city requires proper wall-following
+      expect(results.maxArrivals).toBeLessThanOrEqual(3);
+      // Should not waste excessive steps
+      expect(results.stepsPerLocation).toBeLessThan(3.0);
+      expect(results.turnsPer100).toBeLessThan(150);  // Higher threshold for complex scenarios
+    });
+  });
+
+  // ==========================================================================
+  // REGRESSION TESTS - Catch specific algorithm bugs
+  // ==========================================================================
+
+  describe('Algorithm Regression Detection', () => {
+    it('should detect wall-follow breakdown (cul-de-sac escape)', async () => {
+      // This test specifically requires wall-follow LEFT scanning to work
+      const territory = TerritoryGenerators.culDeSac();
+      const results = await runEscapeBenchmark(territory, 500);  // Limited ticks
+
+      // Must escape the cul-de-sac
+      expect(results.reachedExit).toBe(true);
+      // Must not waste excessive time (would indicate broken wall-follow)
+      expect(results.ticks).toBeLessThan(200);
+    });
+
+    it('should detect BREAK_WALL breakdown (exhausted node escape)', async () => {
+      // Figure-8 requires BREAK_WALL when all yaws exhausted
+      const territory = TerritoryGenerators.figure8();
+      const results = await runEscapeBenchmark(territory, 500);  // Limited ticks
+
+      expect(results.reachedExit).toBe(true);
+      // Should escape quickly with working BREAK_WALL
+      expect(results.ticks).toBeLessThan(300);
+    });
+
+    it('should detect stuck-detection breakdown', async () => {
+      // Oscillation trap tests stuck detection
+      const territory = TerritoryGenerators.oscillationTrap();
+      const results = await runEscapeBenchmark(territory, 300);
+
+      expect(results.reachedExit).toBe(true);
+      // Without stuck detection, this would loop forever
+      expect(results.maxArrivals).toBeLessThanOrEqual(3);
+    });
   });
 });
