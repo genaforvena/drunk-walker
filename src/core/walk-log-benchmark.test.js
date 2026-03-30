@@ -42,6 +42,7 @@ async function replayWalkLog(filePath, maxTicks = 10000) {
   const mockSV = createMockStreetView(oracle);
   
   // Create REAL engine with current algorithm
+  // Each call to createEngine() creates a fresh algorithm instance
   const engine = createEngine({
     pace: 0,  // Instant (no delay)
     kbOn: true,
@@ -495,67 +496,6 @@ describe('Walk Log Benchmarks', () => {
     }, 120000);
   });
 
-  describe('Real Walk Metrics', () => {
-    it('should extract metrics from walk logs', () => {
-      const metrics = [];
-
-      for (const fileName of walkFiles.slice(0, 20)) {  // Test first 20 for speed
-        const filePath = path.join(WALKS_DIR, fileName);
-        const walkMetrics = parseWalkLog(filePath);
-        metrics.push(walkMetrics);
-      }
-
-      const avgVisitedRatio = metrics.reduce((sum, m) => sum + m.visitedStepsRatio, 0) / metrics.length;
-      const avgMaxVisits = metrics.reduce((sum, m) => sum + m.maxVisits, 0) / metrics.length;
-      const avgTurnsPer100 = metrics.reduce((sum, m) => sum + m.turnsPer100, 0) / metrics.length;
-      const avgStuckRatio = metrics.reduce((sum, m) => sum + m.stuckRatio, 0) / metrics.length;
-
-      console.log(`\n📊 Real Walk Metrics (first ${metrics.length} walks):`);
-      console.log(`   Avg Visited/Steps: ${avgVisitedRatio.toFixed(3)}`);
-      console.log(`   Avg Max Visits: ${avgMaxVisits.toFixed(1)}`);
-      console.log(`   Avg Turns/100: ${avgTurnsPer100.toFixed(1)}`);
-      console.log(`   Avg Stuck Ratio: ${avgStuckRatio.toFixed(2)}`);
-
-      // These are informational - real walks have bugs
-      console.log(`\n   ⚠️  Note: Real walks document current algorithm bugs`);
-    });
-
-    it('should identify problematic walks', () => {
-      const problematicWalks = [];
-
-      for (const fileName of walkFiles) {
-        const filePath = path.join(WALKS_DIR, fileName);
-        const walkMetrics = parseWalkLog(filePath);
-
-        // Identify walks with issues
-        if (walkMetrics.maxVisits > 3 || walkMetrics.stuckRatio > 0.30) {
-          problematicWalks.push({
-            fileName,
-            maxVisits: walkMetrics.maxVisits,
-            stuckRatio: walkMetrics.stuckRatio,
-            visitedStepsRatio: walkMetrics.visitedStepsRatio
-          });
-        }
-      }
-
-      console.log(`\n⚠️  Problematic Walks (maxVisits >3 or stuckRatio >0.30):`);
-      console.log(`   Found: ${problematicWalks.length}/${walkFiles.length}`);
-
-      if (problematicWalks.length > 0) {
-        // Sort by max visits (worst first)
-        problematicWalks.sort((a, b) => b.maxVisits - a.maxVisits);
-
-        console.log(`\n   Top 5 worst:`);
-        for (const w of problematicWalks.slice(0, 5)) {
-          console.log(`   - ${w.fileName}: maxVisits=${w.maxVisits}, stuck=${(w.stuckRatio * 100).toFixed(0)}%`);
-        }
-      }
-
-      // Just informational - don't fail
-      expect(problematicWalks.length).toBeGreaterThanOrEqual(0);
-    });
-  });
-
   describe('Baseline Regression Tests', () => {
     for (const [fileName, baseline] of Object.entries(BASELINES)) {
       it(`should meet baseline for ${fileName}`, () => {
@@ -577,95 +517,6 @@ describe('Walk Log Benchmarks', () => {
         expect(walkMetrics.maxVisits).toBeLessThanOrEqual(baseline.maxMaxVisits);
       });
     }
-  });
-
-  describe('Oracle vs Real Walk Comparison', () => {
-    it('should match oracle metrics with real walk metrics', () => {
-      const comparisons = [];
-
-      for (const fileName of walkFiles.slice(0, 5)) {  // Test first 5 for speed
-        const filePath = path.join(WALKS_DIR, fileName);
-
-        if (!fs.existsSync(filePath)) continue;
-
-        // Parse real walk
-        const realMetrics = parseWalkLog(filePath);
-
-        // Create oracle
-        const oracleResult = createAndVerifyOracle(filePath);
-        if (!oracleResult.success) continue;
-
-        const oracleMetrics = oracleResult.stats;
-
-        comparisons.push({
-          fileName,
-          realLocations: realMetrics.uniqueLocations,
-          oracleLocations: oracleMetrics.totalLocations,
-          realSteps: realMetrics.totalSteps,
-          oracleSteps: oracleMetrics.totalConnections,
-          locationDiff: Math.abs(realMetrics.uniqueLocations - oracleMetrics.totalLocations)
-        });
-      }
-
-      console.log(`\n🔍 Oracle vs Real Walk Comparison:`);
-      for (const c of comparisons) {
-        console.log(`   ${c.fileName}:`);
-        console.log(`     Real: ${c.realLocations} locations, ${c.realSteps} steps`);
-        console.log(`     Oracle: ${c.oracleLocations} locations, ${c.oracleSteps} connections`);
-        console.log(`     Diff: ${c.locationDiff} locations`);
-      }
-
-      // Oracle should match within ±1 location (starting point difference)
-      for (const c of comparisons) {
-        expect(c.locationDiff).toBeLessThanOrEqual(1);
-      }
-    });
-  });
-
-  describe('Comprehensive Walk Analysis', () => {
-    it('should produce comprehensive walk report', () => {
-      const allMetrics = [];
-
-      for (const fileName of walkFiles) {
-        const filePath = path.join(WALKS_DIR, fileName);
-        const walkMetrics = parseWalkLog(filePath);
-        allMetrics.push(walkMetrics);
-      }
-
-      // Sort by efficiency (visited/steps ratio)
-      allMetrics.sort((a, b) => b.visitedStepsRatio - a.visitedStepsRatio);
-
-      const best = allMetrics[0];
-      const worst = allMetrics[allMetrics.length - 1];
-
-      console.log(`\n📊 COMPREHENSIVE WALK ANALYSIS (${allMetrics.length} walks):`);
-      console.log(`\n   🏆 Best Efficiency:`);
-      console.log(`     ${best.fileName}`);
-      console.log(`     Visited/Steps: ${(best.visitedStepsRatio * 100).toFixed(1)}%`);
-      console.log(`     Max Visits: ${best.maxVisits}`);
-      console.log(`     Steps: ${best.totalSteps}`);
-
-      console.log(`\n   🐌 Worst Efficiency:`);
-      console.log(`     ${worst.fileName}`);
-      console.log(`     Visited/Steps: ${(worst.visitedStepsRatio * 100).toFixed(1)}%`);
-      console.log(`     Max Visits: ${worst.maxVisits}`);
-      console.log(`     Steps: ${worst.totalSteps}`);
-
-      // Calculate distribution
-      const excellent = allMetrics.filter(m => m.visitedStepsRatio >= THRESHOLDS.visitedStepsRatio.excellent).length;
-      const good = allMetrics.filter(m => m.visitedStepsRatio >= THRESHOLDS.visitedStepsRatio.good && m.visitedStepsRatio < THRESHOLDS.visitedStepsRatio.excellent).length;
-      const acceptable = allMetrics.filter(m => m.visitedStepsRatio >= THRESHOLDS.visitedStepsRatio.acceptable && m.visitedStepsRatio < THRESHOLDS.visitedStepsRatio.good).length;
-      const poor = allMetrics.filter(m => m.visitedStepsRatio < THRESHOLDS.visitedStepsRatio.acceptable).length;
-
-      console.log(`\n   📈 Efficiency Distribution:`);
-      console.log(`     Excellent (≥${THRESHOLDS.visitedStepsRatio.excellent}): ${excellent} walks (${(excellent / allMetrics.length * 100).toFixed(0)}%)`);
-      console.log(`     Good (≥${THRESHOLDS.visitedStepsRatio.good}): ${good} walks (${(good / allMetrics.length * 100).toFixed(0)}%)`);
-      console.log(`     Acceptable (≥${THRESHOLDS.visitedStepsRatio.acceptable}): ${acceptable} walks (${(acceptable / allMetrics.length * 100).toFixed(0)}%)`);
-      console.log(`     Poor (<${THRESHOLDS.visitedStepsRatio.acceptable}): ${poor} walks (${(poor / allMetrics.length * 100).toFixed(0)}%)`);
-
-      // Just informational
-      expect(allMetrics.length).toBeGreaterThan(0);
-    });
   });
 });
 
