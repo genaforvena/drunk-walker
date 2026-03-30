@@ -95,6 +95,9 @@ export function createEngine(config = {}) {
   const getSteps = () => steps;
   const getStuckCount = () => stuckCount;
   const isNavigating = () => status === 'WALKING';
+  
+  // For testing: manually set status (use with caution!)
+  const setStatus = (newStatus) => { status = newStatus; };
 
   const setPace = (newPace) => {
     cfg.pace = newPace;
@@ -116,6 +119,7 @@ export function createEngine(config = {}) {
   const isUrlVisited = (url) => visitedUrls.has(extractLocation(url));
   const getCurrentYaw = () => wheel.getOrientation();
   const resetCurrentYaw = () => wheel.setOrientation(0);
+  const setCurrentYaw = (yaw) => wheel.setOrientation(yaw);  // For testing
   let cumulativeTurnAngle = 0;
   const getCumulativeTurnAngle = () => cumulativeTurnAngle;
   const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
@@ -476,6 +480,7 @@ export function createEngine(config = {}) {
 
   return {
     getStatus,
+    setStatus,  // For testing
     getSteps,
     getStuckCount,
     isNavigating,
@@ -495,6 +500,7 @@ export function createEngine(config = {}) {
     getVisitedUrls: () => visitedUrls,
     getCurrentYaw,
     resetCurrentYaw,
+    setCurrentYaw,  // For testing
     getCumulativeTurnAngle,
     resetCumulativeTurnAngle,
     restoreVisitedFromPath,

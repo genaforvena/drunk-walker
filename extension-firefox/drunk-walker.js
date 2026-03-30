@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Drunk Walker v6.1.5 - EXTENSION BUNDLE
-// Built: 2026-03-29T21:50:00.948Z
+// Drunk Walker v6.1.8 - EXTENSION BUNDLE
+// Built: 2026-03-30T00:01:18.653Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -18,7 +18,7 @@
   window.DRUNK_WALKER_EXTENSION_INJECTED = true;
 
   // === VERSION ===
-  const VERSION = '6.1.5';
+  const VERSION = '6.1.8';
 
 
   // === WHEEL ===
@@ -516,12 +516,9 @@ function createUnifiedAlgorithm(cfg) {
         return { turn: true, angle: turnAngle, direction: turnDirection };
       }
       // Facing correct direction - check if we're actually stuck
-      // If all yaws tried (including backtracking direction), fall through to BREAK_WALL
-      if (isExhausted) {
-        console.log(`🧱 WALL-FOLLOW: All yaws exhausted at dead end - breaking wall to escape!`);
-        // Fall through to BREAK_WALL logic below
-      } else if (stuckCount >= 1) {
-        // Stuck but has untried yaws - try them immediately!
+      // CRITICAL: Check stuck FIRST before isExhausted!
+      // If stuck with untried yaws, try them immediately to escape loops
+      if (stuckCount >= 1 && !isExhausted) {
         const untriedYaws = [0, 60, 120, 180, 240, 300].filter(y => !currentNode.triedYaws.has(y));
         if (untriedYaws.length > 0) {
           const nextYaw = untriedYaws[0];
@@ -532,7 +529,11 @@ function createUnifiedAlgorithm(cfg) {
           lastDecisionWasTurn = true;
           return { turn: true, angle: turnAngle, direction: turnDirection };
         }
-        // No untried yaws - fall through to BREAK_WALL
+      }
+      // If all yaws tried, fall through to BREAK_WALL
+      if (isExhausted) {
+        console.log(`🧱 WALL-FOLLOW: All yaws exhausted at dead end - breaking wall to escape!`);
+        // Fall through to BREAK_WALL logic below
       } else {
         // Still have untried yaws - just press ArrowUp to continue backtracking
         console.log(`🧱 WALL-FOLLOW: Backtracking (press ArrowUp)`);
@@ -917,6 +918,9 @@ function createEngine(config = {}) {
   const getStuckCount = () => stuckCount;
   const isNavigating = () => status === 'WALKING';
 
+  // For testing: manually set status (use with caution!)
+  const setStatus = (newStatus) => { status = newStatus; };
+
   const setPace = (newPace) => {
     cfg.pace = newPace;
     if (intervalId && status === 'WALKING') {
@@ -937,6 +941,7 @@ function createEngine(config = {}) {
   const isUrlVisited = (url) => visitedUrls.has(extractLocation(url));
   const getCurrentYaw = () => wheel.getOrientation();
   const resetCurrentYaw = () => wheel.setOrientation(0);
+  const setCurrentYaw = (yaw) => wheel.setOrientation(yaw);  // For testing
   let cumulativeTurnAngle = 0;
   const getCumulativeTurnAngle = () => cumulativeTurnAngle;
   const resetCumulativeTurnAngle = () => { cumulativeTurnAngle = 0; };
@@ -1297,6 +1302,7 @@ function createEngine(config = {}) {
 
   return {
     getStatus,
+    setStatus,  // For testing
     getSteps,
     getStuckCount,
     isNavigating,
@@ -1316,6 +1322,7 @@ function createEngine(config = {}) {
     getVisitedUrls: () => visitedUrls,
     getCurrentYaw,
     resetCurrentYaw,
+    setCurrentYaw,  // For testing
     getCumulativeTurnAngle,
     resetCumulativeTurnAngle,
     restoreVisitedFromPath,

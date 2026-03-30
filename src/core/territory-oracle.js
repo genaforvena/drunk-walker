@@ -36,13 +36,16 @@ export class TerritoryOracle {
     // Map: location → Map<yawBucket, Connection[]>
     // Each connection: { targetLocation, exactYaw, isReverse }
     this.connections = new Map();
-    
+
     // Map: location → visit count (from original walk)
     this.visitCounts = new Map();
     
+    // Map: location → NodeInfo (for algorithm simulation)
+    this.nodes = new Map();
+
     // Set of all known locations
     this.knownLocations = new Set();
-    
+
     // Original walk steps (for replay comparison)
     this.originalSteps = [];
   }
@@ -83,10 +86,22 @@ export class TerritoryOracle {
         const prevLocation = `${prevLat},${prevLng}`;
 
         this.knownLocations.add(location);
-        
+
         // Track visit count
         const count = this.visitCounts.get(location) || 0;
         this.visitCounts.set(location, count + 1);
+        
+        // Create node info for algorithm simulation
+        if (!this.nodes.has(location)) {
+          this.nodes.set(location, {
+            location,
+            lat: parseFloat(lat),
+            lng: parseFloat(lng),
+            triedYaws: new Set(),
+            successfulYaws: new Set(),
+            isFullyExplored: false
+          });
+        }
 
         // If location changed, record the connection
         if (prevLocation && prevLocation !== location && prevLocation !== 'null,null') {
@@ -132,16 +147,26 @@ export class TerritoryOracle {
     if (!this.connections.has(fromLoc)) {
       this.connections.set(fromLoc, new Map());
     }
+    
+    // Update node info
+    const fromNode = this.nodes.get(fromLoc);
+    if (fromNode) {
+      fromNode.triedYaws.add(yawBucket);
+      fromNode.successfulYaws.add(yawBucket);
+      if (fromNode.triedYaws.size >= 5) {
+        fromNode.isFullyExplored = true;
+      }
+    }
 
     const fromConnections = this.connections.get(fromLoc);
-    
+
     // Store ALL connections for this bucket (array, not single)
     if (!fromConnections.has(yawBucket)) {
       fromConnections.set(yawBucket, []);
     }
-    
+
     const bucketConnections = fromConnections.get(yawBucket);
-    
+
     // Check if this exact connection already exists
     const exists = bucketConnections.some(c => c.targetLocation === toLoc);
     if (!exists) {

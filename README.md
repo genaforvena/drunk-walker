@@ -195,6 +195,14 @@ npm test             # Run 162+ tests
 
 | Version | Changes |
 |---------|---------|
+| **v6.1.8** | Latest release
+| **v6.1.7** | Latest release
+| **v6.1.7** | Latest release
+| **v6.1.7** | Latest release
+| **v6.1.5** | Latest release
+| **v6.1.5** | Latest release
+| **v6.1.5** | Latest release
+| **v6.1.5** | Latest release
 | **v6.1.5** | Dual browser manifests (Chrome/Firefox), gh.io extension folders, mandatory release checklist |
 | **v6.1.4** | Territory Oracle, walk-driven development, wall-follow loop detection documented |
 | **v6.1.0** | PLEDGE wall-following implementation |

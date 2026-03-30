@@ -46,9 +46,26 @@ The **Territory Oracle** is a mock Street View that knows the actual connectivit
 
 **Key Properties:**
 1. **Deterministic:** Same algorithm → same results
-2. **Verifiable:** Oracle metrics match real walk metrics  
+2. **Verifiable:** Oracle metrics match real walk metrics
 3. **Baseline-Protected:** No change should make baselines worse
 4. **Fast:** Pure JavaScript, no browser needed
+
+### CRITICAL: How Testing Works
+
+**The oracle test has TWO purposes:**
+
+1. **Parsing Verification** - Verifies oracle correctly parses walk logs
+2. **Algorithm Simulation** - **RUNS THE CURRENT ALGORITHM** against the territory to verify fixes
+
+**Before a fix:**
+- Oracle parses the walk showing the bug (e.g., 12+ visits to one node)
+- Algorithm simulation will ALSO show 12+ visits (the bug is present)
+
+**After a fix:**
+- Oracle still parses the same walk (historical data doesn't change)
+- **Algorithm simulation shows improvement** (e.g., max visits drops to ≤3)
+
+**This is how we verify fixes actually work!**
 
 ### Step 1: Identify Issue from Walk Log
 

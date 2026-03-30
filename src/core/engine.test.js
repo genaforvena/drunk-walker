@@ -30,7 +30,7 @@ describe('Core Engine', () => {
     });
 
     it('should have correct version', () => {
-      expect(VERSION).toBe('6.1.5');
+      expect(VERSION).toBe('6.1.8');
     });
   });
 
@@ -223,7 +223,7 @@ describe('Core Engine', () => {
       expect(engine.getStuckCount()).toBe(0);
     });
 
-    // Note: PANIC status removed in v5.3.0 - stuckCount is used internally by algorithm
+    // Note: PANIC status removed in v6.1.8 - stuckCount is used internally by algorithm
   });
 
   describe('Configuration Changes', () => {

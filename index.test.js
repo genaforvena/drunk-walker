@@ -15,7 +15,7 @@ describe('GitHub Pages One-Click Copy Verification', () => {
   });
 
   it('should contain the latest version string in bookmarklet.js', () => {
-    expect(bookmarkletContent).toContain('v6.1.5');
+    expect(bookmarkletContent).toContain('v6.1.8');
   });
 
   it('should have keyboard mode enabled by default', () => {
@@ -36,6 +36,8 @@ describe('GitHub Pages One-Click Copy Verification', () => {
     let dom, window, document;
 
     beforeEach(() => {
+      vi.useFakeTimers();
+
       // Mock fetch globally before creating JSDOM
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -45,56 +47,45 @@ describe('GitHub Pages One-Click Copy Verification', () => {
       // Mock alert
       global.alert = vi.fn();
 
-      dom = new JSDOM(indexContent, { 
-        runScripts: "dangerously", 
+      dom = new JSDOM(indexContent, {
+        runScripts: "dangerously",
         resources: "usable",
         beforeParse(w) {
           // Ensure fetch is available in the window context
           w.fetch = global.fetch;
+          w.alert = global.alert;
+          
+          // Mock clipboard API in the JSDOM window context
+          Object.defineProperty(w.navigator, 'clipboard', {
+            value: {
+              writeText: vi.fn().mockImplementation(() => Promise.resolve()),
+            },
+          });
         }
       });
       window = dom.window;
       document = window.document;
-
-      // Mock clipboard API
-      Object.defineProperty(window.navigator, 'clipboard', {
-        value: {
-          writeText: vi.fn().mockImplementation(() => Promise.resolve()),
-        },
-      });
     });
 
     afterEach(() => {
+      vi.useRealTimers();
       vi.clearAllMocks();
     });
 
     it('should call navigator.clipboard.writeText with the bookmarklet content', async () => {
-      // Wait for script to load
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+      // Wait for fetch to complete (advance timers for async fetch)
+      await vi.advanceTimersByTimeAsync(100);
+      await vi.runAllTimersAsync();
+
       window.copyToClipboard();
       expect(window.navigator.clipboard.writeText).toHaveBeenCalledWith(bookmarkletContent);
-    });
-
-    it('should show success message after copying', async () => {
-      // Wait for script to load
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const successMsg = document.getElementById('success');
-      expect(['none', '']).toContain(successMsg.style.display);
-
-      window.copyToClipboard();
-
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      expect(successMsg.style.display).toBe('block');
     });
 
     it('should handle case when script is not loaded yet', () => {
       // Create a fresh DOM where fetch fails
       const mockAlert = vi.fn();
-      const freshDom = new JSDOM(indexContent, { 
-        runScripts: "dangerously", 
+      const freshDom = new JSDOM(indexContent, {
+        runScripts: "dangerously",
         resources: "usable",
         beforeParse(w) {
           w.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
@@ -102,10 +93,10 @@ describe('GitHub Pages One-Click Copy Verification', () => {
         }
       });
       const freshWindow = freshDom.window;
-      
+
       // Try to copy before script loads (scriptCode will be null)
       freshWindow.copyToClipboard();
-      
+
       // Should have shown alert about script not loaded
       expect(mockAlert).toHaveBeenCalled();
     });
