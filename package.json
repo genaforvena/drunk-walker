@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "build": "node build.js",
-    "test": "vitest run --exclude=src/integration.test.js",
+    "test": "vitest run",
     "test:watch": "vitest",
     "extension:icons": "node scripts/generate-icons.js",
     "extension:package": "node scripts/package-extension.js",
