@@ -160,9 +160,9 @@ if (yawDifference(current, target) < 20) {
   moveForward();  // Don't micro-adjust
 }
 
-// DEAD END TURN: 120° (not 180°)
+// DEAD END TURN: 105° (not 180°)
 // Points along left wall, not straight back
-turnLeft(120);  // Imperfect but productive
+turnLeft(105);  // Imperfect but productive
 
 // BREAK WALL: Random retry
 // Not systematic—just pick one and go
