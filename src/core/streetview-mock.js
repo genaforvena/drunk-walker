@@ -202,6 +202,9 @@ export class StreetViewMock {
   
   /**
    * Move forward based on current yaw
+   * 
+   * REALISTIC BEHAVIOR: Only moves if facing a valid connection direction.
+   * Does NOT pick the "best" connection - algorithm must align properly.
    */
   _moveForward() {
     const connections = this.oracle.getConnections(this.currentLocation);
@@ -210,33 +213,33 @@ export class StreetViewMock {
       return;  // No connections
     }
 
-    // Find connection closest to current yaw
-    // Only move if there's a connection within ±45° (realistic Street View behavior!)
-    let bestConn = null;
-    let minDiff = 360;
-
+    // Check if current yaw aligns with ANY connection (within ±30° = one yaw bucket)
+    // Real Street View: you move in the direction you're facing, not the "best" direction
+    let alignedConn = null;
+    
     for (const conn of connections) {
       const yawDiff = Math.abs(conn.exactYaw - this.currentYaw);
       const normalizedDiff = yawDiff > 180 ? 360 - yawDiff : yawDiff;
 
-      if (normalizedDiff < minDiff) {
-        minDiff = normalizedDiff;
-        bestConn = conn;
+      // Only allow movement if facing within ±30° of connection yaw
+      // This forces algorithm to properly align before moving
+      if (normalizedDiff <= 30) {
+        alignedConn = conn;
+        break;  // Take first aligned connection (not necessarily "best")
       }
     }
 
-    // Only move if connection is within ±45° of current yaw
-    // Otherwise we're stuck (no valid connection in this direction)
-    if (bestConn && minDiff <= 45) {
-      if (bestConn.targetLocation !== this.currentLocation) {
-        this.currentLocation = bestConn.targetLocation;
-        this.currentYaw = bestConn.exactToYaw || this.currentYaw;
+    // Move if aligned with a connection
+    if (alignedConn) {
+      if (alignedConn.targetLocation !== this.currentLocation) {
+        this.currentLocation = alignedConn.targetLocation;
+        this.currentYaw = alignedConn.exactToYaw || this.currentYaw;
         this.stuckCount = 0;
       } else {
         this.stuckCount++;
       }
     } else {
-      // No valid connection - we're stuck!
+      // Not aligned with any connection - stuck!
       this.stuckCount++;
     }
 
