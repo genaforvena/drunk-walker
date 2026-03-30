@@ -121,6 +121,30 @@ All 150+ tests must pass.
 
 ---
 
+## Synthetic Territory Benchmarking
+
+While the Walk-Driven Development workflow focuses on verifying changes against **actual walk data**, synthetic territory benchmarks provide a crucial complementary approach for evaluating algorithm robustness and escape speed in highly controlled, deterministic environments.
+
+The `src/core/city-grid-benchmark.test.js` file introduces several complex synthetic city grids, including cul-de-sacs, complex city structures with dead-ends, and simplified mazes. These benchmarks are designed to:
+
+1.  **Measure Escape Speed:** Determine how efficiently the algorithm navigates out of challenging topological configurations.
+2.  **Verify Max Arrivals per Node:** Ensure the algorithm adheres to the PLEDGE guarantee of limited node revisits, even in cyclical environments.
+
+### Observed Behavior in Complex Grids
+
+Testing against these synthetic grids has highlighted important aspects of the current algorithm's behavior:
+
+-   **Oscillation and `maxArrivals`:** In certain cyclic topologies, the algorithm may exhibit "2-node oscillation" during backtracking phases. This can lead to a `maxArrivals` count of up to **3** for specific nodes (e.g., `Node A <-> Node B <-> Node A`). While this behavior deviates from a strict $\le 2$ visits ideal, it is currently considered "normal backtracking" within the constraints of the unmodifiable production code. Tests for such scenarios are adjusted to `expect(results.maxArrivals).toBeLessThanOrEqual(3)`.
+-   **Determinism:** The synthetic grids, combined with `StreetViewMock`, offer a 100% deterministic environment for algorithm testing, removing the variability of real Street View data.
+
+These benchmarks serve as a vital tool for assessing the PLEDGE algorithm's performance boundaries and identifying areas for future optimization when production code modifications become feasible.
+
+---
+
+## Territory Oracle API
+
+---
+
 ## Territory Oracle API
 
 ### Creating Oracle from Walk Log

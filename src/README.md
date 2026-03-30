@@ -274,7 +274,7 @@ npm test
 | `long-walk-simulation.test.js` | 10k/50k step progress verification |
 | `log-replay.test.js` | Log file parsing and replay |
 | `transition-graph.test.js` | Graph learning verification |
-| `input/handlers.test.js` | Key/mouse event simulation |
+| `input/handlers.test.js` | Key/mouse event simulation |\n| `city-grid-benchmark.test.js` | Benchmark algorithm performance on synthetic city grids |
 
 ---
 
