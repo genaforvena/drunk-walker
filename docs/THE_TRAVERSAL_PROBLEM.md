@@ -66,7 +66,7 @@ For Street View, we adapt this:
 │  ↓ (Hit dead end - all yaws tried)                      │
 │                                                         │
 │  TURN LEFT:                                             │
-│  • Turn: 120° LEFT from forward bearing                 │
+│  • Turn: 105° LEFT from forward bearing                 │
 │  • Face: Left wall, slightly back                       │
 │                                                         │
 │  ↓                                                      │
@@ -86,7 +86,7 @@ For Street View, we adapt this:
 
 ### Why 120° Left Turn?
 
-At dead end, we turn **120° LEFT** (not 180° reverse):
+At dead end, we turn **105° LEFT** (not 180° reverse):
 
 ```
         Forward bearing: 90°
@@ -99,13 +99,13 @@ A → ●────→────→ B (blocked)
     │  / | \  │
     ╰────┼────╯
         ↑
-    Turn 120° LEFT → Face 210°
+     Turn 105° LEFT → Face 195°
     (along left wall, slightly back)
 ```
 
 **Why not 180°?**
 - 180° points straight back (we came from there)
-- 120° points along left wall (new scanning angle)
+- 105° points along left wall (new scanning angle)
 - Allows detecting side exits while backtracking
 
 ### Forward Bearing: Facing Direction of Travel

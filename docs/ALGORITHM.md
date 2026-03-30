@@ -44,7 +44,7 @@ The v6.1.5 PLEDGE algorithm uses **systematic wall-following** for guaranteed ma
 ### 3. The Traversal Algorithm (`traversal.js`)
 - **PLEDGE Implementation**: Wall-following with forward-facing
 - **Forward Bearing**: Always face direction of travel (prev→cur)
-- **Dead-End Detection**: All 6 yaws tried → turn LEFT 120°
+- **Dead-End Detection**: All 6 yaws tried → turn LEFT 105°
 - **Wall-Follow Mode**: Scan for left exits (90-180° from forward)
 - **Loop Detection**: Track nodes visited during wall-follow phase
 - **Break-Wall Escape**: Retry successful yaw when truly stuck
@@ -66,7 +66,7 @@ The v6.1.5 PLEDGE algorithm uses **systematic wall-following** for guaranteed ma
 │  ↓ (Hit dead end - all yaws tried)                      │
 │                                                         │
 │  TURN LEFT:                                             │
-│  • Turn: 120° LEFT from forward bearing                 │
+│  • Turn: 105° LEFT from forward bearing                 │
 │  • Face: Left wall, slightly back                       │
 │                                                         │
 │  ↓                                                      │
@@ -124,7 +124,7 @@ const YAW_BUCKETS = [0, 60, 120, 180, 240, 300];
 |------|------------|--------|
 | **NEW** | 0-4 | Go straight, face forward bearing |
 | **JUNCTION** | 2-4 untried | Potential left exit in wall-follow |
-| **DEAD_END** | 6 (all tried) | Turn LEFT 120°, start wall-follow |
+| **DEAD_END** | 6 (all tried) | Turn LEFT 105°, start wall-follow |
 | **FULLY_EXPLORED** | 6 (all tried) | Skip in wall-follow scan |
 
 ### D. Each Node ≤2 Visits Guarantee
@@ -177,8 +177,8 @@ const isDeadEnd = isExhausted && fullyExploredNodes.has(currentLocation);
 if (isDeadEnd && !wallFollowMode) {
   wallFollowMode = true;
   forwardBearing = currentForwardBearing;
-  // Turn 120° LEFT from forward direction
-  wallFollowBearing = (forwardBearing + 120) % 360;
+// Turn 105° LEFT from forward direction
+   wallFollowBearing = (forwardBearing + 105) % 360;
   
   return { turn: true, angle: getLeftTurnAngle(orientation, wallFollowBearing) };
 }
@@ -338,7 +338,7 @@ function yawDifference(a, b) {
 |-------|---------|----------|
 | **FORWARD** | `isNewNode && hasUntriedYaws` | Face forward, move straight |
 | **CUL-DE-SAC-CHECK** | `isNewNode && consecutiveStraightMoves >= 10` | Verify with side exit |
-| **DEAD-END-TURN** | `isExhausted && fullyExplored && !wallFollowMode` | Turn LEFT 120° |
+| **DEAD-END-TURN** | `isExhausted && fullyExplored && !wallFollowMode` | Turn LEFT 105° |
 | **WALL-FOLLOW** | `wallFollowMode === true` | Scan for left exits (90-180°) |
 | **BREAK-WALL** | `isExhausted && successfulYaws.size > 0` | Retry random successful yaw |
 | **STUCK** | `all buckets tried, no successful exits` | STOP (no escape route) |
@@ -429,11 +429,11 @@ To experiment with a new algorithm:
 const decide = (context) => {
   const { currentLocation, orientation, stuckCount, breadcrumbs } = context;
 
-  // Change wall-follow turn angle from 120° to 135°
-  if (isDeadEnd && !wallFollowMode) {
-    wallFollowBearing = (forwardBearing + 135) % 360;  // Was 120°
-    return { turn: true, angle: getLeftTurnAngle(orientation, wallFollowBearing) };
-  }
+// Example: Change wall-follow turn angle from 105° to 115°
+   if (isDeadEnd && !wallFollowMode) {
+     wallFollowBearing = (forwardBearing + 115) % 360;  // Was 105°
+     return { turn: true, angle: getLeftTurnAngle(orientation, wallFollowBearing) };
+   }
 
   // Default PLEDGE logic
   return pledgeDecide(context);
@@ -446,7 +446,7 @@ const decide = (context) => {
 
 | Problem | Old Approach | PLEDGE Approach |
 |---------|-------------|-----------------|
-| **Dead ends** | Random turns, infinite spin | Turn LEFT 120°, wall-follow |
+| **Dead ends** | Random turns, infinite spin | Turn LEFT 105°, wall-follow |
 | **Backtracking** | Step-by-step scan | Wall-follow with left-hand rule |
 | **Yaw drift** | Fight it (fails) | Face forward bearing at each node |
 | **False cul-de-sacs** | Missed branches | Verification at 10+ straight nodes |
@@ -495,7 +495,7 @@ it('should turn LEFT 120° at dead end', () => {
   };
   const decision = algorithm.decide(context);
   expect(decision.turn).toBe(true);
-  // Should turn LEFT ~120° from forward bearing
+  // Should turn LEFT ~105° from forward bearing
 });
 
 // Test 3: Wall-follow left exit detection
