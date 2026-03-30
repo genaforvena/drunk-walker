@@ -485,18 +485,18 @@ it('should face forward bearing at new node', () => {
 });
 
 // Test 2: Dead end detection and wall-follow start
-it('should turn LEFT 120° at dead end', () => {
-  const context = {
-    currentLocation: 'D',
-    orientation: 90,
-    stuckCount: 0,
-    isExhausted: true,
-    fullyExplored: true
-  };
-  const decision = algorithm.decide(context);
-  expect(decision.turn).toBe(true);
-  // Should turn LEFT ~105° from forward bearing
-});
+it('should turn LEFT 105° at dead end', () => {
+   const context = {
+     currentLocation: 'D',
+     orientation: 90,
+     stuckCount: 0,
+     isExhausted: true,
+     fullyExplored: true
+   };
+   const decision = algorithm.decide(context);
+   expect(decision.turn).toBe(true);
+   // Should turn LEFT ~105° from forward bearing
+ });
 
 // Test 3: Wall-follow left exit detection
 it('should find and take left exit in wall-follow mode', () => {

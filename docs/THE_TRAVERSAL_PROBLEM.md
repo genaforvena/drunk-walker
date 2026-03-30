@@ -84,7 +84,7 @@ For Street View, we adapt this:
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Why 120° Left Turn?
+### Why 105° Left Turn?
 
 At dead end, we turn **105° LEFT** (not 180° reverse):
 
@@ -156,8 +156,8 @@ Resume forward if clear
    - Face forward bearing at each node
 
 2. **If dead end (all yaws tried):**
-   - Turn LEFT 120°
-   - Start WALL-FOLLOW mode
+    - Turn LEFT 105°
+    - Start WALL-FOLLOW mode
 
 3. **Second visit (WALL-FOLLOW mode):**
    - Scan for left exits (90-180° from forward)
