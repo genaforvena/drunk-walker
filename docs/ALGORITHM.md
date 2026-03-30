@@ -39,7 +39,7 @@ The v6.1.5 PLEDGE algorithm uses **systematic wall-following** for guaranteed ma
 - **Orientation**: Manages current `yaw` (0-359°)
 - **Physicality**: Handles "left-turn only" constraint via `ArrowLeft` long-presses
 - **Normalization**: Ensures all angles stay within [0, 360) range
-- **Drift Tolerance**: Accepts ±15-20° deviation from target yaw
+- **Drift Tolerance**: Accepts ±20° deviation from target yaw
 
 ### 3. The Traversal Algorithm (`traversal.js`)
 - **PLEDGE Implementation**: Wall-following with forward-facing
@@ -102,7 +102,7 @@ const forwardBearing = Math.atan2(dLng, dLat) * 180 / Math.PI;
 ```
 
 **Usage**:
-- At new nodes: Turn to face forward bearing (if diff >15°)
+- At new nodes: Turn to face forward bearing (if diff >40°)
 - In wall-follow: Reference for left exits (90-180° from forward)
 
 ### B. The Six Yaw Buckets
@@ -150,16 +150,8 @@ if (isNewNode) {
   
   // Face forward direction (if not already)
   const bearingDiff = yawDifference(orientation, forwardBearing);
-  if (bearingDiff > 15 && bearingDiff < 165) {
+  if (bearingDiff > 40 && bearingDiff < 150) {
     return { turn: true, angle: getLeftTurnAngle(orientation, forwardBearing) };
-  }
-  
-  // Cul-de-sac verification at 10+ straight new nodes
-  if (consecutiveStraightMoves >= 10 && currentNode.hasUntriedYaws()) {
-    const sideYaw = findSideYaw(forwardBearing, currentNode.triedYaws);
-    if (sideYaw !== null) {
-      return { turn: true, angle: getLeftTurnAngle(orientation, sideYaw) };
-    }
   }
   
   // Continue forward
@@ -188,11 +180,11 @@ if (isDeadEnd && !wallFollowMode) {
 
 **Trigger:** `wallFollowMode === true`
 
-**Loop Detection:** Track nodes visited during current wall-follow phase to detect cycles.
+**Loop Detection:** Uses stuck counter and dead pocket detection instead of explicit tracking.
 
 ```javascript
-// Track nodes visited during wall-follow phase
-let wallFollowNodes = new Set();
+// Single-node stuck detection: Reset after 20+ ticks on same node
+// Dead pocket detection: Restart after 3 detections of fully exhausted component
 
 if (wallFollowMode && currentNode.hasUntriedYaws()) {
   const untriedYaws = [0, 60, 120, 180, 240, 300]
@@ -216,21 +208,8 @@ if (wallFollowMode && currentNode.hasUntriedYaws()) {
     wallFollowBearing = null;
     forwardBearing = null;
     committedDirection = bestYaw;  // Preserve exit direction
-    wallFollowNodes.clear();  // Reset loop tracking
     return { turn: true, angle: getLeftTurnAngle(orientation, bestYaw) };
   }
-}
-
-// Loop detection: arrived at visited, fully-explored node during wall-follow
-if (wallFollowMode && !isNewNode && currentNode.isFullyExplored) {
-  if (wallFollowNodes.has(currentLocation)) {
-    // LOOP DETECTED! Break out using BREAK_WALL
-    console.log(`🚨 WALL-FOLLOW LOOP! Breaking out...`);
-    wallFollowMode = false;
-    wallFollowBearing = null;
-    // Fall through to BREAK_WALL logic
-  }
-  wallFollowNodes.add(currentLocation);
 }
 
 // Continue wall-follow: face wall-follow bearing
@@ -403,7 +382,7 @@ The threshold of 5 yaws (not 6) is a **pragmatic optimization**:
 | `pace` | 2000ms | Time between decisions |
 | `turnsCooldownTicks` | 3 | Ticks to wait after turn |
 | `stepDistance` | ~10m | Estimated distance between panoramas |
-| `forwardFaceThreshold` | 15° | Turn to face forward if diff >15° |
+| `forwardFaceThreshold` | 40° | Turn to face forward if diff >40° |
 | `culDeSacCheckThreshold` | 10 | Verify at 10+ straight new nodes |
 
 ---

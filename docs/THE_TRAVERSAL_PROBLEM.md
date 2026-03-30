@@ -301,48 +301,47 @@ Example:
 
 **The only solution:** Try the yaw, observe the result, then adapt.
 
-### Wall-Follow Loop Detection
+### Stuck Detection and Dead Pockets
 
-**Problem:** Wall-follow can create cycles in Street View's graph:
+**Problem:** Wall-follow can get stuck in exhausted components.
 
-```
-    B
-   / \
-  A---C   ← Wall-follow: A→C, then C→A (cycle!)
-```
-
-**Detection:** Track nodes visited during current wall-follow phase.
+**Solution:** Two detection mechanisms:
+1. **Single-node stuck:** Reset after 20+ ticks on same node (`locationStuckCounter`)
+2. **Dead pockets:** Component exhausted detection - restart after 3 detections (`deadPocketCount`)
 
 ```javascript
-let wallFollowNodes = new Set();
-
-// When arriving at node during wall-follow:
-if (!isNewNode && currentNode.isFullyExplored) {
-  if (wallFollowNodes.has(currentLocation)) {
-    // LOOP DETECTED! Break out.
+// Single-node stuck detection
+if (currentLocation === lastStuckLocation) {
+  locationStuckCounter++;
+  if (locationStuckCounter > 20 && !isTwoNodeLoop) {
+    // Reset PLEDGE state, keep graph memory
     wallFollowMode = false;
-    // Use BREAK_WALL to escape
+    wallFollowBearing = null;
   }
-  wallFollowNodes.add(currentLocation);
+}
+
+// Dead pocket detection
+if (allNeighborsFullyExplored) {
+  deadPocketCount++;
+  if (deadPocketCount >= 3) {
+    // Clear graph and restart exploration
+    enhancedGraph.nodes.clear();
+    deadPocketCount = 0;
+  }
 }
 ```
-
-**Why this is pure PLEDGE:**
-- Still follows left-hand rule
-- Still uses BREAK_WALL for escape
-- Just detects cycles earlier (before infinite loop)
 
 ### No Hacks Principle
 
 When fixing bugs, prefer solutions that:
 
-1. **Use existing mechanisms:** BREAK_WALL already exists, just trigger it earlier
-2. **Add minimal state:** `wallFollowNodes` set is cleared after each phase
+1. **Use existing mechanisms:** BREAK_WALL already exists, just trigger it appropriately
+2. **Preserve graph memory:** Don't throw away learned information
 3. **Preserve algorithm:** Left-hand rule, forward-facing, break-wall all unchanged
 4. **Respect blindness:** Don't assume knowledge the bot can't have
 
 **Bad hack:** Clear the graph when stuck (throws away learned information)
-**Good fix:** Detect loops and use BREAK_WALL (preserves graph, escapes cleanly)
+**Good fix:** Detect stuck patterns and use BREAK_WALL (preserves graph, escapes cleanly)
 
 ---
 

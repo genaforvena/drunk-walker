@@ -209,44 +209,40 @@ When wall-follow arrives at a **visited, fully-explored node**, we're in a loop.
 
 #### Implementation
 
-Add wall-follow phase tracking:
+The final implementation uses two detection mechanisms:
+
+1. **Single-node stuck detection:** Track ticks on same location, reset after 20+ ticks
+2. **Dead pocket detection:** Track component exhaustion, restart after 3 detections
 
 ```javascript
-// Track nodes visited during current wall-follow phase
-let wallFollowNodes = new Set();
-
-// In WALL-FOLLOW mode, after arriving at a node:
-if (!isNewNode && currentNode.isFullyExplored) {
-  // Arrived at a visited, fully-explored node during wall-follow
-  if (wallFollowNodes.has(currentLocation)) {
-    // LOOP DETECTED! We've been here during this wall-follow phase
-    console.log(`🚨 WALL-FOLLOW LOOP! Breaking out...`);
-
-    // Force BREAK_WALL to escape
+// Single-node stuck detection
+if (currentLocation === lastStuckLocation) {
+  locationStuckCounter++;
+  if (locationStuckCounter > 20 && !isTwoNodeLoop) {
+    // Reset PLEDGE state, keep graph memory
     wallFollowMode = false;
     wallFollowBearing = null;
-
-    // Retry any successful yaw to escape
-    if (currentNode.successfulYaws.size > 0) {
-      const randomYaw = Array.from(currentNode.successfulYaws)[0];
-      return { turn: true, angle: getLeftTurnAngle(orientation, randomYaw) };
-    }
+    locationStuckCounter = 0;
   }
-  wallFollowNodes.add(currentLocation);
 }
 
-// Clear wallFollowNodes when exiting wall-follow mode
-if (!wallFollowMode) {
-  wallFollowNodes.clear();
+// Dead pocket detection
+if (allNeighborsFullyExplored) {
+  deadPocketCount++;
+  if (deadPocketCount >= 3) {
+    // Clear graph and restart exploration
+    enhancedGraph.nodes.clear();
+    deadPocketCount = 0;
+  }
 }
 ```
 
 #### Why This Works
 
-1. **Detects cycles:** If we visit the same node twice during wall-follow, we're in a loop
-2. **Breaks out:** Immediately exits wall-follow mode and uses BREAK_WALL
-3. **Preserves PLEDGE:** Still follows left-hand rule, just escapes cycles
-4. **No hacks:** Uses existing BREAK_WALL mechanism, just triggers it earlier
+1. **Detects stuck patterns:** Single-node loops and exhausted components
+2. **Preserves graph:** Only clears when truly stuck in dead pocket
+3. **Preserves PLEDGE:** Still follows left-hand rule
+4. **No hacks:** Uses existing BREAK_WALL mechanism
 
 #### Related Fixes
 
@@ -344,7 +340,7 @@ Efficiency: >0.55
 
 1. **Loop detection is natural:** Visiting same node twice during wall-follow IS a loop
 2. **Escape is algorithmic:** BREAK_WALL is part of PLEDGE, just triggered earlier
-3. **State is minimal:** Only adds `wallFollowNodes` set (cleared after each phase)
+3. **State is minimal:** Uses existing counters (locationStuckCounter, deadPocketCount)
 
 #### Blind Exploration Respected
 

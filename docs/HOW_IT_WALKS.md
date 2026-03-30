@@ -151,14 +151,8 @@ Face forward bearing (prev→cur direction)
 Move straight into new territory
     ↓
 At each new node:
-  • Face forward bearing (if diff >15°)
+  • Face forward bearing (if diff >40°)
   • Continue straight
-    ↓
-After 10+ straight new nodes:
-  • CUL-DE-SAC CHECK: Verify with side exit
-  • Turn to side yaw (60-150° from forward)
-  • Check for hidden branch
-  • Resume forward if clear
 ```
 
 **Why face forward?**
@@ -345,19 +339,20 @@ const reverseYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
 const forwardBearing = calculateForwardBearing(prev, cur);
 const bearingDiff = yawDifference(orientation, forwardBearing);
 
-if (bearingDiff > 15) {
+if (bearingDiff > 40) {
   turnToFace(forwardBearing);
 }
 ```
 
 ### Hidden Branches
 
-**Problem**: Side paths appear after 10+ straight nodes.
+**Problem**: Side paths may be missed during forward exploration.
 
-**Solution**: Cul-de-sac verification at 10 straight new nodes.
+**Solution**: Wall-follow mode catches missed branches during backtracking (no explicit check needed).
 
 ```javascript
-if (isNewNode && consecutiveStraightMoves >= 10) {
+// No explicit cul-de-sac check - wall-follow handles it
+```
   checkSideExit();  // Verify not a false cul-de-sac
 }
 ```
@@ -402,10 +397,7 @@ if (isExhausted && successfulYaws.size > 0) {
 ```javascript
 const PLEDGE_CONFIG = {
   // When to face forward at new nodes
-  forwardFaceThreshold: 15,  // Turn if bearing diff >15°
-
-  // When to verify cul-de-sac
-  culDeSacCheckThreshold: 10,  // Check at 10+ straight nodes
+  forwardFaceThreshold: 40,  // Turn if bearing diff >40°
 
   // Wall-follow turn angle
   wallFollowTurnAngle: 105,  // Turn LEFT 105° at dead end
