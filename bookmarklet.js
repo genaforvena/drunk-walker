@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Drunk Walker v6.1.8 - BUNDLED BOOKMARKLET
-// Built: 2026-03-30T21:08:29.940Z
+// Built: 2026-03-30T21:48:07.983Z
 // ═══════════════════════════════════════════════════════════════════════════════
 // ⚠️  AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY!
 //
@@ -97,27 +97,16 @@ function createWheel(callbacks) {
   /**
  * Traversal Algorithm v6.1.5 - PURE PLEDGE Wall-Following
  *
- * SIMPLE PLEDGE: FORWARD → TURN LEFT 120° → WALL-FOLLOW → BREAK WALL
+ * SIMPLE PLEDGE: FORWARD → TURN LEFT 105° → WALL-FOLLOW → BREAK WALL
  * NO breadcrumb navigation - pure wall-following only!
  *
  * Key features:
  * - Forward bearing (prev→cur) at new nodes
- * - Cul-de-sac verification at end of straight line
  * - Each node visited AT MOST TWICE
- * - Clear state when stuck >10 steps on 1-2 nodes
+ * - Clear state when stuck >20 steps on same node
  */
 
-function normalizeAngle(angle) {
-  angle = angle % 360;
-  if (angle < 0) angle += 360;
-  return angle;
-}
-
-function yawDifference(yaw1, yaw2) {
-  let diff = Math.abs(normalizeAngle(yaw1) - normalizeAngle(yaw2));
-  if (diff > 180) diff = 360 - diff;
-  return diff;
-}
+const __export_dummy = { extractLocationFromUrl, extractYawFromUrl } from './url-utils.js';
 
 /**
  * Calculate angle to turn LEFT (counter-clockwise) to reach targetYaw from currentYaw
@@ -127,121 +116,6 @@ function yawDifference(yaw1, yaw2) {
  * - Right turn: 360 - 69 = 291° (clockwise)
  * - This function returns: 69°
  */
-function getLeftTurnAngle(currentYaw, targetYaw) {
-  // LEFT turn (counter-clockwise) = current - target
-  let angle = (normalizeAngle(currentYaw) - normalizeAngle(targetYaw) + 360) % 360;
-  return angle;
-}
-
-function extractYawFromUrl(url) {
-  if (!url) return null;
-  const match = url.match(/yaw%3D([0-9.]+)/);
-  return match ? parseFloat(match[1]) : null;
-}
-
-function extractLocationFromUrl(url) {
-  if (!url) return null;
-  const hashMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (hashMatch) {
-    return `${hashMatch[1]},${hashMatch[2]}`;
-  }
-  return null;
-}
-
-/**
- * Calculate yaw from last movement (previous location → current)
- */
-function calculateYawFromLastMove(previousLocation, currentLocation) {
-  if (!previousLocation || !currentLocation || previousLocation === currentLocation) {
-    return null;
-  }
-
-  const prev = previousLocation.split(',').map(Number);
-  const curr = currentLocation.split(',').map(Number);
-
-  const dLat = curr[0] - prev[0];
-  const dLng = curr[1] - prev[1];
-
-  let yaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
-  if (yaw < 0) yaw += 360;
-
-  return Math.round(yaw);
-}
-
-class NodeInfo {
-  constructor(location, lat, lng, step) {
-    this.location = location;
-    this.lat = lat;
-    this.lng = lng;
-    this.triedYaws = new Set();
-    this.successfulYaws = new Set();
-    this.isFullyExplored = false;
-  }
-
-  recordAttempt(yaw, success, targetLocation = null) {
-    const bucket = Math.round(normalizeAngle(yaw) / 60) * 60 % 360;
-    this.triedYaws.add(bucket);
-    if (success && targetLocation) {
-      this.successfulYaws.add(bucket);
-    }
-    // Mark as fully explored when 5+ yaws tried
-    if (this.triedYaws.size >= 5) {
-      this.isFullyExplored = true;
-    }
-  }
-
-  hasUntriedYaws() { return this.triedYaws.size < 6; }
-}
-
-class EnhancedTransitionGraph {
-  constructor() {
-    this.nodes = new Map();
-    this.connections = new Map();
-  }
-
-  getOrCreate(location, lat, lng, step = 0) {
-    if (!this.nodes.has(location)) {
-      this.nodes.set(location, new NodeInfo(location, lat, lng, step));
-      this.connections.set(location, new Set());
-    }
-    return this.nodes.get(location);
-  }
-
-  get(location) { return this.nodes.get(location); }
-
-  recordMovement(fromLoc, toLoc, fromYaw, toYaw, step) {
-    const fromNode = this.getOrCreate(fromLoc, parseFloat(fromLoc.split(',')[0]), parseFloat(fromLoc.split(',')[1]), step);
-    const toNode = this.getOrCreate(toLoc, parseFloat(toLoc.split(',')[0]), parseFloat(toLoc.split(',')[1]), step);
-
-    // Record forward direction at fromNode
-    fromNode.recordAttempt(fromYaw, true, toLoc);
-
-    // Record reverse direction at toNode (geometric direction back to where we came from)
-    // Calculate from coordinates, NOT from toYaw (which is Google's camera orientation after landing)
-    const fromParts = fromLoc.split(',').map(Number);
-    const toParts = toLoc.split(',').map(Number);
-    const dLat = fromParts[0] - toParts[0];  // FROM neighbor TO current
-    const dLng = fromParts[1] - toParts[1];
-    let reverseYaw = Math.atan2(dLng, dLat) * 180 / Math.PI;
-    if (reverseYaw < 0) reverseYaw += 360;
-    reverseYaw = Math.round(reverseYaw);
-    toNode.recordAttempt(reverseYaw, true, fromLoc);
-
-    // Bidirectional connection tracking
-    if (!this.connections.get(fromLoc).has(toLoc)) {
-      this.connections.get(fromLoc).add(toLoc);
-    }
-    if (!this.connections.get(toLoc).has(fromLoc)) {
-      this.connections.get(toLoc).add(fromLoc);
-    }
-  }
-
-  recordFailedAttempt(location, yaw, step) {
-    const parts = location.split(',');
-    const node = this.getOrCreate(location, parseFloat(parts[0]), parseFloat(parts[1]), step);
-    node.recordAttempt(yaw, false, null);
-  }
-}
 
 /**
  * PURE PLEDGE ALGORITHM v6.1.5
@@ -747,15 +621,6 @@ function createUnifiedAlgorithm(cfg) {
     return closestYaw;
   }
 
-  /**
-   * Determine optimal turn direction (left or right)
-   */
-  function getTurnDirection(currentYaw, targetYaw) {
-    const leftAngle = getLeftTurnAngle(currentYaw, targetYaw);
-    const rightAngle = (360 - leftAngle) % 360;
-    return rightAngle < leftAngle ? 'right' : 'left';
-  }
-
   return {
     decide,
     enhancedGraph
@@ -881,21 +746,6 @@ function createEngine(config = {}) {
   let onLongKeyPress = null;
   let onWalkStop = null;
 
-  const extractLocation = (url) => {
-    try {
-      const hashMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (hashMatch) return `${hashMatch[1]},${hashMatch[2]}`;
-    } catch (e) {}
-    return null;
-  };
-
-  const extractYaw = (url) => {
-    if (!url) return null;
-    // Match both &yaw=123 and 75y,123h formats
-    const match = url.match(/yaw[=%]3D?([0-9.]+)/i) || url.match(/,([0-9.]+)h/i);
-    return match ? parseFloat(match[1]) : null;
-  };
-
   const wheelCallbacks = {
     onLongKeyPress: null
   };
@@ -928,7 +778,7 @@ function createEngine(config = {}) {
   const clearWalkPath = () => { walkPath = []; };
   const getVisitedCount = () => visitedUrls.size;
   const clearVisitedUrls = () => { visitedUrls.clear(); breadcrumbs = []; };
-  const isUrlVisited = (url) => visitedUrls.has(extractLocation(url));
+  const isUrlVisited = (url) => visitedUrls.has(extractLocationFromUrl(url));
   const getCurrentYaw = () => wheel.getOrientation();
   const resetCurrentYaw = () => wheel.setOrientation(0);
   const setCurrentYaw = (yaw) => wheel.setOrientation(yaw);  // For testing
@@ -940,7 +790,7 @@ function createEngine(config = {}) {
     visitedUrls.clear();
     breadcrumbs = [];
     for (const step of path) {
-      const loc = extractLocation(step.url);
+      const loc = extractLocationFromUrl(step.url);
       if (loc) {
         visitedUrls.set(loc, (visitedUrls.get(loc) || 0) + 1);
         breadcrumbs.push(loc);
@@ -964,7 +814,7 @@ function createEngine(config = {}) {
   const recordStep = () => {
     if (!isPathCollectionEnabled) return;
     const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
-    const currentLocation = extractLocation(currentUrl);
+    const currentLocation = extractLocationFromUrl(currentUrl);
     walkPath.push({ url: currentUrl, timestamp: Date.now() });
     if (currentLocation) {
       visitedUrls.set(currentLocation, (visitedUrls.get(currentLocation) || 0) + 1);
@@ -1017,8 +867,8 @@ function createEngine(config = {}) {
     }
 
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
-    const currentLocation = extractLocation(currentUrl);
-    const currentYaw = extractYaw(currentUrl);
+    const currentLocation = extractLocationFromUrl(currentUrl);
+    const currentYaw = extractYawFromUrl(currentUrl);
 
     console.log(`[DEBUG] currentUrl=${currentUrl.substring(0, 80)}...`);
     console.log(`[DEBUG] currentLocation=${currentLocation}, currentYaw=${currentYaw}, previousLocation=${previousLocation}`);

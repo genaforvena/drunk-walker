@@ -172,13 +172,22 @@ drunk-walker/
 │   │   ├── engine.js              # Orchestrator (state, timing)
 │   │   ├── wheel.js               # Physicality (orientation, turning)
 │   │   ├── traversal.js           # PLEDGE wall-following logic
-│   │   ├── engine.test.js         # Unit tests
-│   │   ├── real-walk-log-replay.test.js  # Real walk replay tests
+│   │   ├── config.js              # Centralized configuration
+│   │   ├── yaw.js                 # Yaw/angle utilities
+│   │   ├── graph.js               # Enhanced transition graph
+│   │   ├── url-utils.js           # URL parsing utilities
+│   │   ├── config.test.js         # Config tests
+│   │   ├── yaw.test.js            # Yaw utilities tests
+│   │   ├── graph.test.js          # Graph tests
+│   │   ├── url-utils.test.js      # URL utils tests
+│   │   ├── engine.test.js         # Engine tests
+│   │   ├── traversal.test.js     # Traversal tests
 │   │   └── ...
 │   ├── input/
 │   │   └── handlers.js            # Key/Mouse event simulation
 │   ├── ui/
-│   │   └── controller.js          # Control panel
+│   │   ├── controller.js          # Control panel
+│   │   └── exploration-map.js      # Mini-map visualization
 │   └── main.js                    # Entry point
 ├── docs/                          # Algorithm documentation
 ├── walks/                         # Walk log files (*.txt)
@@ -199,14 +208,13 @@ The central orchestrator. It manages the `setInterval` loop and maintains the gl
 - **Stuck Detection**: Compares current and previous locations.
 - **Transition Graph**: Learned connectivity (yaw buckets per node).
 
-### 2. The Wheel (orientation handling in `traversal.js`)
-Handles the "Physicality" of the bot.
+### 2. The Wheel (`src/core/wheel.js`)
+Handles orientation and turning:
 - Manages the `yaw` (0-359).
-- Translates degrees into `ArrowLeft` hold durations.
-- Ensures all movement is "Left-Turn only."
+- Translates degrees into `ArrowLeft`/ArrowRight hold durations.
 
 ### 3. The Traversal (`src/core/traversal.js`)
-**PLEDGE Wall-Following Algorithm** (v6.1.5):
+**PLEDGE Wall-Following Algorithm** (v6.1.8):
 
 | State | Trigger | Action |
 |-------|---------|--------|
@@ -215,10 +223,20 @@ Handles the "Physicality" of the bot.
 | **WALL-FOLLOW** | Backtracking | Scan for left exits (90-180° from forward) |
 | **BREAK_WALL** | Truly stuck | Retry random successful yaw |
 
-**v6.1.5 Features:**
+### 4. Supporting Modules
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **Config** | `config.js` | Centralized magic numbers and tunable parameters |
+| **Yaw** | `yaw.js` | Angle math: normalize, difference, turn calculations |
+| **Graph** | `graph.js` | EnhancedTransitionGraph with NodeInfo |
+| **URL Utils** | `url-utils.js` | Extract location/yaw from Google Maps URLs |
+
+**v6.1.8 Features:**
+- Modular architecture (config, yaw, graph, url-utils)
+- 234 tests covering all modules
 - Territory Oracle for deterministic testing
 - Walk-driven development workflow
-- Mandatory release checklist
 
 ---
 

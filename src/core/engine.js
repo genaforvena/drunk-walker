@@ -10,9 +10,9 @@
 import { createWheel } from './wheel.js';
 import {
   createUnifiedAlgorithm,
-  createDefaultAlgorithm,
-  extractLocationFromUrl
+  createDefaultAlgorithm
 } from './traversal.js';
+import { extractLocationFromUrl, extractYawFromUrl } from './url-utils.js';
 import { VERSION } from '../version.js';
 
 export { VERSION };
@@ -68,21 +68,6 @@ export function createEngine(config = {}) {
   let onLongKeyPress = null;
   let onWalkStop = null;
 
-  const extractLocation = (url) => {
-    try {
-      const hashMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (hashMatch) return `${hashMatch[1]},${hashMatch[2]}`;
-    } catch (e) {}
-    return null;
-  };
-
-  const extractYaw = (url) => {
-    if (!url) return null;
-    // Match both &yaw=123 and 75y,123h formats
-    const match = url.match(/yaw[=%]3D?([0-9.]+)/i) || url.match(/,([0-9.]+)h/i);
-    return match ? parseFloat(match[1]) : null;
-  };
-
   const wheelCallbacks = {
     onLongKeyPress: null
   };
@@ -115,7 +100,7 @@ export function createEngine(config = {}) {
   const clearWalkPath = () => { walkPath = []; };
   const getVisitedCount = () => visitedUrls.size;
   const clearVisitedUrls = () => { visitedUrls.clear(); breadcrumbs = []; };
-  const isUrlVisited = (url) => visitedUrls.has(extractLocation(url));
+  const isUrlVisited = (url) => visitedUrls.has(extractLocationFromUrl(url));
   const getCurrentYaw = () => wheel.getOrientation();
   const resetCurrentYaw = () => wheel.setOrientation(0);
   const setCurrentYaw = (yaw) => wheel.setOrientation(yaw);  // For testing
@@ -127,7 +112,7 @@ export function createEngine(config = {}) {
     visitedUrls.clear();
     breadcrumbs = [];
     for (const step of path) {
-      const loc = extractLocation(step.url);
+      const loc = extractLocationFromUrl(step.url);
       if (loc) {
         visitedUrls.set(loc, (visitedUrls.get(loc) || 0) + 1);
         breadcrumbs.push(loc);
@@ -151,7 +136,7 @@ export function createEngine(config = {}) {
   const recordStep = () => {
     if (!isPathCollectionEnabled) return;
     const currentUrl = typeof window !== 'undefined' ? window.location.href : lastUrl;
-    const currentLocation = extractLocation(currentUrl);
+    const currentLocation = extractLocationFromUrl(currentUrl);
     walkPath.push({ url: currentUrl, timestamp: Date.now() });
     if (currentLocation) {
       visitedUrls.set(currentLocation, (visitedUrls.get(currentLocation) || 0) + 1);
@@ -204,8 +189,8 @@ export function createEngine(config = {}) {
     }
 
     const currentUrl = typeof window !== 'undefined' ? window.location.href : (lastUrl || '');
-    const currentLocation = extractLocation(currentUrl);
-    const currentYaw = extractYaw(currentUrl);
+    const currentLocation = extractLocationFromUrl(currentUrl);
+    const currentYaw = extractYawFromUrl(currentUrl);
 
     console.log(`[DEBUG] currentUrl=${currentUrl.substring(0, 80)}...`);
     console.log(`[DEBUG] currentLocation=${currentLocation}, currentYaw=${currentYaw}, previousLocation=${previousLocation}`);
